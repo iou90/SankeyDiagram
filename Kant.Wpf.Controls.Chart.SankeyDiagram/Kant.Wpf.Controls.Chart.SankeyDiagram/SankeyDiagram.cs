@@ -15,40 +15,46 @@ using System.Windows.Shapes;
 
 namespace Kant.Wpf.Controls.Chart
 {
-    /// <summary>
-    /// Follow steps 1a or 1b and then 2 to use this custom control in a XAML file.
-    ///
-    /// Step 1a) Using this custom control in a XAML file that exists in the current project.
-    /// Add this XmlNamespace attribute to the root element of the markup file where it is 
-    /// to be used:
-    ///
-    ///     xmlns:MyNamespace="clr-namespace:Kant.Wpf.Controls.Chart.SankeyDiagram"
-    ///
-    ///
-    /// Step 1b) Using this custom control in a XAML file that exists in a different project.
-    /// Add this XmlNamespace attribute to the root element of the markup file where it is 
-    /// to be used:
-    ///
-    ///     xmlns:MyNamespace="clr-namespace:Kant.Wpf.Controls.Chart.SankeyDiagram;assembly=Kant.Wpf.Controls.Chart.SankeyDiagram"
-    ///
-    /// You will also need to add a project reference from the project where the XAML file lives
-    /// to this project and Rebuild to avoid compilation errors:
-    ///
-    ///     Right click on the target project in the Solution Explorer and
-    ///     "Add Reference"->"Projects"->[Select this project]
-    ///
-    ///
-    /// Step 2)
-    /// Go ahead and use your control in the XAML file.
-    ///
-    ///     <MyNamespace:CustomControl1/>
-    ///
-    /// </summary>
     public class SankeyDiagram : Control
     {
+        #region Constructor
+
         static SankeyDiagram()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(SankeyDiagram), new FrameworkPropertyMetadata(typeof(SankeyDiagram)));
         }
+
+        #endregion
+
+        #region Methods
+
+        private static void OnDatasSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            ((SankeyDiagram)o).OnDatasChanged((IEnumerable<SankeyDiagram>)e.NewValue, (IEnumerable<SankeyDiagram>)e.OldValue);
+        }
+
+        private void OnDatasChanged(IEnumerable<SankeyDiagram> newDatas, IEnumerable<SankeyDiagram> oldDatas)
+        {
+            if(newDatas == oldDatas)
+            {
+                return;
+            }
+
+
+        }
+
+        #endregion
+
+        #region Fields & Properties
+
+        public IEnumerable<SankeyDataRow> Datas
+        {
+            get { return (IEnumerable<SankeyDataRow>)GetValue(DatasProperty); }
+            set { SetValue(DatasProperty, value); }
+        }
+
+        public static readonly DependencyProperty DatasProperty = DependencyProperty.Register("Datas", typeof(IEnumerable<SankeyDataRow>), typeof(SankeyDiagram), new PropertyMetadata(new List<SankeyDiagram>(), OnDatasSourceChanged));
+
+        #endregion
     }
 }
