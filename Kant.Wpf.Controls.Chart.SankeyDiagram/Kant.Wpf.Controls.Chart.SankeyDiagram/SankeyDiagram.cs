@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 
 namespace Kant.Wpf.Controls.Chart
 {
+    [TemplatePart(Name = "PartDiagramPanel", Type = typeof(StackPanel))]
     public class SankeyDiagram : Control
     {
         #region Constructor
@@ -27,6 +28,12 @@ namespace Kant.Wpf.Controls.Chart
         #endregion
 
         #region Methods
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+            DiagramPanel = (StackPanel)GetTemplateChild("PartDiagramPanel");
+        }
 
         private static void OnDatasSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
@@ -54,6 +61,8 @@ namespace Kant.Wpf.Controls.Chart
         }
 
         public static readonly DependencyProperty DatasProperty = DependencyProperty.Register("Datas", typeof(IEnumerable<SankeyDataRow>), typeof(SankeyDiagram), new PropertyMetadata(new List<SankeyDiagram>(), OnDatasSourceChanged));
+
+        public StackPanel DiagramPanel { get; set; }
 
         #endregion
     }

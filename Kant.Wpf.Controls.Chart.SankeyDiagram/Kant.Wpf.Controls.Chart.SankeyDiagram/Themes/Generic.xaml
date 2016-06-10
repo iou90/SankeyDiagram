@@ -6,11 +6,8 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:SankeyDiagram}">
-                    <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
-
-                    </Border>
+                    <StackPanel x:Name="PartDiagramPanel"
+                                Orientation="Horizontal" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

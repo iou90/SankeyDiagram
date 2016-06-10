@@ -12,6 +12,6 @@ namespace Kant.Wpf.Controls.Chart
 
         public string To { get; set; }
 
-        public string Weight { get; set; }
+        public double Weight { get; set; }
     }
 }
