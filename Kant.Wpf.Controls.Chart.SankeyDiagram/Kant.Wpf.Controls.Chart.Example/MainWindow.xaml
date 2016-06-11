@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Kant.Wpf.Controls.Chart.Example"
         xmlns:kantCharts="clr-namespace:Kant.Wpf.Controls.Chart;assembly=Kant.Wpf.Controls.Chart.SankeyDiagram"
         mc:Ignorable="d"
-        Height="500"
+        Height="800"
         Width="700"
         Title="MainWindow">
     <Window.Resources>
@@ -19,10 +19,12 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Grid Height="400"
+    <Grid Height="800"
           Width="600"
+          Margin="10,50,10,10"
           Background="PowderBlue">
-        <kantCharts:SankeyDiagram />
+        <StackPanel>
+            <kantCharts:SankeyDiagram Height="300" />
         <Border Margin="50"
                 BorderBrush="Black"
                 BorderThickness="1">
@@ -292,5 +294,6 @@
                 </ItemsControl>
             </StackPanel>
         </Border>
+        </StackPanel>
     </Grid>
 </Window>

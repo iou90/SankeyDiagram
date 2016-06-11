@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,7 +32,6 @@ namespace Kant.Wpf.Controls.Chart
             NodeIntervalSpace = 5;
             NodeLength = 10;
             NodeFill = new SolidColorBrush(Colors.Black);
-            LinkLength = 150;
             defaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = 0.55 };
 
             // test
@@ -54,10 +54,23 @@ namespace Kant.Wpf.Controls.Chart
                 new SankeyDataRow("E", "I", 1),
             };
 
-            unitLength = 20;
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             var nodeDictionary = ProduceNodes(datas, new Dictionary<int, List<SankeyNode>>(), 0);
-            nodeDictionary = CalculateNodesLength(datas, nodeDictionary);
-            var linkDictionary = ProduceLinks(datas, nodeDictionary);
+            currentNodes = CalculateNodesLength(datas, nodeDictionary);
+            currentLinks = ProduceLinks(datas, nodeDictionary);
+            stopwatch.Stop();
+
+            Loaded += (s, e) =>
+            {
+                if (isDiagramLoaded)
+                {
+                    return;
+                }
+
+                CreateDiagram(currentNodes, currentLinks);
+                isDiagramLoaded = true;
+            };
         }
 
         #endregion
@@ -87,17 +100,93 @@ namespace Kant.Wpf.Controls.Chart
                 // clean panel
             }
 
-            unitLength = 20;
-
             // key means col/row index
             var nodeDictionary = ProduceNodes(newDatas, new Dictionary<int, List<SankeyNode>>(), 0);
 
-            var linkDictionary = new Dictionary<int, List<SankeyLink>>();
-
             // calculate node height
-            nodeDictionary = CalculateNodesLength(newDatas, nodeDictionary);
+            currentNodes = CalculateNodesLength(newDatas, nodeDictionary);
 
             // create links
+            currentLinks = ProduceLinks(newDatas, nodeDictionary);
+
+            // drawing...
+            if (isDiagramLoaded)
+            {
+                CreateDiagram(currentNodes, currentLinks);
+            }
+        }
+
+        private void CreateDiagram(Dictionary<int, List<SankeyNode>> nodes, Dictionary<int, List<SankeyLink>> links)
+        {
+            if(DiagramPanel.ActualHeight <= 0 || nodes == null || nodes.Count < 2 || links == null || links.Count == 0)
+            {
+                return;
+            }
+
+            var panelLength = DiagramPanel.ActualHeight;
+            var linkLength = (DiagramPanel.ActualWidth - nodes.Count * NodeLength) / links.Count;
+            var nodeIntervalSpace = NodeIntervalSpace <= 0 ? defaultNodeIntervalSpace : NodeIntervalSpace;
+            var nodesGroupContainerStyle = new Style();
+            nodesGroupContainerStyle.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(0, nodeIntervalSpace, 0, 0)));
+            var maxGroupLength = 0.0;
+            var maxGroupCount = 0;
+
+            for(var index = 0; index < nodes.Count; index++)
+            {
+                var tempGroupLength = 0.0;
+
+                for(var gIndex = 0; gIndex < nodes[index].Count; gIndex++)
+                {
+                    tempGroupLength += nodes[index][gIndex].Shape.Height;    
+                }
+
+                if(tempGroupLength > maxGroupLength)
+                {
+                    maxGroupLength = tempGroupLength;
+                    maxGroupCount = nodes[index].Count;
+                }
+            }
+
+            var unitLength = (int)((panelLength - ((maxGroupCount - 1) * nodeIntervalSpace)) / maxGroupLength);
+
+            for (var index = 0; index < nodes.Count; index++)
+            {
+                var nodesGroup = new ItemsControl();
+                nodesGroup.VerticalAlignment = VerticalAlignment.Bottom;
+                nodesGroup.ItemContainerStyle = nodesGroupContainerStyle;
+
+                for (var gIndex = 0; gIndex < nodes[index].Count; gIndex++)
+                {
+                    nodes[index][gIndex].Shape.Height = nodes[index][gIndex].Shape.Height * unitLength;
+                    nodesGroup.Items.Add(nodes[index][gIndex].Shape);
+                }
+
+                DiagramPanel.Children.Add(nodesGroup);
+                var canvas = new Canvas() { Width = linkLength };
+                DiagramPanel.Children.Add(canvas);
+            }
+                    //var geometry = new PathGeometry()
+                    //{
+                    //    Figures = new PathFigureCollection()
+                    //    {
+                    //        new PathFigure()
+                    //        {
+                    //            StartPoint = new Point(),
+
+                //            Segments = new PathSegmentCollection()
+                //            {
+                //                new BezierSegment()
+                //                {
+                //                    Point1 = new Point(),
+                //                    Point2 = new Point(),
+                //                    Point3 = new Point()
+                //                }
+                //            }
+                //        }
+                //    }
+                //};
+
+                //geometry.Freeze();
         }
 
         private Dictionary<int, List<SankeyNode>> ProduceNodes(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes, int levelIndex)
@@ -182,7 +271,7 @@ namespace Kant.Wpf.Controls.Chart
 
             for (var index = 0; index < tempDatas.Count; index++)
             {
-                var length = tempDatas[index].Weight * unitLength;
+                var length = tempDatas[index].Weight;
 
                 if (nodeFromHeightDictionary.Keys.Contains(tempDatas[index].From))
                 {
@@ -266,7 +355,9 @@ namespace Kant.Wpf.Controls.Chart
                             }
                         }
 
-                        link = CreateLink(link, tempDatas[index]);
+                        var shape = new Path();
+                        shape.Fill = tempDatas[index].LinkFill == null ? defaultLinkBrush : tempDatas[index].LinkFill;
+                        link.Shape = shape;
 
                         if (linkDictionary.Keys.Contains(fCount))
                         {
@@ -319,50 +410,6 @@ namespace Kant.Wpf.Controls.Chart
             return new SankeyNode(shape, l);
         }
 
-        private SankeyLink CreateLink(SankeyLink link, SankeyDataRow data)
-        {
-            var shape = new Path();
-
-            if (data.LinkFill != null)
-            {
-                shape.Fill = data.LinkFill;
-            }
-            else
-            {
-                shape.Fill = defaultLinkBrush;
-            }
-
-            shape.StrokeThickness = unitLength * data.Weight;
-            var panelLength = DiagramPanel.Height;
-
-            var geometry = new PathGeometry()
-            {
-                Figures = new PathFigureCollection()
-                {
-                    new PathFigure()
-                    {
-                        StartPoint = new Point(),
-
-                        Segments = new PathSegmentCollection()
-                        {
-                            new BezierSegment()
-                            {
-                                Point1 = new Point(),
-                                Point2 = new Point(),
-                                Point3 = new Point()
-                            }
-                        }
-                    }
-                }
-            };
-
-            geometry.Freeze();
-            shape.Data = geometry;
-            link.Shape = shape;
-
-            return link;
-        }
-
         #endregion
 
         #region Fields & Properties
@@ -387,9 +434,15 @@ namespace Kant.Wpf.Controls.Chart
 
         public StackPanel DiagramPanel { get; set; }
 
-        private Brush defaultLinkBrush { get; set; }
+        private Dictionary<int, List<SankeyNode>> currentNodes;
 
-        private double unitLength;
+        private Dictionary<int, List<SankeyLink>> currentLinks;
+
+        private double defaultNodeIntervalSpace;
+
+        private Brush defaultLinkBrush;
+
+        private bool isDiagramLoaded;
 
         #endregion
     }

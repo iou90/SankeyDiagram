@@ -7,7 +7,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:SankeyDiagram}">
                     <StackPanel x:Name="PartDiagramPanel"
-                                Orientation="Horizontal" />
+                                Orientation="Horizontal"
+                                Background="{TemplateBinding Background}"
+                                Margin="{TemplateBinding Margin}" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
