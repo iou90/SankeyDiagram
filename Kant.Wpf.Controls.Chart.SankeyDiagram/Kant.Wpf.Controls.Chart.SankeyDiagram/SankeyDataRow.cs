@@ -27,7 +27,7 @@ namespace Kant.Wpf.Controls.Chart
 
             if(linkFill != null)
             {
-                LinkFill = linkFill;
+                LinkStroke = linkFill;
             }
         }
 
@@ -37,6 +37,6 @@ namespace Kant.Wpf.Controls.Chart
 
         public double Weight { get; }
 
-        public Brush LinkFill { get; }
+        public Brush LinkStroke { get; }
     }
 }

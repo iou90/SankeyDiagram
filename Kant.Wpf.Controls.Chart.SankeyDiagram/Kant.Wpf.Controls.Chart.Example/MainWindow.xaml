@@ -7,7 +7,7 @@
         xmlns:kantCharts="clr-namespace:Kant.Wpf.Controls.Chart;assembly=Kant.Wpf.Controls.Chart.SankeyDiagram"
         mc:Ignorable="d"
         Height="800"
-        Width="700"
+        Width="600"
         Title="MainWindow">
     <Window.Resources>
         <Style TargetType="Path">
@@ -20,280 +20,282 @@
         </Style>
     </Window.Resources>
     <Grid Height="800"
-          Width="600"
+          Width="500"
           Margin="10,50,10,10"
           Background="PowderBlue">
         <StackPanel>
-            <kantCharts:SankeyDiagram Height="300" />
-        <Border Margin="50"
-                BorderBrush="Black"
-                BorderThickness="1">
-            <StackPanel x:Name="panel"
-                        Height="300"
-                        Orientation="Horizontal">
-                <!--<StackPanel.RenderTransform>
-                    <RotateTransform Angle="270" CenterX="250" CenterY="250"  />
-                </StackPanel.RenderTransform>-->
-                <ItemsControl VerticalAlignment="Bottom">
-                    <ItemsControl.Items>
-                        <Rectangle x:Name="testNode"
-                                   Fill="Black"
-                                   Width="10"
+            <kantCharts:SankeyDiagram Height="300"
+                                      Margin="20"
+                                      IsDiagramVertical="False" />
+            <Border Margin="20">
+                <StackPanel x:Name="panel"
+                            Height="300"
+                            Orientation="Horizontal">
+                    <!--<StackPanel.RenderTransform>
+                        <RotateTransform Angle="90"
+                                         CenterX="200"
+                                         CenterY="200" />
+                    </StackPanel.RenderTransform>-->
+                    <ItemsControl VerticalAlignment="Bottom">
+                        <ItemsControl.Items>
+                            <Rectangle x:Name="testNode"
+                                       Fill="Black"
+                                       Width="10"
                                        Height="90" />
-                        <Rectangle Fill="Black"
-                                   Width="10"
-                                   Height="60" />
-                    </ItemsControl.Items>
-                    <ItemsControl.ItemContainerStyle>
-                        <Style>
-                            <Setter Property="FrameworkElement.Margin"
-                                    Value="0,5,0,0" />
-                        </Style>
-                    </ItemsControl.ItemContainerStyle>
-                </ItemsControl>
-                <Canvas Width="150">
-                    <Path StrokeThickness="30">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,160">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,160"
-                                                       Point2="90,140"
-                                                       Point3="150,140" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="45">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,197.5">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,197.5"
-                                                       Point2="90,212.5"
-                                                       Point3="150,212.5" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="15">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,227.5">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,227.5"
-                                                       Point2="90,277.5"
-                                                       Point3="150,277.5" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="15">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,247.5">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,247.5"
-                                                       Point2="90,162.5"
-                                                       Point3="150,162.5" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="30">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,269.5">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,269.5"
-                                                       Point2="90,250"
-                                                       Point3="150,250" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="15">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,292">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,292"
-                                                       Point2="90,292.5"
-                                                       Point3="150,292.5" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <!--<TextBlock Text="hey" Margin="10" Canvas.Top="175" />-->
-                </Canvas>
-                <ItemsControl VerticalAlignment="Bottom">
-                    <ItemsControl.Items>
-                        <Rectangle Fill="Black"
-                                   Width="10"
-                                   Height="60" />
-                        <Rectangle Fill="Black"
-                                   Width="10"
-                                   Height="75" />
-                        <Rectangle Fill="Black"
-                                   Width="10"
-                                   Height="30" />
-                    </ItemsControl.Items>
-                    <ItemsControl.ItemContainerStyle>
-                        <Style>
-                            <Setter Property="FrameworkElement.Margin"
-                                    Value="0,5,0,0" />
-                        </Style>
-                    </ItemsControl.ItemContainerStyle>
-                </ItemsControl>
-                <Canvas Width="150">
-                    <Path StrokeThickness="30">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,140">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,140"
-                                                       Point2="90,135"
-                                                       Point3="150,135" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="15">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,162.5">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,162.5"
-                                                       Point2="90,192.5"
-                                                       Point3="150,192.5" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="15">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,177.5">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,177.5"
-                                                       Point2="90,277.5"
-                                                       Point3="150,277.5" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="30">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,205">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,205"
-                                                       Point2="90,165"
-                                                       Point3="150,165" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="15">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,227.5">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,227.5"
-                                                       Point2="90,207.5"
-                                                       Point3="150,207.5" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="15">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,242.5">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,242.5"
-                                                       Point2="90,242.5"
-                                                       Point3="150,242.5" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="15">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,257.5">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,257.5"
-                                                       Point2="90,292.5"
-                                                       Point3="150,292.5" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="15">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,277.5">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,277.5"
-                                                       Point2="90,222.5"
-                                                       Point3="150,222.5" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                    <Path StrokeThickness="15">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,292.5">
-                                    <PathFigure.Segments>
-                                        <BezierSegment Point1="60,292.5"
-                                                       Point2="90,257.5"
-                                                       Point3="150,257.5" />
-                                    </PathFigure.Segments>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
-                </Canvas>
-                <ItemsControl VerticalAlignment="Bottom">
-                    <ItemsControl.Items>
-                        <Rectangle Fill="Black"
-                                   Width="10"
-                                   Height="60" />
-                        <Rectangle Fill="Black"
-                                   Width="10"
-                                   Height="45" />
-                        <Rectangle Fill="Black"
-                                   Width="10"
-                                   Height="30" />
-                        <Rectangle Fill="Black"
-                                   Width="10"
-                                   Height="30" />
-                    </ItemsControl.Items>
-                    <ItemsControl.ItemContainerStyle>
-                        <Style>
-                            <Setter Property="FrameworkElement.Margin"
-                                    Value="0,5,0,0" />
-                        </Style>
-                    </ItemsControl.ItemContainerStyle>
-                </ItemsControl>
-            </StackPanel>
-        </Border>
+                            <Rectangle Fill="Black"
+                                       Width="10"
+                                       Height="60" />
+                        </ItemsControl.Items>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style>
+                                <Setter Property="FrameworkElement.Margin"
+                                        Value="0,5,0,0" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                    </ItemsControl>
+                    <Canvas Width="150">
+                        <Path StrokeThickness="30">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,160">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,160"
+                                                           Point2="90,140"
+                                                           Point3="150,140" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="45">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,197.5">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,197.5"
+                                                           Point2="90,212.5"
+                                                           Point3="150,212.5" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="15">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,227.5">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,227.5"
+                                                           Point2="90,277.5"
+                                                           Point3="150,277.5" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="15">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,247.5">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,247.5"
+                                                           Point2="90,162.5"
+                                                           Point3="150,162.5" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="30">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,269.5">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,269.5"
+                                                           Point2="90,250"
+                                                           Point3="150,250" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="15">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,292">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,292"
+                                                           Point2="90,292.5"
+                                                           Point3="150,292.5" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <!--<TextBlock Text="hey" Margin="10" Canvas.Top="175" />-->
+                    </Canvas>
+                    <ItemsControl VerticalAlignment="Bottom">
+                        <ItemsControl.Items>
+                            <Rectangle Fill="Black"
+                                       Width="10"
+                                       Height="60" />
+                            <Rectangle Fill="Black"
+                                       Width="10"
+                                       Height="75" />
+                            <Rectangle Fill="Black"
+                                       Width="10"
+                                       Height="30" />
+                        </ItemsControl.Items>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style>
+                                <Setter Property="FrameworkElement.Margin"
+                                        Value="0,5,0,0" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                    </ItemsControl>
+                    <Canvas Width="150">
+                        <Path StrokeThickness="30">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,140">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,140"
+                                                           Point2="90,135"
+                                                           Point3="150,135" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="15">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,162.5">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,162.5"
+                                                           Point2="90,192.5"
+                                                           Point3="150,192.5" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="15">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,177.5">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,177.5"
+                                                           Point2="90,277.5"
+                                                           Point3="150,277.5" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="30">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,205">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,205"
+                                                           Point2="90,165"
+                                                           Point3="150,165" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="15">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,227.5">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,227.5"
+                                                           Point2="90,207.5"
+                                                           Point3="150,207.5" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="15">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,242.5">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,242.5"
+                                                           Point2="90,242.5"
+                                                           Point3="150,242.5" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="15">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,257.5">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,257.5"
+                                                           Point2="90,292.5"
+                                                           Point3="150,292.5" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="15">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,277.5">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,277.5"
+                                                           Point2="90,222.5"
+                                                           Point3="150,222.5" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                        <Path StrokeThickness="15">
+                            <Path.Data>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,292.5">
+                                        <PathFigure.Segments>
+                                            <BezierSegment Point1="60,292.5"
+                                                           Point2="90,257.5"
+                                                           Point3="150,257.5" />
+                                        </PathFigure.Segments>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </Path.Data>
+                        </Path>
+                    </Canvas>
+                    <ItemsControl VerticalAlignment="Bottom">
+                        <ItemsControl.Items>
+                            <Rectangle Fill="Black"
+                                       Width="10"
+                                       Height="60" />
+                            <Rectangle Fill="Black"
+                                       Width="10"
+                                       Height="45" />
+                            <Rectangle Fill="Black"
+                                       Width="10"
+                                       Height="30" />
+                            <Rectangle Fill="Black"
+                                       Width="10"
+                                       Height="30" />
+                        </ItemsControl.Items>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style>
+                                <Setter Property="FrameworkElement.Margin"
+                                        Value="0,5,0,0" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </Grid>
 </Window>

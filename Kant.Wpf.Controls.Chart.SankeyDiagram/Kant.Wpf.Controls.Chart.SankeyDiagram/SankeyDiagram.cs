@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -33,33 +34,8 @@ namespace Kant.Wpf.Controls.Chart
             NodeLength = 10;
             NodeFill = new SolidColorBrush(Colors.Black);
             defaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = 0.55 };
-
-            // test
-            var datas = new List<SankeyDataRow>()
-            {
-                new SankeyDataRow("A", "C", 2),
-                new SankeyDataRow("A", "D", 3),
-                new SankeyDataRow("A", "E", 1),
-                new SankeyDataRow("B", "C", 1),
-                new SankeyDataRow("B", "D", 2),
-                new SankeyDataRow("B", "E", 1),
-                new SankeyDataRow("C", "F", 2),
-                new SankeyDataRow("C", "H", 1),
-                new SankeyDataRow("C", "J", 1),
-                new SankeyDataRow("D", "F", 2),
-                new SankeyDataRow("D", "H", 1),
-                new SankeyDataRow("D", "I", 1),
-                new SankeyDataRow("D", "J", 1),
-                new SankeyDataRow("E", "H", 1),
-                new SankeyDataRow("E", "I", 1),
-            };
-
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            var nodeDictionary = ProduceNodes(datas, new Dictionary<int, List<SankeyNode>>(), 0);
-            currentNodes = CalculateNodesLength(datas, nodeDictionary);
-            currentLinks = ProduceLinks(datas, nodeDictionary);
-            stopwatch.Stop();
+            LinkPoint1Curveless = 0.4;
+            LinkPoint2Curveless = 0.6;
 
             Loaded += (s, e) =>
             {
@@ -67,6 +43,33 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     return;
                 }
+
+                // test
+                var datas = new List<SankeyDataRow>()
+                {
+                    new SankeyDataRow("A", "C", 2),
+                    new SankeyDataRow("A", "D", 3),
+                    new SankeyDataRow("A", "E", 1),
+                    new SankeyDataRow("B", "C", 1),
+                    new SankeyDataRow("B", "D", 2),
+                    new SankeyDataRow("B", "E", 1),
+                    new SankeyDataRow("C", "F", 2),
+                    new SankeyDataRow("C", "H", 1),
+                    new SankeyDataRow("C", "J", 1),
+                    new SankeyDataRow("D", "F", 2),
+                    new SankeyDataRow("D", "H", 1),
+                    new SankeyDataRow("D", "I", 1),
+                    new SankeyDataRow("D", "J", 1),
+                    new SankeyDataRow("E", "H", 1),
+                    new SankeyDataRow("E", "I", 1),
+                };
+
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+                var nodeDictionary = ProduceNodes(datas, new Dictionary<int, List<SankeyNode>>(), 0);
+                currentNodes = CalculateNodesLength(datas, nodeDictionary);
+                currentLinks = ProduceLinks(datas, nodeDictionary);
+                stopwatch.Stop();
 
                 CreateDiagram(currentNodes, currentLinks);
                 isDiagramLoaded = true;
@@ -98,6 +101,12 @@ namespace Kant.Wpf.Controls.Chart
             if(newDatas == null || newDatas.Count() == 0)
             {
                 // clean panel
+                if (DiagramPanel == null || DiagramPanel.Children == null || DiagramPanel.Children.Count == 0)
+                {
+                    return;
+                }
+
+                DiagramPanel.Children.RemoveRange(0, DiagramPanel.Children.Count);
             }
 
             // key means col/row index
@@ -118,16 +127,29 @@ namespace Kant.Wpf.Controls.Chart
 
         private void CreateDiagram(Dictionary<int, List<SankeyNode>> nodes, Dictionary<int, List<SankeyLink>> links)
         {
-            if(DiagramPanel.ActualHeight <= 0 || nodes == null || nodes.Count < 2 || links == null || links.Count == 0)
+            if(DiagramPanel.ActualHeight <= 0 || DiagramPanel.ActualWidth <= 0 || nodes == null || nodes.Count < 2 || links == null || links.Count == 0)
             {
                 return;
             }
 
-            var panelLength = DiagramPanel.ActualHeight;
-            var linkLength = (DiagramPanel.ActualWidth - nodes.Count * NodeLength) / links.Count;
-            var nodeIntervalSpace = NodeIntervalSpace <= 0 ? defaultNodeIntervalSpace : NodeIntervalSpace;
+            var panelLength = 0.0;
+            var linkLength = 0.0;
+
+            if(IsDiagramVertical)
+            {
+                panelLength = DiagramPanel.ActualWidth;
+                linkLength = LinkLength > 0 ? LinkLength : (DiagramPanel.ActualHeight - nodes.Count * NodeLength) / links.Count;
+            }
+            else
+            {
+                DiagramPanel.Orientation = Orientation.Horizontal;
+                panelLength = DiagramPanel.ActualHeight;
+                linkLength = LinkLength > 0 ? LinkLength : (DiagramPanel.ActualWidth - nodes.Count * NodeLength) / links.Count;
+            }
+
             var nodesGroupContainerStyle = new Style();
-            nodesGroupContainerStyle.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(0, nodeIntervalSpace, 0, 0)));
+            var margin = IsDiagramVertical ? new Thickness(0, 0, NodeIntervalSpace, 0) : new Thickness(0, NodeIntervalSpace, 0, 0);
+            nodesGroupContainerStyle.Setters.Add(new Setter(FrameworkElement.MarginProperty, margin));
             var maxGroupLength = 0.0;
             var maxGroupCount = 0;
 
@@ -137,7 +159,14 @@ namespace Kant.Wpf.Controls.Chart
 
                 for(var gIndex = 0; gIndex < nodes[index].Count; gIndex++)
                 {
-                    tempGroupLength += nodes[index][gIndex].Shape.Height;    
+                    if (IsDiagramVertical)
+                    {
+                        tempGroupLength += nodes[index][gIndex].Shape.Width;
+                    }
+                    else
+                    {
+                        tempGroupLength += nodes[index][gIndex].Shape.Height;
+                    }
                 }
 
                 if(tempGroupLength > maxGroupLength)
@@ -147,46 +176,87 @@ namespace Kant.Wpf.Controls.Chart
                 }
             }
 
-            var unitLength = (int)((panelLength - ((maxGroupCount - 1) * nodeIntervalSpace)) / maxGroupLength);
+            // - 15 means you have to remain some margin to calculate node's position, or a wrong position of the top node
+            var unitLength = (panelLength - (maxGroupCount * NodeIntervalSpace) - 15) / maxGroupLength;
+            var linkContainers = new List<Canvas>();
 
             for (var index = 0; index < nodes.Count; index++)
             {
                 var nodesGroup = new ItemsControl();
-                nodesGroup.VerticalAlignment = VerticalAlignment.Bottom;
                 nodesGroup.ItemContainerStyle = nodesGroupContainerStyle;
 
-                for (var gIndex = 0; gIndex < nodes[index].Count; gIndex++)
+                if(IsDiagramVertical)
                 {
-                    nodes[index][gIndex].Shape.Height = nodes[index][gIndex].Shape.Height * unitLength;
-                    nodesGroup.Items.Add(nodes[index][gIndex].Shape);
+                    nodesGroup.HorizontalAlignment = HorizontalAlignment.Center;
+                    var factory = new FrameworkElementFactory(typeof(StackPanel));
+                    factory.Name = "StackPanel";
+                    factory.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
+                    nodesGroup.ItemsPanel = new ItemsPanelTemplate(factory);
+                }
+                else
+                {
+                    nodesGroup.VerticalAlignment = VerticalAlignment.Bottom;
+                }
+
+                for (var nIndex = 0; nIndex < nodes[index].Count; nIndex++)
+                {
+                    if (IsDiagramVertical)
+                    {
+                        nodes[index][nIndex].Shape.Width = nodes[index][nIndex].Shape.Width * unitLength;
+                    }
+                    else
+                    {
+                        nodes[index][nIndex].Shape.Height = nodes[index][nIndex].Shape.Height * unitLength;
+                    }
+
+                    nodesGroup.Items.Add(nodes[index][nIndex].Shape);
+                }
+
+                var tempLength = 0.0;
+
+                for(var cIndex = nodes[index].Count -1; cIndex >= 0; cIndex--)
+                {
+                    if (IsDiagramVertical)
+                    {
+
+                    }
+                    else
+                    {
+                        var height = nodes[index][cIndex].Shape.Height;
+                        nodes[index][cIndex].Position = panelLength - (height + tempLength + NodeIntervalSpace * (nodes[index].Count - cIndex - 1));
+                        tempLength += height;
+                    }
                 }
 
                 DiagramPanel.Children.Add(nodesGroup);
-                var canvas = new Canvas() { Width = linkLength };
-                DiagramPanel.Children.Add(canvas);
+
+                if (index != nodes.Count - 1)
+                {
+                    var canvas = new Canvas();
+
+                    if(IsDiagramVertical)
+                    {
+                        canvas.Height = linkLength;
+                    }
+                    else
+                    {
+                        canvas.Width = linkLength;
+                    }
+
+                    linkContainers.Add(canvas);
+                    DiagramPanel.Children.Add(canvas);
+                }
+
+                Thread.Sleep(5555);
             }
-                    //var geometry = new PathGeometry()
-                    //{
-                    //    Figures = new PathFigureCollection()
-                    //    {
-                    //        new PathFigure()
-                    //        {
-                    //            StartPoint = new Point(),
 
-                //            Segments = new PathSegmentCollection()
-                //            {
-                //                new BezierSegment()
-                //                {
-                //                    Point1 = new Point(),
-                //                    Point2 = new Point(),
-                //                    Point3 = new Point()
-                //                }
-                //            }
-                //        }
-                //    }
-                //};
-
-                //geometry.Freeze();
+            for(var index = 0; index < linkContainers.Count; index++)
+            {
+                for (var lIndex = 0; lIndex < links[index].Count; lIndex++)
+                {
+                    linkContainers[index].Children.Add(DrawLink(links[index][lIndex], linkLength, unitLength).Shape);
+                }
+            }
         }
 
         private Dictionary<int, List<SankeyNode>> ProduceNodes(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes, int levelIndex)
@@ -265,30 +335,30 @@ namespace Kant.Wpf.Controls.Chart
 
         private Dictionary<int, List<SankeyNode>> CalculateNodesLength(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes)
         {
-            var nodeFromHeightDictionary = new Dictionary<string, double>();
-            var nodeToHeightDictionary = new Dictionary<string, double>();
+            var nodeFromLengthDictionary = new Dictionary<string, double>();
+            var nodeToLengthDictionary = new Dictionary<string, double>();
             var tempDatas = datas.ToList();
 
             for (var index = 0; index < tempDatas.Count; index++)
             {
                 var length = tempDatas[index].Weight;
 
-                if (nodeFromHeightDictionary.Keys.Contains(tempDatas[index].From))
+                if (nodeFromLengthDictionary.Keys.Contains(tempDatas[index].From))
                 {
-                    nodeFromHeightDictionary[tempDatas[index].From] += length;
+                    nodeFromLengthDictionary[tempDatas[index].From] += length;
                 }
                 else
                 {
-                    nodeFromHeightDictionary.Add(tempDatas[index].From, length);
+                    nodeFromLengthDictionary.Add(tempDatas[index].From, length);
                 }
 
-                if (nodeToHeightDictionary.Keys.Contains(tempDatas[index].To))
+                if (nodeToLengthDictionary.Keys.Contains(tempDatas[index].To))
                 {
-                    nodeToHeightDictionary[tempDatas[index].To] += length;
+                    nodeToLengthDictionary[tempDatas[index].To] += length;
                 }
                 else
                 {
-                    nodeToHeightDictionary.Add(tempDatas[index].To, length);
+                    nodeToLengthDictionary.Add(tempDatas[index].To, length);
                 }
             }
 
@@ -298,7 +368,14 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     foreach (var node in nodes[index])
                     {
-                        node.Shape.Height = nodeToHeightDictionary[node.Label.Text];
+                        if (IsDiagramVertical)
+                        {
+                            node.Shape.Width = nodeToLengthDictionary[node.Label.Text];
+                        }
+                        else
+                        {
+                            node.Shape.Height = nodeToLengthDictionary[node.Label.Text];
+                        }
                     }
 
                     continue;
@@ -308,7 +385,14 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     foreach (var node in nodes[index])
                     {
-                        node.Shape.Height = nodeFromHeightDictionary[node.Label.Text];
+                        if (IsDiagramVertical)
+                        {
+                            node.Shape.Width = nodeFromLengthDictionary[node.Label.Text];
+                        }
+                        else
+                        {
+                            node.Shape.Height = nodeFromLengthDictionary[node.Label.Text];
+                        }
                     }
 
                     continue;
@@ -316,9 +400,17 @@ namespace Kant.Wpf.Controls.Chart
 
                 foreach (var node in nodes[index])
                 {
-                    var fromHeight = nodeFromHeightDictionary[node.Label.Text];
-                    var toHeight = nodeToHeightDictionary[node.Label.Text];
-                    node.Shape.Height = fromHeight > toHeight ? fromHeight : toHeight;
+                    var fromLength = nodeFromLengthDictionary[node.Label.Text];
+                    var toLength = nodeToLengthDictionary[node.Label.Text];
+
+                    if (IsDiagramVertical)
+                    {
+                        node.Shape.Width = fromLength > toLength ? fromLength : toLength;
+                    }
+                    else
+                    {
+                        node.Shape.Height = fromLength > toLength ? fromLength : toLength;
+                    }
                 }
             }
 
@@ -356,7 +448,8 @@ namespace Kant.Wpf.Controls.Chart
                         }
 
                         var shape = new Path();
-                        shape.Fill = tempDatas[index].LinkFill == null ? defaultLinkBrush : tempDatas[index].LinkFill;
+                        shape.Stroke = tempDatas[index].LinkStroke == null ? defaultLinkBrush : tempDatas[index].LinkStroke;
+                        shape.StrokeThickness = tempDatas[index].Weight;
                         link.Shape = shape;
 
                         if (linkDictionary.Keys.Contains(fCount))
@@ -403,11 +496,82 @@ namespace Kant.Wpf.Controls.Chart
 
             var shape = new Rectangle()
             {
-                Width = NodeLength,
                 Fill = NodeFill
             };
 
+            if(IsDiagramVertical)
+            {
+                shape.Height = NodeLength;
+            }
+           else
+            {
+                shape.Width = NodeLength;
+            }
+
             return new SankeyNode(shape, l);
+        }
+
+        private SankeyLink DrawLink(SankeyLink link, double linkLength, double unitLength)
+        {
+            if(LinkPoint1Curveless <= 0 || LinkPoint1Curveless > 1)
+            {
+                throw new ArgumentOutOfRangeException("curveless should be between 0 and 1");
+            }
+
+            if (LinkPoint2Curveless <= 0 || LinkPoint2Curveless > 1)
+            {
+                throw new ArgumentOutOfRangeException("curveless should be between 0 and 1");
+            }
+
+            link.Shape.StrokeThickness = link.Shape.StrokeThickness * unitLength;
+            var fromPoint = new Point();
+            var toPoint = new Point();
+            var bezierControlPoint1 = new Point();
+            var bezierCOntrolPoint2 = new Point();
+
+            if(IsDiagramVertical)
+            {
+                fromPoint.X = link.FromNode.Shape.TranslatePoint(new Point(0, 0), DiagramPanel).X + link.FromNode.NextOccupiedLength;
+                toPoint.X = link.ToNode.Shape.TranslatePoint(new Point(0, 0), DiagramPanel).X + link.ToNode.PreviousOccupiedLength;
+            }
+            else
+            {
+                fromPoint.Y = link.FromNode.Position + link.FromNode.NextOccupiedLength + link.Shape.StrokeThickness / 2;
+                toPoint.Y = link.ToNode.Position + link.ToNode.PreviousOccupiedLength + link.Shape.StrokeThickness / 2;
+                toPoint.X = linkLength;
+                bezierControlPoint1.Y = fromPoint.Y;
+                bezierControlPoint1.X = linkLength * LinkPoint1Curveless;
+                bezierCOntrolPoint2.Y = toPoint.Y;
+                bezierCOntrolPoint2.X = linkLength * LinkPoint2Curveless;
+            }
+
+            var geometry = new PathGeometry()
+            {
+                Figures = new PathFigureCollection()
+                {
+                    new PathFigure()
+                    {
+                        StartPoint = fromPoint,
+
+                        Segments = new PathSegmentCollection()
+                        {
+                            new BezierSegment()
+                            {
+                                Point1 = bezierControlPoint1,
+                                Point2 = bezierCOntrolPoint2,
+                                Point3 = toPoint
+                            }
+                        }
+                    }
+                }
+            };
+
+            geometry.Freeze();
+            link.Shape.Data = geometry;
+            link.FromNode.NextOccupiedLength += link.Shape.StrokeThickness;
+            link.ToNode.PreviousOccupiedLength += link.Shape.StrokeThickness;
+
+            return link;
         }
 
         #endregion
@@ -422,7 +586,13 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty DatasProperty = DependencyProperty.Register("Datas", typeof(IEnumerable<SankeyDataRow>), typeof(SankeyDiagram), new PropertyMetadata(new List<SankeyDataRow>(), OnDatasSourceChanged));
 
+        public bool IsDiagramVertical { get; set; }
+
         public double LinkLength { get; set; }
+
+        public double LinkPoint1Curveless { get; set; }
+
+        public double LinkPoint2Curveless { get; set; }
 
         public double NodeLength { get; set; }
 
@@ -438,11 +608,11 @@ namespace Kant.Wpf.Controls.Chart
 
         private Dictionary<int, List<SankeyLink>> currentLinks;
 
-        private double defaultNodeIntervalSpace;
-
         private Brush defaultLinkBrush;
 
         private bool isDiagramLoaded;
+
+        //private Timer
 
         #endregion
     }

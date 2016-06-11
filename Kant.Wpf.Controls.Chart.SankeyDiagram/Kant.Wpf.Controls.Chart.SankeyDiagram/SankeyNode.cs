@@ -23,5 +23,11 @@ namespace Kant.Wpf.Controls.Chart
         public Rectangle Shape { get; set; }
 
         public TextBlock Label { get; set; }
+
+        public double Position { get; set; }
+
+        public double PreviousOccupiedLength { get; set; }
+
+        public double NextOccupiedLength { get; set; }
     }
 }
