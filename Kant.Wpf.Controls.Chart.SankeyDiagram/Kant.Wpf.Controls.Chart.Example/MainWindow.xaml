@@ -6,9 +6,12 @@
         xmlns:local="clr-namespace:Kant.Wpf.Controls.Chart.Example"
         xmlns:kantCharts="clr-namespace:Kant.Wpf.Controls.Chart;assembly=Kant.Wpf.Controls.Chart.SankeyDiagram"
         mc:Ignorable="d"
-        Height="800"
+        Height="400"
         Width="600"
         Title="MainWindow">
+    <Window.DataContext>
+        <local:MainViewModel />
+    </Window.DataContext>
     <Window.Resources>
         <Style TargetType="Path">
             <Setter Property="Stroke">
@@ -19,23 +22,22 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Grid Height="800"
-          Width="500"
-          Margin="10,50,10,10"
-          Background="PowderBlue">
-        <StackPanel>
+    <Grid Background="#FFFBFAE9">
+        <!--<StackPanel>-->
+        <Border Margin="20">
             <kantCharts:SankeyDiagram Height="300"
-                                      Margin="20"
-                                      IsDiagramVertical="False" />
-            <Border Margin="20">
+                                      IsDiagramVertical="True"
+                                      Datas="{Binding SankeyDatas}" />
+        </Border>
+        <!--<Border Margin="20">
                 <StackPanel x:Name="panel"
                             Height="300"
                             Orientation="Horizontal">
-                    <!--<StackPanel.RenderTransform>
+                    --><!--<StackPanel.RenderTransform>
                         <RotateTransform Angle="90"
                                          CenterX="200"
                                          CenterY="200" />
-                    </StackPanel.RenderTransform>-->
+                    </StackPanel.RenderTransform>--><!--
                     <ItemsControl VerticalAlignment="Bottom">
                         <ItemsControl.Items>
                             <Rectangle x:Name="testNode"
@@ -132,7 +134,7 @@
                                 </PathGeometry>
                             </Path.Data>
                         </Path>
-                        <!--<TextBlock Text="hey" Margin="10" Canvas.Top="175" />-->
+                        --><!--<TextBlock Text="hey" Margin="10" Canvas.Top="175" />--><!--
                     </Canvas>
                     <ItemsControl VerticalAlignment="Bottom">
                         <ItemsControl.Items>
@@ -296,6 +298,6 @@
                     </ItemsControl>
                 </StackPanel>
             </Border>
-        </StackPanel>
+        </StackPanel>-->
     </Grid>
 </Window>

@@ -44,33 +44,6 @@ namespace Kant.Wpf.Controls.Chart
                     return;
                 }
 
-                // test
-                var datas = new List<SankeyDataRow>()
-                {
-                    new SankeyDataRow("A", "C", 2),
-                    new SankeyDataRow("A", "D", 3),
-                    new SankeyDataRow("A", "E", 1),
-                    new SankeyDataRow("B", "C", 1),
-                    new SankeyDataRow("B", "D", 2),
-                    new SankeyDataRow("B", "E", 1),
-                    new SankeyDataRow("C", "F", 2),
-                    new SankeyDataRow("C", "H", 1),
-                    new SankeyDataRow("C", "J", 1),
-                    new SankeyDataRow("D", "F", 2),
-                    new SankeyDataRow("D", "H", 1),
-                    new SankeyDataRow("D", "I", 1),
-                    new SankeyDataRow("D", "J", 1),
-                    new SankeyDataRow("E", "H", 1),
-                    new SankeyDataRow("E", "I", 1),
-                };
-
-                var stopwatch = new Stopwatch();
-                stopwatch.Start();
-                var nodeDictionary = ProduceNodes(datas, new Dictionary<int, List<SankeyNode>>(), 0);
-                currentNodes = CalculateNodesLength(datas, nodeDictionary);
-                currentLinks = ProduceLinks(datas, nodeDictionary);
-                stopwatch.Stop();
-
                 CreateDiagram(currentNodes, currentLinks);
                 isDiagramLoaded = true;
             };
@@ -183,11 +156,13 @@ namespace Kant.Wpf.Controls.Chart
             for (var index = 0; index < nodes.Count; index++)
             {
                 var nodesGroup = new ItemsControl();
+                var nodesGroupWidth = 0.0;
+                var diagramVerticalMargin = 0.0;
                 nodesGroup.ItemContainerStyle = nodesGroupContainerStyle;
 
                 if(IsDiagramVertical)
                 {
-                    nodesGroup.HorizontalAlignment = HorizontalAlignment.Center;
+                    nodesGroup.HorizontalAlignment = HorizontalAlignment.Left;
                     var factory = new FrameworkElementFactory(typeof(StackPanel));
                     factory.Name = "StackPanel";
                     factory.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
@@ -203,6 +178,7 @@ namespace Kant.Wpf.Controls.Chart
                     if (IsDiagramVertical)
                     {
                         nodes[index][nIndex].Shape.Width = nodes[index][nIndex].Shape.Width * unitLength;
+                        nodesGroupWidth += nodes[index][nIndex].Shape.Width;
                     }
                     else
                     {
@@ -212,15 +188,27 @@ namespace Kant.Wpf.Controls.Chart
                     nodesGroup.Items.Add(nodes[index][nIndex].Shape);
                 }
 
+                // make HorizontalAlignment center manully because HorizontalAlignment.Center has deviation when calculating element's position 
+                if (IsDiagramVertical)
+                {
+                    diagramVerticalMargin = (panelLength - nodesGroupWidth - ((nodes[index].Count - 1) * NodeIntervalSpace)) / 2;
+                    nodesGroup.Margin = new Thickness(diagramVerticalMargin, 0, 0, 0);
+                }
+
                 var tempLength = 0.0;
 
-                for(var cIndex = nodes[index].Count -1; cIndex >= 0; cIndex--)
+                if (IsDiagramVertical)
                 {
-                    if (IsDiagramVertical)
+                    for (var cIndex = 0; cIndex < nodes[index].Count; cIndex++)
                     {
-
+                        var width = nodes[index][cIndex].Shape.Width;
+                        nodes[index][cIndex].Position = tempLength + NodeIntervalSpace * cIndex + diagramVerticalMargin;
+                        tempLength += width;
                     }
-                    else
+                }
+                else
+                {
+                    for (var cIndex = nodes[index].Count - 1; cIndex >= 0; cIndex--)
                     {
                         var height = nodes[index][cIndex].Shape.Height;
                         nodes[index][cIndex].Position = panelLength - (height + tempLength + NodeIntervalSpace * (nodes[index].Count - cIndex - 1));
@@ -233,6 +221,7 @@ namespace Kant.Wpf.Controls.Chart
                 if (index != nodes.Count - 1)
                 {
                     var canvas = new Canvas();
+                    canvas.ClipToBounds = true;
 
                     if(IsDiagramVertical)
                     {
@@ -246,8 +235,6 @@ namespace Kant.Wpf.Controls.Chart
                     linkContainers.Add(canvas);
                     DiagramPanel.Children.Add(canvas);
                 }
-
-                Thread.Sleep(5555);
             }
 
             for(var index = 0; index < linkContainers.Count; index++)
@@ -293,6 +280,10 @@ namespace Kant.Wpf.Controls.Chart
                                 nodes = UpdateNodes(nodes, levelIndex, tempDatas[index], tempDatas[index].To);
                             }
                         }
+                    }
+                    else
+                    {
+                        continue;
                     }
 
                     var isDataDuplicate = false;
@@ -531,8 +522,13 @@ namespace Kant.Wpf.Controls.Chart
 
             if(IsDiagramVertical)
             {
-                fromPoint.X = link.FromNode.Shape.TranslatePoint(new Point(0, 0), DiagramPanel).X + link.FromNode.NextOccupiedLength;
-                toPoint.X = link.ToNode.Shape.TranslatePoint(new Point(0, 0), DiagramPanel).X + link.ToNode.PreviousOccupiedLength;
+                fromPoint.X = link.FromNode.Position + link.FromNode.NextOccupiedLength + link.Shape.StrokeThickness / 2;
+                toPoint.X = link.ToNode.Position + link.ToNode.PreviousOccupiedLength + link.Shape.StrokeThickness / 2;
+                toPoint.Y = linkLength;
+                bezierControlPoint1.X = fromPoint.X;
+                bezierControlPoint1.Y = linkLength * LinkPoint1Curveless;
+                bezierCOntrolPoint2.X = toPoint.X;
+                bezierCOntrolPoint2.Y = linkLength * LinkPoint2Curveless;
             }
             else
             {
