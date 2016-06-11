@@ -10,10 +10,18 @@ namespace Kant.Wpf.Controls.Chart
 {
     public class SankeyNode
     {
+        public SankeyNode()
+        {
+        }
+
+        public SankeyNode(Rectangle shape, TextBlock label)
+        {
+            Shape = shape;
+            Label = label;
+        }
+
         public Rectangle Shape { get; set; }
 
         public TextBlock Label { get; set; }
-
-        public IEnumerable<SankeyLink> Links { get; set; }
     }
 }

@@ -23,6 +23,11 @@ namespace Kant.Wpf.Controls.Chart.Example
         public MainWindow()
         {
             InitializeComponent();
+
+            Loaded += (s, e) =>
+            {
+                var point = testNode.TranslatePoint(new Point(0, 0), panel);
+            };
         }
     }
 }
