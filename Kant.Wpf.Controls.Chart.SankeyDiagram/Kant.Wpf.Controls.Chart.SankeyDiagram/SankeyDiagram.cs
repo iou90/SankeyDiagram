@@ -41,6 +41,33 @@ namespace Kant.Wpf.Controls.Chart
             LabelStyle = labelStye;
             ShowLabels = true;
 
+            defaultFromNodeLinksColorRange = new List<Brush>()
+            {
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0095fb")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ff0000")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ffa200")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00f2c8")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#7373ff")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#91bc61")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#dc89d9")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#fff100")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#44c5f1")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#85e91f")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00b192")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1cbe65")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#278bcc")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#954ab3")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#f3bc00")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#e47403")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ce3e29")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#d8dddf")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#60e8a4")) { Opacity = 0.55 },
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ffb5ff")) { Opacity = 0.55 }
+            };
+
+            colorRangeNodes = new Dictionary<string, Brush>();
+            fromNodeLinksColorRangeIndex = 0;
+
             Loaded += (s, e) =>
             {
                 if (isDiagramLoaded)
@@ -539,6 +566,29 @@ namespace Kant.Wpf.Controls.Chart
                 throw new ArgumentOutOfRangeException("curveless should be between 0 and 1.");
             }
 
+            if(UseFromNodeLinksColorRange)
+            {
+                Brush color;
+
+                if(colorRangeNodes.Keys.Contains((link.FromNode.Label.Text)))
+                {
+                    color = colorRangeNodes[link.FromNode.Label.Text];
+                }
+                else
+                {
+                    color = defaultFromNodeLinksColorRange[fromNodeLinksColorRangeIndex];
+                    colorRangeNodes.Add(link.FromNode.Label.Text, color);
+                    fromNodeLinksColorRangeIndex++;
+
+                    if (fromNodeLinksColorRangeIndex >= defaultFromNodeLinksColorRange.Count)
+                    {
+                        fromNodeLinksColorRangeIndex = 0;
+                    }
+                }
+
+                link.Shape.Stroke = color;
+            }
+
             link.Shape.StrokeThickness = link.Shape.StrokeThickness * unitLength;
             var fromPoint = new Point();
             var toPoint = new Point();
@@ -653,6 +703,8 @@ namespace Kant.Wpf.Controls.Chart
         public Style LabelStyle { get; set; }
 
         public bool ShowLabels { get; set; }
+        
+        public bool UseFromNodeLinksColorRange { get; set; }
 
         public StackPanel DiagramPanel { get; set; }
 
@@ -661,6 +713,12 @@ namespace Kant.Wpf.Controls.Chart
         private Dictionary<int, List<SankeyLink>> currentLinks;
 
         private Brush defaultLinkBrush;
+
+        private int fromNodeLinksColorRangeIndex;
+
+        private Dictionary<string, Brush> colorRangeNodes; 
+
+        private List<Brush> defaultFromNodeLinksColorRange;
 
         private bool isDiagramLoaded;
 
