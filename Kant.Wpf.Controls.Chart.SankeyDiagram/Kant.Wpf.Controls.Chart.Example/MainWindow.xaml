@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:Kant.Wpf.Controls.Chart.Example"
         xmlns:kantCharts="clr-namespace:Kant.Wpf.Controls.Chart;assembly=Kant.Wpf.Controls.Chart.SankeyDiagram"
         mc:Ignorable="d"
-        Height="400"
-        Width="600"
+        Height="900"
+        Width="1500"
         Title="MainWindow">
     <Window.DataContext>
         <local:MainViewModel />
@@ -15,12 +15,10 @@
     <Window.Resources>
         <Style x:Key="SankeyLabelStyle"
                TargetType="TextBlock">
-            <Setter Property="Foreground"
-                    Value="#0F3B8C" />
             <Setter Property="FontSize"
                     Value="15" />
             <Setter Property="Margin"
-                    Value="2" />
+                    Value="5" />
         </Style>
         <Style TargetType="Path">
             <Setter Property="Stroke">
@@ -34,13 +32,21 @@
     <Grid x:Name="grid"
           Background="#FFFBFAE9">
         <StackPanel>
-            <Button Content="clear"
-                    Width="100"
-                    Height="20"
-                    Command="{Binding ClearDiagram}" />
+            <StackPanel Orientation="Horizontal">
+                <Button Content="clear"
+                        Width="100"
+                        Height="20"
+                        Command="{Binding ClearDiagram}" />
+                <Button Content="test big data"
+                        Margin="10,0,0,0"
+                        Width="100"
+                        Height="20"
+                        Command="{Binding TestBigData}" />
+            </StackPanel>
             <Border Margin="20">
-                <kantCharts:SankeyDiagram Height="300"
+                <kantCharts:SankeyDiagram Height="800"
                                           IsDiagramVertical="False"
+                                          ShowLabels="False"
                                           LabelStyle="{StaticResource SankeyLabelStyle}"
                                           Datas="{Binding SankeyDatas}" />
             </Border>

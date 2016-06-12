@@ -36,6 +36,52 @@ namespace Kant.Wpf.Controls.Chart.Example
             SankeyDatas = datas;
         }
 
+        private ICommand testBigData;
+        public ICommand TestBigData
+        {
+            get
+            {
+                return GetCommand(testBigData, new CommandBase(() =>
+                {
+                    // produce big data
+                    var Group1Nodes = Enumerable.Range(0, 5).Select(n => { return n.ToString(); }).ToArray();
+                    var tempGroup2Nodes = Enumerable.Range(100, 155).Select(n => { return n.ToString(); }).ToArray();
+                    var group2Nodes = new string[55];
+                    var group2Index = 0;
+                    //var tempGroup3Nodes = Enumerable.Range(300, 425).Select(n => { return n.ToString(); }).ToArray();
+                    //var group3Nodes = new string[125];
+                    //var group3Index = 0;
+                    var datas = new List<SankeyDataRow>();
+                    var randrom = new Random();
+
+                    foreach (var node in Group1Nodes)
+                    {
+                        for (var index = 0; index < randrom.Next(5, 15); index++)
+                        {
+                            var tempNode = "";
+
+                            while(true)
+                            {
+                                tempNode = tempGroup2Nodes[randrom.Next(0, 55)];
+                                var findNode = group2Nodes.FirstOrDefault<string>(n => n == tempNode);
+
+                                if(findNode == null)
+                                {
+                                    break;
+                                }
+                            }
+
+                            group2Nodes[group2Index] = tempNode;
+                            datas.Add(new SankeyDataRow(node, group2Nodes[group2Index], randrom.Next(55, 155)));
+                            group2Index++;
+                        }
+                    }
+
+                    SankeyDatas = datas;
+                }));
+            }
+        }
+
         private ICommand clearDiagram;
         public ICommand ClearDiagram
         {
@@ -65,7 +111,7 @@ namespace Kant.Wpf.Controls.Chart.Example
             }
         }
 
-        #region INotifyPropertyChanged & Command
+        #region INotifyPropertyChanged & ICommand
 
         private ICommand GetCommand(ICommand c, CommandBase command)
         {

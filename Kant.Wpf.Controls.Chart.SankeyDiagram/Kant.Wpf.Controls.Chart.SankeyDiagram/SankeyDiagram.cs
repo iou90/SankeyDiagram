@@ -39,6 +39,7 @@ namespace Kant.Wpf.Controls.Chart
             var labelStye = new Style(typeof(TextBlock));
             labelStye.Setters.Add(new Setter(TextBlock.MarginProperty, new Thickness(2)));
             LabelStyle = labelStye;
+            ShowLabels = true;
 
             Loaded += (s, e) =>
             {
@@ -63,7 +64,7 @@ namespace Kant.Wpf.Controls.Chart
 
             if (panel == null)
             {
-                throw new MissingMemberException("can not find template child PartDiagramPanel");
+                throw new MissingMemberException("can not find template child PartDiagramPanel.");
             }
             else
             {
@@ -83,23 +84,21 @@ namespace Kant.Wpf.Controls.Chart
                 return;
             }
 
-            if(newDatas == null || newDatas.Count() == 0)
+            // clean panel
+            if (!(DiagramPanel == null || DiagramPanel.Children == null || DiagramPanel.Children.Count == 0))
             {
-                // clean panel
-                if (DiagramPanel == null || DiagramPanel.Children == null || DiagramPanel.Children.Count == 0)
-                {
-                    return;
-                }
-
                 DiagramPanel.Children.Clear();
+            }
 
+            if (newDatas == null || newDatas.Count() == 0)
+            {
                 return;
             }
 
-            // key means col/row index
+            // create nodes, dictionary key means col/row index
             var nodeDictionary = ProduceNodes(newDatas, new Dictionary<int, List<SankeyNode>>(), 0);
 
-            // calculate node height
+            // calculate node length
             currentNodes = CalculateNodesLength(newDatas, nodeDictionary);
 
             // create links
@@ -164,7 +163,14 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             // - 15 means you have to remain some margin to calculate node's position, or a wrong position of the top node
-            var unitLength = (panelLength - (maxGroupCount * NodeIntervalSpace) - 15) / maxGroupLength;
+            var nodesOverallLength = panelLength - (maxGroupCount * NodeIntervalSpace) - 15;
+
+            if(nodesOverallLength <= 0)
+            {
+                throw new ArgumentOutOfRangeException("panel's length is not enough.");
+            }
+
+            var unitLength = nodesOverallLength / maxGroupLength;
             var linkContainers = new List<Canvas>();
 
             for (var index = 0; index < nodes.Count; index++)
@@ -249,16 +255,19 @@ namespace Kant.Wpf.Controls.Chart
                     linkContainers[index].Children.Add(DrawLink(links[index][lIndex], linkLength, unitLength).Shape);
                 }
 
-                // add last & last but one group node labels in last container
-                if (index == linkContainers.Count - 1)
+                if (ShowLabels)
                 {
-                    AddLabels(linkContainers[index], nodes, index);
-                    AddLabels(linkContainers[index], nodes, index + 1);
-                }
-                // add from nodes labels
-                else
-                {
-                    AddLabels(linkContainers[index], nodes, index);
+                    // add last & last but one group node labels in last container
+                    if (index == linkContainers.Count - 1)
+                    {
+                        AddLabels(linkContainers[index], nodes, index);
+                        AddLabels(linkContainers[index], nodes, index + 1);
+                    }
+                    // add from nodes labels
+                    else
+                    {
+                        AddLabels(linkContainers[index], nodes, index);
+                    }
                 }
             }
         }
@@ -522,12 +531,12 @@ namespace Kant.Wpf.Controls.Chart
         {
             if(LinkPoint1Curveless <= 0 || LinkPoint1Curveless > 1)
             {
-                throw new ArgumentOutOfRangeException("curveless should be between 0 and 1");
+                throw new ArgumentOutOfRangeException("curveless should be between 0 and 1.");
             }
 
             if (LinkPoint2Curveless <= 0 || LinkPoint2Curveless > 1)
             {
-                throw new ArgumentOutOfRangeException("curveless should be between 0 and 1");
+                throw new ArgumentOutOfRangeException("curveless should be between 0 and 1.");
             }
 
             link.Shape.StrokeThickness = link.Shape.StrokeThickness * unitLength;
@@ -642,6 +651,8 @@ namespace Kant.Wpf.Controls.Chart
         public Brush NodeFill { get; set; }
 
         public Style LabelStyle { get; set; }
+
+        public bool ShowLabels { get; set; }
 
         public StackPanel DiagramPanel { get; set; }
 
