@@ -36,6 +36,9 @@ namespace Kant.Wpf.Controls.Chart
             defaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = 0.55 };
             LinkPoint1Curveless = 0.4;
             LinkPoint2Curveless = 0.6;
+            var labelStye = new Style(typeof(TextBlock));
+            labelStye.Setters.Add(new Setter(TextBlock.MarginProperty, new Thickness(2)));
+            LabelStyle = labelStye;
 
             Loaded += (s, e) =>
             {
@@ -246,28 +249,17 @@ namespace Kant.Wpf.Controls.Chart
                     linkContainers[index].Children.Add(DrawLink(links[index][lIndex], linkLength, unitLength).Shape);
                 }
 
-                //// add last & last but one group node labels in last container
-                //if(index == linkContainers.Count -1)
-                //{
-
-                //}
-                //// add from nodes labels
-                //else
-                //{
-                //    foreach(var node in nodes[index])
-                //    {
-                //        if(IsDiagramVertical)
-                //        {
-                //            Canvas.SetLeft(node.Label, NodeIntervalSpace + node.Position + (node.Shape.Width / 2));
-                //        }
-                //        else
-                //        {
-                //            Canvas.SetTop(node.Label, node.Position + (node.Shape.Height / 2));
-                //        }
-
-                //        linkContainers[index].Children.Add(node.Label);
-                //    }
-                //}
+                // add last & last but one group node labels in last container
+                if (index == linkContainers.Count - 1)
+                {
+                    AddLabels(linkContainers[index], nodes, index);
+                    AddLabels(linkContainers[index], nodes, index + 1);
+                }
+                // add from nodes labels
+                else
+                {
+                    AddLabels(linkContainers[index], nodes, index);
+                }
             }
         }
 
@@ -594,6 +586,35 @@ namespace Kant.Wpf.Controls.Chart
             return link;
         }
 
+        private void AddLabels(Canvas container, Dictionary<int, List<SankeyNode>> nodes, int index)
+        {
+            foreach (var node in nodes[index])
+            {
+                node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+                if (IsDiagramVertical)
+                {
+                    Canvas.SetLeft(node.Label, NodeIntervalSpace + node.Position + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
+
+                    if (index == nodes.Count - 1)
+                    {
+                        Canvas.SetBottom(node.Label, 0);
+                    }
+                }
+                else
+                {
+                    Canvas.SetTop(node.Label, node.Position + (node.Shape.Height / 2) - (node.Label.DesiredSize.Height / 2));
+
+                    if(index == nodes.Count - 1)
+                    {
+                        Canvas.SetRight(node.Label, 0);
+                    }
+                }
+
+                container.Children.Add(node.Label);
+            }
+        }
+
         #endregion
 
         #region Fields & Properties
@@ -631,8 +652,6 @@ namespace Kant.Wpf.Controls.Chart
         private Brush defaultLinkBrush;
 
         private bool isDiagramLoaded;
-
-        //private Timer
 
         #endregion
     }
