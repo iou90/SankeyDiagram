@@ -168,12 +168,11 @@ namespace Kant.Wpf.Controls.Chart
             {
                 var nodesGroup = new ItemsControl();
                 var nodesGroupWidth = 0.0;
-                var diagramVerticalMargin = 0.0;
                 nodesGroup.ItemContainerStyle = nodesGroupContainerStyle;
 
                 if(IsDiagramVertical)
                 {
-                    nodesGroup.HorizontalAlignment = HorizontalAlignment.Left;
+                    nodesGroup.HorizontalAlignment = HorizontalAlignment.Center;
                     var factory = new FrameworkElementFactory(typeof(StackPanel));
                     factory.Name = "StackPanel";
                     factory.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
@@ -199,34 +198,6 @@ namespace Kant.Wpf.Controls.Chart
                     nodesGroup.Items.Add(nodes[index][nIndex].Shape);
                 }
 
-                // make HorizontalAlignment center manully because HorizontalAlignment.Center has deviation when calculating element's position 
-                if (IsDiagramVertical)
-                {
-                    diagramVerticalMargin = (panelLength - nodesGroupWidth - ((nodes[index].Count - 1) * NodeIntervalSpace)) / 2;
-                    nodesGroup.Margin = new Thickness(diagramVerticalMargin, 0, 0, 0);
-                }
-
-                var tempLength = 0.0;
-
-                if (IsDiagramVertical)
-                {
-                    for (var cIndex = 0; cIndex < nodes[index].Count; cIndex++)
-                    {
-                        var width = nodes[index][cIndex].Shape.Width;
-                        nodes[index][cIndex].Position = tempLength + NodeIntervalSpace * cIndex + diagramVerticalMargin;
-                        tempLength += width;
-                    }
-                }
-                else
-                {
-                    for (var cIndex = nodes[index].Count - 1; cIndex >= 0; cIndex--)
-                    {
-                        var height = nodes[index][cIndex].Shape.Height;
-                        nodes[index][cIndex].Position = panelLength - (height + tempLength + NodeIntervalSpace * (nodes[index].Count - cIndex - 1));
-                        tempLength += height;
-                    }
-                }
-
                 DiagramPanel.Children.Add(nodesGroup);
 
                 if (index != nodes.Count - 1)
@@ -248,12 +219,55 @@ namespace Kant.Wpf.Controls.Chart
                 }
             }
 
+            // prepare for translatepoint method
+            UpdateLayout();
+
+            foreach(var levelNodes in nodes.Values)
+            {
+                foreach (var node in levelNodes)
+                {
+                    if (IsDiagramVertical)
+                    {
+                        node.Position = node.Shape.TranslatePoint(new Point(), DiagramPanel).X;
+                        node.Position = node.Shape.TranslatePoint(new Point(), DiagramPanel).X;
+                    }
+                    else
+                    {
+                        node.Position = node.Shape.TranslatePoint(new Point(), DiagramPanel).Y;
+                        node.Position = node.Shape.TranslatePoint(new Point(), DiagramPanel).Y;
+                    }
+                }
+            }
+
             for (var index = 0; index < linkContainers.Count; index++)
             {
                 for (var lIndex = 0; lIndex < links[index].Count; lIndex++)
                 {
                     linkContainers[index].Children.Add(DrawLink(links[index][lIndex], linkLength, unitLength).Shape);
                 }
+
+                //// add last & last but one group node labels in last container
+                //if(index == linkContainers.Count -1)
+                //{
+
+                //}
+                //// add from nodes labels
+                //else
+                //{
+                //    foreach(var node in nodes[index])
+                //    {
+                //        if(IsDiagramVertical)
+                //        {
+                //            Canvas.SetLeft(node.Label, NodeIntervalSpace + node.Position + (node.Shape.Width / 2));
+                //        }
+                //        else
+                //        {
+                //            Canvas.SetTop(node.Label, node.Position + (node.Shape.Height / 2));
+                //        }
+
+                //        linkContainers[index].Children.Add(node.Label);
+                //    }
+                //}
             }
         }
 

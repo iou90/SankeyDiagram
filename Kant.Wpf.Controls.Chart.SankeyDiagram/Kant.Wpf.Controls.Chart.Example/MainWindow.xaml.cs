@@ -26,7 +26,7 @@ namespace Kant.Wpf.Controls.Chart.Example
 
             Loaded += (s, e) =>
             {
-                //var point = testNode.TranslatePoint(new Point(0, 0), panel);
+                //var point = grid.TranslatePoint(new Point(0, 0), panel);
             };
         }
     }

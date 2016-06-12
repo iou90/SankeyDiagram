@@ -22,7 +22,8 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Grid Background="#FFFBFAE9">
+    <Grid x:Name="grid"
+          Background="#FFFBFAE9">
         <StackPanel>
             <Button Content="clear"
                     Width="100"
@@ -30,7 +31,7 @@
                     Command="{Binding ClearDiagram}"/>
             <Border Margin="20">
                 <kantCharts:SankeyDiagram Height="300"
-                                          IsDiagramVertical="False"
+                                          IsDiagramVertical="True"
                                           Datas="{Binding SankeyDatas}" />
             </Border>
             <!--<Border Margin="20">
