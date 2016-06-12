@@ -56,12 +56,21 @@ namespace Kant.Wpf.Controls.Chart
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
-            DiagramPanel = (StackPanel)GetTemplateChild("PartDiagramPanel");
+            var panel = GetTemplateChild("PartDiagramPanel");
+
+            if (panel == null)
+            {
+                throw new MissingMemberException("can not find template child PartDiagramPanel");
+            }
+            else
+            {
+                DiagramPanel = (StackPanel)panel;
+            }
         }
 
         private static void OnDatasSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            ((SankeyDiagram)o).OnDatasChanged((IEnumerable<SankeyDataRow>)e.NewValue, (IEnumerable<SankeyDataRow>)e.OldValue);
+            ((SankeyDiagram)o).OnDatasChanged(e.NewValue as IEnumerable<SankeyDataRow>, e.OldValue as IEnumerable<SankeyDataRow>);
         }
 
         private void OnDatasChanged(IEnumerable<SankeyDataRow> newDatas, IEnumerable<SankeyDataRow> oldDatas)
@@ -79,7 +88,7 @@ namespace Kant.Wpf.Controls.Chart
                     return;
                 }
 
-                DiagramPanel.Children.RemoveRange(0, DiagramPanel.Children.Count);
+                DiagramPanel.Children.Clear();
             }
 
             // key means col/row index
