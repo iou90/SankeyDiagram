@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         Height="900"
         Width="1500"
-        Title="MainWindow">
+        Title="Sankey Diagram for WPF">
     <Window.DataContext>
         <local:MainViewModel />
     </Window.DataContext>
@@ -45,9 +45,10 @@
             </StackPanel>
             <Border Margin="20">
                 <kantCharts:SankeyDiagram Height="800"
+                                          NodeIntervalSpace="15"
                                           IsDiagramVertical="False"
                                           ShowLabels="True"
-                                          UseFromNodeLinksColorRange="True"
+                                          UseNodeLinksPalette="True"
                                           LabelStyle="{StaticResource SankeyLabelStyle}"
                                           Datas="{Binding SankeyDatas}" />
             </Border>

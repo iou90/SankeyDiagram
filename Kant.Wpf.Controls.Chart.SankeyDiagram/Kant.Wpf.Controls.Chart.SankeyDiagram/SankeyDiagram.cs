@@ -41,7 +41,7 @@ namespace Kant.Wpf.Controls.Chart
             LabelStyle = labelStye;
             ShowLabels = true;
 
-            defaultFromNodeLinksColorRange = new List<Brush>()
+            defaultNodeLinksPalette = new List<Brush>()
             {
                 new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0095fb")) { Opacity = 0.55 },
                 new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ff0000")) { Opacity = 0.55 },
@@ -65,8 +65,7 @@ namespace Kant.Wpf.Controls.Chart
                 new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ffb5ff")) { Opacity = 0.55 }
             };
 
-            colorRangeNodes = new Dictionary<string, Brush>();
-            fromNodeLinksColorRangeIndex = 0;
+            defaultNodeLinksPaletteIndex = 0;
 
             Loaded += (s, e) =>
             {
@@ -172,6 +171,21 @@ namespace Kant.Wpf.Controls.Chart
 
                 foreach(var node in levelNodes)
                 {
+                    // if use node-links color range and node colors property has no value then use default color range
+                    if (UseNodeLinksPalette)
+                    {
+                        if (NodeColors == null || NodeColors.Keys.Count == 0 || !NodeColors.Keys.Contains(node.Label.Text))
+                        {
+                            node.Shape.Fill = defaultNodeLinksPalette[defaultNodeLinksPaletteIndex];
+                            defaultNodeLinksPaletteIndex++;
+
+                            if (defaultNodeLinksPaletteIndex >= defaultNodeLinksPalette.Count)
+                            {
+                                defaultNodeLinksPaletteIndex = 0;
+                            }
+                        }
+                    }
+
                     if (IsDiagramVertical)
                     {
                         tempGroupLength += node.Shape.Width;
@@ -537,10 +551,16 @@ namespace Kant.Wpf.Controls.Chart
                 Style = LabelStyle
             };
 
-            var shape = new Rectangle()
+            var shape = new Rectangle();
+            
+            if(NodeColors != null && NodeColors.Keys.Count != 0 && NodeColors.Keys.Contains(label))
             {
-                Fill = NodeFill
-            };
+                shape.Fill = NodeColors[label];
+            }
+            else
+            {
+                shape.Fill = NodeFill;
+            } 
 
             if(IsDiagramVertical)
             {
@@ -566,27 +586,9 @@ namespace Kant.Wpf.Controls.Chart
                 throw new ArgumentOutOfRangeException("curveless should be between 0 and 1.");
             }
 
-            if(UseFromNodeLinksColorRange)
+            if(UseNodeLinksPalette)
             {
-                Brush color;
-
-                if(colorRangeNodes.Keys.Contains((link.FromNode.Label.Text)))
-                {
-                    color = colorRangeNodes[link.FromNode.Label.Text];
-                }
-                else
-                {
-                    color = defaultFromNodeLinksColorRange[fromNodeLinksColorRangeIndex];
-                    colorRangeNodes.Add(link.FromNode.Label.Text, color);
-                    fromNodeLinksColorRangeIndex++;
-
-                    if (fromNodeLinksColorRangeIndex >= defaultFromNodeLinksColorRange.Count)
-                    {
-                        fromNodeLinksColorRangeIndex = 0;
-                    }
-                }
-
-                link.Shape.Stroke = color;
+                link.Shape.Stroke = link.FromNode.Shape.Fill;
             }
 
             link.Shape.StrokeThickness = link.Shape.StrokeThickness * unitLength;
@@ -700,11 +702,13 @@ namespace Kant.Wpf.Controls.Chart
 
         public Brush NodeFill { get; set; }
 
+        public Dictionary<string, Brush> NodeColors { get; set; }
+
         public Style LabelStyle { get; set; }
 
         public bool ShowLabels { get; set; }
         
-        public bool UseFromNodeLinksColorRange { get; set; }
+        public bool UseNodeLinksPalette { get; set; }
 
         public StackPanel DiagramPanel { get; set; }
 
@@ -714,11 +718,9 @@ namespace Kant.Wpf.Controls.Chart
 
         private Brush defaultLinkBrush;
 
-        private int fromNodeLinksColorRangeIndex;
+        private int defaultNodeLinksPaletteIndex;
 
-        private Dictionary<string, Brush> colorRangeNodes; 
-
-        private List<Brush> defaultFromNodeLinksColorRange;
+        private List<Brush> defaultNodeLinksPalette;
 
         private bool isDiagramLoaded;
 
