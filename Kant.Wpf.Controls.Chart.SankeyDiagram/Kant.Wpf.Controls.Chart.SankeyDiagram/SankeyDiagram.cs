@@ -89,6 +89,8 @@ namespace Kant.Wpf.Controls.Chart
                 }
 
                 DiagramPanel.Children.Clear();
+
+                return;
             }
 
             // key means col/row index
@@ -135,26 +137,26 @@ namespace Kant.Wpf.Controls.Chart
             var maxGroupLength = 0.0;
             var maxGroupCount = 0;
 
-            for(var index = 0; index < nodes.Count; index++)
+            foreach(var levelNodes in nodes.Values)
             {
                 var tempGroupLength = 0.0;
 
-                for(var gIndex = 0; gIndex < nodes[index].Count; gIndex++)
+                foreach(var node in levelNodes)
                 {
                     if (IsDiagramVertical)
                     {
-                        tempGroupLength += nodes[index][gIndex].Shape.Width;
+                        tempGroupLength += node.Shape.Width;
                     }
                     else
                     {
-                        tempGroupLength += nodes[index][gIndex].Shape.Height;
+                        tempGroupLength += node.Shape.Height;
                     }
                 }
 
                 if(tempGroupLength > maxGroupLength)
                 {
                     maxGroupLength = tempGroupLength;
-                    maxGroupCount = nodes[index].Count;
+                    maxGroupCount = levelNodes.Count;
                 }
             }
 
@@ -246,7 +248,7 @@ namespace Kant.Wpf.Controls.Chart
                 }
             }
 
-            for(var index = 0; index < linkContainers.Count; index++)
+            for (var index = 0; index < linkContainers.Count; index++)
             {
                 for (var lIndex = 0; lIndex < links[index].Count; lIndex++)
                 {
@@ -260,17 +262,17 @@ namespace Kant.Wpf.Controls.Chart
             var isDatasUpdated = false;
             var tempDatas = datas.ToList();
 
-            for (var index = 0; index < tempDatas.Count; index++)
+            foreach(var data in datas)
             {
                 // if a node name only exists in From property, it'll be in the first col/row
-                if (levelIndex == 0 && tempDatas.Exists(d => d.To == tempDatas[index].From))
+                if (levelIndex == 0 && tempDatas.Exists(d => d.To == data.From))
                 {
                     continue;
                 }
 
                 if(levelIndex > 0)
                 {
-                    var node = nodes[levelIndex - 1].Find(findNode => findNode.Label.Text == tempDatas[index].From);
+                    var node = nodes[levelIndex - 1].Find(findNode => findNode.Label.Text == data.From);
 
                     if(node != null)
                     { 
@@ -281,12 +283,12 @@ namespace Kant.Wpf.Controls.Chart
                             break;
                         }
 
-                        for (var pIndex = 0; pIndex < previousLevelNodes.Count; pIndex++)
+                        foreach(var pNode in previousLevelNodes)
                         {
-                            if (previousLevelNodes[pIndex].To == tempDatas[index].To)
+                            if (pNode.To == data.To)
                             {
                                 isDatasUpdated = true;
-                                nodes = UpdateNodes(nodes, levelIndex, tempDatas[index], tempDatas[index].To);
+                                nodes = UpdateNodes(nodes, levelIndex, data, data.To);
                             }
                         }
                     }
@@ -299,7 +301,7 @@ namespace Kant.Wpf.Controls.Chart
 
                     for (var i = 1; i < levelIndex + 1; i++)
                     {
-                        if (nodes[levelIndex - i].Exists(findNode => findNode.Label.Text == tempDatas[index].From))
+                        if (nodes[levelIndex - i].Exists(findNode => findNode.Label.Text == data.From))
                         {
                             isDataDuplicate = true;
 
@@ -316,9 +318,9 @@ namespace Kant.Wpf.Controls.Chart
                 isDatasUpdated = true;
 
                 // if a node name only exists in To property, it'll be in the last col/row
-                var label = !tempDatas.Exists(d => d.From == tempDatas[index].From) ? tempDatas[index].To : tempDatas[index].From;
+                var label = !tempDatas.Exists(d => d.From == data.From) ? data.To : data.From;
 
-                nodes = UpdateNodes(nodes, levelIndex, tempDatas[index], label);
+                nodes = UpdateNodes(nodes, levelIndex, data, label);
             }
 
             if(isDatasUpdated)
@@ -337,28 +339,27 @@ namespace Kant.Wpf.Controls.Chart
         {
             var nodeFromLengthDictionary = new Dictionary<string, double>();
             var nodeToLengthDictionary = new Dictionary<string, double>();
-            var tempDatas = datas.ToList();
 
-            for (var index = 0; index < tempDatas.Count; index++)
+            foreach(var data in datas)
             {
-                var length = tempDatas[index].Weight;
+                var length = data.Weight;
 
-                if (nodeFromLengthDictionary.Keys.Contains(tempDatas[index].From))
+                if (nodeFromLengthDictionary.Keys.Contains(data.From))
                 {
-                    nodeFromLengthDictionary[tempDatas[index].From] += length;
+                    nodeFromLengthDictionary[data.From] += length;
                 }
                 else
                 {
-                    nodeFromLengthDictionary.Add(tempDatas[index].From, length);
+                    nodeFromLengthDictionary.Add(data.From, length);
                 }
 
-                if (nodeToLengthDictionary.Keys.Contains(tempDatas[index].To))
+                if (nodeToLengthDictionary.Keys.Contains(data.To))
                 {
-                    nodeToLengthDictionary[tempDatas[index].To] += length;
+                    nodeToLengthDictionary[data.To] += length;
                 }
                 else
                 {
-                    nodeToLengthDictionary.Add(tempDatas[index].To, length);
+                    nodeToLengthDictionary.Add(data.To, length);
                 }
             }
 
@@ -422,11 +423,11 @@ namespace Kant.Wpf.Controls.Chart
             var linkDictionary = new Dictionary<int, List<SankeyLink>>();
             var tempDatas = datas.ToList();
 
-            for (var index = 0; index < tempDatas.Count; index++)
+            foreach(var data in tempDatas)
             {
                 for (var fCount = 0; fCount < nodes.Count; fCount++)
                 {
-                    var fromNode = nodes[fCount].Find(findNode => findNode.Label.Text == tempDatas[index].From);
+                    var fromNode = nodes[fCount].Find(findNode => findNode.Label.Text == data.From);
 
                     if (fromNode != null)
                     {
@@ -435,9 +436,9 @@ namespace Kant.Wpf.Controls.Chart
                             FromNode = fromNode
                         };
 
-                        for (var tIndex = 0; tIndex < nodes.Count; tIndex++)
+                        foreach(var levelNodes in nodes.Values)
                         {
-                            var toNode = nodes[tIndex].Find(findNode => findNode.Label.Text == tempDatas[index].To);
+                            var toNode = levelNodes.Find(findNode => findNode.Label.Text == data.To);
 
                             if (toNode != null)
                             {
@@ -448,8 +449,8 @@ namespace Kant.Wpf.Controls.Chart
                         }
 
                         var shape = new Path();
-                        shape.Stroke = tempDatas[index].LinkStroke == null ? defaultLinkBrush : tempDatas[index].LinkStroke;
-                        shape.StrokeThickness = tempDatas[index].Weight;
+                        shape.Stroke = data.LinkStroke == null ? defaultLinkBrush : data.LinkStroke;
+                        shape.StrokeThickness = data.Weight;
                         link.Shape = shape;
 
                         if (linkDictionary.Keys.Contains(fCount))

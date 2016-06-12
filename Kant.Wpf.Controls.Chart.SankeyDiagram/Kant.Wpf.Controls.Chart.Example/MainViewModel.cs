@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace Kant.Wpf.Controls.Chart.Example
 {
@@ -22,17 +23,29 @@ namespace Kant.Wpf.Controls.Chart.Example
                 new SankeyDataRow("B", "D", 2555),
                 new SankeyDataRow("B", "E", 1555),
                 new SankeyDataRow("C", "F", 2555),
-                new SankeyDataRow("C", "H", 1555),
                 new SankeyDataRow("C", "G", 1555),
+                new SankeyDataRow("C", "H", 1555),
                 new SankeyDataRow("D", "F", 2555),
+                new SankeyDataRow("D", "G", 1555),
                 new SankeyDataRow("D", "H", 1555),
                 new SankeyDataRow("D", "I", 1555),
-                new SankeyDataRow("D", "G", 1555),
                 new SankeyDataRow("E", "H", 1555),
                 new SankeyDataRow("E", "I", 1555)
             };
 
             SankeyDatas = datas;
+        }
+
+        private ICommand clearDiagram;
+        public ICommand ClearDiagram
+        {
+            get
+            {
+                return GetCommand(clearDiagram, new CommandBase(() =>
+                {
+                    SankeyDatas = null;
+                }));
+            }
         }
 
         private List<SankeyDataRow> sankeyDatas;
@@ -52,7 +65,17 @@ namespace Kant.Wpf.Controls.Chart.Example
             }
         }
 
-        #region INotifyPropertyChanged
+        #region INotifyPropertyChanged & Command
+
+        private ICommand GetCommand(ICommand c, CommandBase command)
+        {
+            if (c == null)
+            {
+                c = command;
+            }
+
+            return c;
+        }
 
         private void RaisePropertyChanged<T>(Expression<Func<T>> action)
         {
