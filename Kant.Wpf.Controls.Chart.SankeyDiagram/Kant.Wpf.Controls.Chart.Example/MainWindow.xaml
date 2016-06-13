@@ -52,7 +52,7 @@
                 <kantCharts:SankeyDiagram Height="800"
                                           NodeIntervalSpace="15"
                                           IsDiagramVertical="False"
-                                          UseNodeLinksPalette="True"
+                                          UseNodeLinksPalette="False"
                                           ShowLabels="True"
                                           LabelStyle="{StaticResource SankeyLabelStyle}"
                                           Datas="{Binding SankeyDatas}"
