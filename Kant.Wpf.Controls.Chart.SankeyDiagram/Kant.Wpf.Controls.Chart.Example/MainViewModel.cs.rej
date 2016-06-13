@@ -1,0 +1,14 @@
+diff a/Kant.Wpf.Controls.Chart.SankeyDiagram/Kant.Wpf.Controls.Chart.Example/MainViewModel.cs b/Kant.Wpf.Controls.Chart.SankeyDiagram/Kant.Wpf.Controls.Chart.Example/MainViewModel.cs	(rejected hunks)
+@@ -13,12 +13,8 @@
+ {
+     public class MainViewModel : INotifyPropertyChanged
+     {
+-        #region Constructor
+-
+         public MainViewModel()
+         {
+-            random = new Random();
+-
+             var datas = new List<SankeyDataRow>()
+             {
+                 new SankeyDataRow("A", "C", 2555),

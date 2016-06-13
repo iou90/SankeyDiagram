@@ -42,6 +42,11 @@
                         Width="100"
                         Height="20"
                         Command="{Binding TestBigData}" />
+                <Button Content="random hightlight a node/link"
+                        Margin="10,0,0,0"
+                        Width="200"
+                        Height="20"
+                        Command="{Binding Highlight}" />
             </StackPanel>
             <Border Margin="20">
                 <kantCharts:SankeyDiagram Height="800"
@@ -51,7 +56,8 @@
                                           ShowLabels="True"
                                           LabelStyle="{StaticResource SankeyLabelStyle}"
                                           Datas="{Binding SankeyDatas}"
-                                          NodeBrushes="{Binding SankeyNodeBrushes}" />
+                                          NodeBrushes="{Binding SankeyNodeBrushes}"
+                                          HighlightNode="{Binding HighlightSankeyNode}" />
             </Border>
             <!--<Border Margin="20">
                 <StackPanel x:Name="panel"

@@ -26,6 +26,8 @@ namespace Kant.Wpf.Controls.Chart.Example
 
             Loaded += (s, e) =>
             {
+                var dic = new Dictionary<string, int>() { { "1", 1 }, { "2", 1 } };
+                var test = from v in dic.Values where v == 1 select v;
             };
         }
     }

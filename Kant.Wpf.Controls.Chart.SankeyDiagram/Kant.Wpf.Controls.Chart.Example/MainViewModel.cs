@@ -13,8 +13,12 @@ namespace Kant.Wpf.Controls.Chart.Example
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        #region Constructor
+
         public MainViewModel()
         {
+            random = new Random();
+
             var datas = new List<SankeyDataRow>()
             {
                 new SankeyDataRow("A", "C", 2555),
@@ -46,6 +50,10 @@ namespace Kant.Wpf.Controls.Chart.Example
             SankeyDatas = datas;
         }
 
+        #endregion
+
+        #region Commands
+
         private ICommand testBigData;
         public ICommand TestBigData
         {
@@ -54,12 +62,11 @@ namespace Kant.Wpf.Controls.Chart.Example
                 return GetCommand(testBigData, new CommandBase(() =>
                 {
                     var datas = new List<SankeyDataRow>();
-                    var randrom = new Random();
                     var count = 0;
 
                     while (count < 100)
                     {
-                        datas.Add(new SankeyDataRow(randrom.Next(9).ToString(), randrom.Next(10, 19).ToString(), randrom.Next(55, 155)));
+                        datas.Add(new SankeyDataRow(random.Next(9).ToString(), random.Next(10, 19).ToString(), random.Next(55, 155)));
                         count++;
                     }
 
@@ -79,6 +86,35 @@ namespace Kant.Wpf.Controls.Chart.Example
                 }));
             }
         }
+
+        private ICommand highlight;
+        public ICommand Highlight
+        {
+            get
+            {
+                return GetCommand(highlight, new CommandBase(() =>
+                {
+                    var fromNodes = new List<string>();
+
+                    foreach(var data in SankeyDatas)
+                    {
+                        if(!fromNodes.Exists(n => n == data.From))
+                        {
+                            fromNodes.Add(data.From);
+                        }
+                    }
+
+                    //HighlightSankeyNode = fromNodes[random.Next(fromNodes.Count)];
+                    //HighlightSankeyNode = "D";
+                    //HighlightSankeyNode = "";
+                    HighlightSankeyNode = "Z";
+                }));
+            }
+        }
+
+        #endregion
+
+        #region Fields & Properties
 
         private List<SankeyDataRow> sankeyDatas;
         public List<SankeyDataRow> SankeyDatas
@@ -114,6 +150,23 @@ namespace Kant.Wpf.Controls.Chart.Example
             }
         }
 
+        private string highlightSankeyNode;
+        public string HighlightSankeyNode
+        {
+            get
+            {
+                return highlightSankeyNode;
+            }
+            set
+            {
+                highlightSankeyNode = value;
+                RaisePropertyChanged(() => HighlightSankeyNode);
+            }
+        }
+
+        private Random random;
+
+        #endregion
 
         #region INotifyPropertyChanged & ICommand
 
