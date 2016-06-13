@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="SankeyLink.cs" />
+    <Compile Include="SankeyLinkBrushFinder.cs" />
     <Compile Include="SankeyNode.cs" />
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
