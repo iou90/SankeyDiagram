@@ -38,14 +38,14 @@ namespace Kant.Wpf.Controls.Chart.Example
                 new SankeyDataRow("E", "I", 1555)
             };
 
-            SankeyNodeBrushes = new Dictionary<string, Brush>()
-            {
-                { "A", new SolidColorBrush(Colors.Brown) { Opacity = 0.35 } },
-                { "B", new SolidColorBrush(Colors.Aqua) { Opacity = 0.25 } },
-                { "C", new SolidColorBrush(Colors.CornflowerBlue) { Opacity = 0.15 } },
-                { "D", new SolidColorBrush(Colors.DimGray) { Opacity = 0.45 } },
-                { "E", new SolidColorBrush(Colors.Firebrick) { Opacity = 0.65 } },
-            };
+            //SankeyNodeBrushes = new Dictionary<string, Brush>()
+            //{
+            //    { "A", new SolidColorBrush(Colors.Brown) { Opacity = 0.35 } },
+            //    { "B", new SolidColorBrush(Colors.Aqua) { Opacity = 0.25 } },
+            //    { "C", new SolidColorBrush(Colors.CornflowerBlue) { Opacity = 0.15 } },
+            //    { "D", new SolidColorBrush(Colors.DimGray) { Opacity = 0.45 } },
+            //    { "E", new SolidColorBrush(Colors.Firebrick) { Opacity = 0.65 } },
+            //};
 
             SankeyDatas = datas;
         }
@@ -105,9 +105,9 @@ namespace Kant.Wpf.Controls.Chart.Example
                     }
 
                     //HighlightSankeyNode = fromNodes[random.Next(fromNodes.Count)];
-                    //HighlightSankeyNode = "D";
+                    HighlightSankeyNode = "D";
                     //HighlightSankeyNode = "";
-                    HighlightSankeyNode = "Z";
+                    //HighlightSankeyNode = "Z";
                 }));
             }
         }

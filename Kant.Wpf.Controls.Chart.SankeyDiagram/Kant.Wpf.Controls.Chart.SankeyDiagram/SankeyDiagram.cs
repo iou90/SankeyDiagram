@@ -184,9 +184,10 @@ namespace Kant.Wpf.Controls.Chart
 
             var minOpacity = 0.15;
             var loweredOpacity = 0.25;
+            var increasedOpacity = 1;
             var resetBrushes = true;
 
-            // highlight node exists
+            // check whether highlight node exists
             if (!string.IsNullOrEmpty(highlightNode))
             {
                 if ((from node in currentNodes.Values.SelectMany(n => n) where node.Label.Text == highlightNode select node).Count() > 0)
@@ -196,72 +197,53 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             // reset if highlight the same node twice
-            if (!resetBrushes && highlightNode == HighlightNode)
+            if (!resetBrushes  && !isHighlightResetted && highlightNode == HighlightNode)
             {
                 resetBrushes = true;
             }
 
-            var highlightLinks = new List<SankeyLink>();
-            var otherLinks = new List<SankeyLink>();
-
-            // increasing opacity of highlight node while lower the others  
-            foreach (var levelNodes in currentNodes.Values)
+            // increasing opacity of the correlated element while lower the others  
+            foreach (var levelLinks in currentLinks.Values)
             {
-                foreach (var node in levelNodes)
+                foreach (var link in levelLinks)
                 {
                     if (!resetBrushes)
                     {
-                        if (node.Label.Text == highlightNode)
+                        // if using node links palette, color of links will change with it's from node 
+                        if (link.FromNode.Label.Text == highlightNode)
                         {
-                            node.Shape.Fill.Opacity = 1;
+                            link.Shape.Stroke.Opacity = increasedOpacity;
+                            link.FromNode.Shape.Fill.Opacity = increasedOpacity;
+                            link.ToNode.Shape.Fill.Opacity = increasedOpacity;
                         }
                         else
                         {
-                            if ((node.Shape.Fill.Opacity - loweredOpacity) < minOpacity)
+                            link.Shape.Stroke.Opacity = CalculateOpacity(link.Shape.Stroke.Opacity, minOpacity, loweredOpacity);
+
+                            // prevent highlight node changes it's brush again
+                            if (link.FromNode.Shape.Fill.Equals(originalNodeBrushes[link.FromNode.Label.Text]))
                             {
-                                node.Shape.Fill.Opacity = minOpacity;
+                                link.FromNode.Shape.Fill.Opacity = CalculateOpacity(link.FromNode.Shape.Fill.Opacity, minOpacity, loweredOpacity);
                             }
-                            else
+
+                            if (link.ToNode.Shape.Fill.Equals(originalNodeBrushes[link.ToNode.Label.Text]))
                             {
-                                node.Shape.Fill.Opacity -= loweredOpacity;
+                                link.ToNode.Shape.Fill.Opacity = CalculateOpacity(link.FromNode.Shape.Fill.Opacity, minOpacity, loweredOpacity);
                             }
                         }
                     }
                     else
                     {
-                        node.Shape.Fill = originalNodeBrushes[node.Label.Text];
+                        link.Shape.Stroke = originalLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
+                        link.FromNode.Shape.Fill = originalNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
+                        link.ToNode.Shape.Fill = originalNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
                     }
                 }
             }
 
-            // increasing opacity of link which is from the highlight node while lower the others  
-            foreach (var levelNodes in currentNodes.Values)
+            if(resetBrushes)
             {
-                foreach (var node in levelNodes)
-                {
-                    if (!resetBrushes)
-                    {
-                        if (node.Label.Text == highlightNode)
-                        {
-                            node.Shape.Fill.Opacity = 1;
-                        }
-                        else
-                        {
-                            if ((node.Shape.Fill.Opacity - loweredOpacity) < minOpacity)
-                            {
-                                node.Shape.Fill.Opacity = minOpacity;
-                            }
-                            else
-                            {
-                                node.Shape.Fill.Opacity -= loweredOpacity;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        node.Shape.Fill = originalNodeBrushes[node.Label.Text];
-                    }
-                }
+                isHighlightResetted = true;
             }
         }
 
@@ -679,6 +661,35 @@ namespace Kant.Wpf.Controls.Chart
             return nodes;
         }
 
+        private void AddLabels(Canvas container, Dictionary<int, List<SankeyNode>> nodes, int index)
+        {
+            foreach (var node in nodes[index])
+            {
+                node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+                if (IsDiagramVertical)
+                {
+                    Canvas.SetLeft(node.Label, NodeIntervalSpace + node.Position + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
+
+                    if (index == nodes.Count - 1)
+                    {
+                        Canvas.SetBottom(node.Label, 0);
+                    }
+                }
+                else
+                {
+                    Canvas.SetTop(node.Label, node.Position + (node.Shape.Height / 2) - (node.Label.DesiredSize.Height / 2));
+
+                    if (index == nodes.Count - 1)
+                    {
+                        Canvas.SetRight(node.Label, 0);
+                    }
+                }
+
+                container.Children.Add(node.Label);
+            }
+        }
+
         private SankeyNode CreateNode(SankeyDataRow data, string label)
         {
             var l = new TextBlock()
@@ -784,33 +795,20 @@ namespace Kant.Wpf.Controls.Chart
             return link;
         }
 
-        private void AddLabels(Canvas container, Dictionary<int, List<SankeyNode>> nodes, int index)
+        private double CalculateOpacity(double originOpacity, double minOpacity, double loweredOpacity)
         {
-            foreach (var node in nodes[index])
+            var opacity = originOpacity;
+
+            if ((originOpacity - loweredOpacity) < minOpacity)
             {
-                node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-
-                if (IsDiagramVertical)
-                {
-                    Canvas.SetLeft(node.Label, NodeIntervalSpace + node.Position + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
-
-                    if (index == nodes.Count - 1)
-                    {
-                        Canvas.SetBottom(node.Label, 0);
-                    }
-                }
-                else
-                {
-                    Canvas.SetTop(node.Label, node.Position + (node.Shape.Height / 2) - (node.Label.DesiredSize.Height / 2));
-
-                    if(index == nodes.Count - 1)
-                    {
-                        Canvas.SetRight(node.Label, 0);
-                    }
-                }
-
-                container.Children.Add(node.Label);
+                opacity = minOpacity;
             }
+            else
+            {
+                opacity -= loweredOpacity;
+            }
+
+            return opacity;
         }
 
         #endregion
@@ -892,6 +890,8 @@ namespace Kant.Wpf.Controls.Chart
         private Dictionary<string, Brush> originalNodeBrushes;
 
         private List<SankeyLinkBrushFinder> originalLinkBrushes;
+
+        private bool isHighlightResetted;
 
         private bool isDiagramLoaded;
 
