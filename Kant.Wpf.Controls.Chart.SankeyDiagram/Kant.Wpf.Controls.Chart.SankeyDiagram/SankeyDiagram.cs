@@ -31,7 +31,7 @@ namespace Kant.Wpf.Controls.Chart
         {
             // set default values
             NodeIntervalSpace = 5;
-            NodeThickness = 10;
+            NodeLength = 10;
             NodeBrush = new SolidColorBrush(Colors.Black);
             defaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = 0.55 };
             LinkPoint1Curveless = 0.4;
@@ -66,8 +66,6 @@ namespace Kant.Wpf.Controls.Chart
             };
 
             defaultNodeLinksPaletteIndex = 0;
-            originalNodeBrushes = new Dictionary<string, Brush>();
-            originalLinkBrushes = new List<SankeyLinkBrushFinder>();
 
             Loaded += (s, e) =>
             {
@@ -168,103 +166,6 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        private static object HighlightNodeSourceValueCallback(DependencyObject o, object value)
-        {
-            ((SankeyDiagram)o).HighlightNodeValueCallback(value as string);
-
-            return value;
-        }
-
-        private void HighlightNodeValueCallback(string highlightNode)
-        {
-            if ((string.IsNullOrEmpty(highlightNode) && string.IsNullOrEmpty(HighlightNode) || currentNodes == null))
-            {
-                return;
-            }
-
-            var minOpacity = 0.15;
-            var loweredOpacity = 0.25;
-            var resetBrushes = true;
-
-            // highlight node exists
-            if (!string.IsNullOrEmpty(highlightNode))
-            {
-                if ((from node in currentNodes.Values.SelectMany(n => n) where node.Label.Text == highlightNode select node).Count() > 0)
-                {
-                    resetBrushes = false;
-                };
-            }
-
-            // reset if highlight the same node twice
-            if (!resetBrushes && highlightNode == HighlightNode)
-            {
-                resetBrushes = true;
-            }
-
-            var highlightLinks = new List<SankeyLink>();
-            var otherLinks = new List<SankeyLink>();
-
-            // increasing opacity of highlight node while lower the others  
-            foreach (var levelNodes in currentNodes.Values)
-            {
-                foreach (var node in levelNodes)
-                {
-                    if (!resetBrushes)
-                    {
-                        if (node.Label.Text == highlightNode)
-                        {
-                            node.Shape.Fill.Opacity = 1;
-                        }
-                        else
-                        {
-                            if ((node.Shape.Fill.Opacity - loweredOpacity) < minOpacity)
-                            {
-                                node.Shape.Fill.Opacity = minOpacity;
-                            }
-                            else
-                            {
-                                node.Shape.Fill.Opacity -= loweredOpacity;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        node.Shape.Fill = originalNodeBrushes[node.Label.Text];
-                    }
-                }
-            }
-
-            // increasing opacity of link which is from the highlight node while lower the others  
-            foreach (var levelNodes in currentNodes.Values)
-            {
-                foreach (var node in levelNodes)
-                {
-                    if (!resetBrushes)
-                    {
-                        if (node.Label.Text == highlightNode)
-                        {
-                            node.Shape.Fill.Opacity = 1;
-                        }
-                        else
-                        {
-                            if ((node.Shape.Fill.Opacity - loweredOpacity) < minOpacity)
-                            {
-                                node.Shape.Fill.Opacity = minOpacity;
-                            }
-                            else
-                            {
-                                node.Shape.Fill.Opacity -= loweredOpacity;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        node.Shape.Fill = originalNodeBrushes[node.Label.Text];
-                    }
-                }
-            }
-        }
-
         private void CreateDiagram(Dictionary<int, List<SankeyNode>> nodes, Dictionary<int, List<SankeyLink>> links)
         {
             if(DiagramPanel.ActualHeight <= 0 || DiagramPanel.ActualWidth <= 0 || nodes == null || nodes.Count < 2 || links == null || links.Count == 0)
@@ -278,13 +179,13 @@ namespace Kant.Wpf.Controls.Chart
             if(IsDiagramVertical)
             {
                 panelLength = DiagramPanel.ActualWidth;
-                linkLength = LinkLength > 0 ? LinkLength : (DiagramPanel.ActualHeight - nodes.Count * NodeThickness) / links.Count;
+                linkLength = LinkLength > 0 ? LinkLength : (DiagramPanel.ActualHeight - nodes.Count * NodeLength) / links.Count;
             }
             else
             {
                 DiagramPanel.Orientation = Orientation.Horizontal;
                 panelLength = DiagramPanel.ActualHeight;
-                linkLength = LinkLength > 0 ? LinkLength : (DiagramPanel.ActualWidth - nodes.Count * NodeThickness) / links.Count;
+                linkLength = LinkLength > 0 ? LinkLength : (DiagramPanel.ActualWidth - nodes.Count * NodeLength) / links.Count;
             }
 
             var nodesGroupContainerStyle = new Style();
@@ -313,9 +214,6 @@ namespace Kant.Wpf.Controls.Chart
                             }
                         }
                     }
-
-                    // save node fill
-                    originalNodeBrushes.Add(node.Label.Text, node.Shape.Fill.CloneCurrentValue());
 
                     if (IsDiagramVertical)
                     {
@@ -426,9 +324,7 @@ namespace Kant.Wpf.Controls.Chart
             {
                 for (var lIndex = 0; lIndex < links[index].Count; lIndex++)
                 {
-                    var link = links[index][lIndex];
-                    linkContainers[index].Children.Add(DrawLink(link, linkLength, unitLength).Shape);
-                    originalLinkBrushes.Add(new SankeyLinkBrushFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
+                    linkContainers[index].Children.Add(DrawLink(links[index][lIndex], linkLength, unitLength).Shape);
                 }
 
                 if (ShowLabels)
@@ -479,7 +375,7 @@ namespace Kant.Wpf.Controls.Chart
                             if (pNode.To == data.To)
                             {
                                 isDatasUpdated = true;
-                                nodes = FeedNodes(nodes, levelIndex, data, data.To);
+                                nodes = UpdateNodes(nodes, levelIndex, data, data.To);
                             }
                         }
                     }
@@ -511,7 +407,7 @@ namespace Kant.Wpf.Controls.Chart
                 // if a node name only exists in To property, it'll be in the last col/row
                 var label = !tempDatas.Exists(d => d.From == data.From) ? data.To : data.From;
 
-                nodes = FeedNodes(nodes, levelIndex, data, label);
+                nodes = UpdateNodes(nodes, levelIndex, data, label);
             }
 
             if(isDatasUpdated)
@@ -640,7 +536,6 @@ namespace Kant.Wpf.Controls.Chart
                         }
 
                         var shape = new Path();
-                        shape.SnapsToDevicePixels = true;
                         shape.Stroke = data.LinkStroke == null ? defaultLinkBrush : data.LinkStroke;
                         shape.StrokeThickness = data.Weight;
                         link.Shape = shape;
@@ -660,7 +555,7 @@ namespace Kant.Wpf.Controls.Chart
             return linkDictionary;
         }
 
-        private Dictionary<int, List<SankeyNode>> FeedNodes(Dictionary<int, List<SankeyNode>> nodes, int index, SankeyDataRow data, string label)
+        private Dictionary<int, List<SankeyNode>> UpdateNodes(Dictionary<int, List<SankeyNode>> nodes, int index, SankeyDataRow data, string label)
         {
             if (nodes.Keys.Contains(index))
             {
@@ -688,9 +583,8 @@ namespace Kant.Wpf.Controls.Chart
             };
 
             var shape = new Rectangle();
-            shape.SnapsToDevicePixels = true;
-
-            if (NodeBrushes != null && NodeBrushes.Keys.Contains(label))
+            
+            if(NodeBrushes != null && NodeBrushes.Keys.Contains(label))
             {
                 shape.Fill = NodeBrushes[label];
             }
@@ -701,11 +595,11 @@ namespace Kant.Wpf.Controls.Chart
 
             if(IsDiagramVertical)
             {
-                shape.Height = NodeThickness;
+                shape.Height = NodeLength;
             }
            else
             {
-                shape.Width = NodeThickness;
+                shape.Width = NodeLength;
             }
 
             return new SankeyNode(shape, l);
@@ -817,8 +711,6 @@ namespace Kant.Wpf.Controls.Chart
 
         #region Fields & Properties
 
-        #region dependency properties
-
         public IEnumerable<SankeyDataRow> Datas
         {
             get { return (IEnumerable<SankeyDataRow>)GetValue(DatasProperty); }
@@ -835,18 +727,6 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty NodeBrushesProperty = DependencyProperty.Register("NodeBrushes", typeof(Dictionary<string, Brush>), typeof(SankeyDiagram), new PropertyMetadata(OnNodeBrushesSourceChanged));
 
-        public string HighlightNode
-        {
-            get { return (string)GetValue(HighlightNodeProperty); }
-            set { SetValue(HighlightNodeProperty, value); }
-        }
-
-        public static readonly DependencyProperty HighlightNodeProperty = DependencyProperty.Register("HighlightNode", typeof(string), typeof(SankeyDiagram), new PropertyMetadata(null, null, HighlightNodeSourceValueCallback));
-
-        #endregion
-
-        #region diagram settings
-
         public bool IsDiagramVertical { get; set; }
 
         public double LinkLength { get; set; }
@@ -855,7 +735,7 @@ namespace Kant.Wpf.Controls.Chart
 
         public double LinkPoint2Curveless { get; set; }
 
-        public double NodeThickness { get; set; }
+        public double NodeLength { get; set; }
 
         public double NodeIntervalSpace { get; set; }
 
@@ -877,8 +757,6 @@ namespace Kant.Wpf.Controls.Chart
 
         public StackPanel DiagramPanel { get; set; }
 
-        #endregion
-
         private Dictionary<int, List<SankeyNode>> currentNodes;
 
         private Dictionary<int, List<SankeyLink>> currentLinks;
@@ -888,10 +766,6 @@ namespace Kant.Wpf.Controls.Chart
         private int defaultNodeLinksPaletteIndex;
 
         private List<Brush> defaultNodeLinksPalette;
-
-        private Dictionary<string, Brush> originalNodeBrushes;
-
-        private List<SankeyLinkBrushFinder> originalLinkBrushes;
 
         private bool isDiagramLoaded;
 
