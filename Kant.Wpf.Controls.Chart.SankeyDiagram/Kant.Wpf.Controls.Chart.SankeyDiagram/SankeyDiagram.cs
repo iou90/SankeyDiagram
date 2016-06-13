@@ -484,7 +484,7 @@ namespace Kant.Wpf.Controls.Chart
 
                 if (nodeFromLengthDictionary.Keys.Contains(data.From))
                 {
-                    nodeFromLengthDictionary[data.From] += length;
+                    nodeFromLengthDictionary[data.From] += length;///
                 }
                 else
                 {
