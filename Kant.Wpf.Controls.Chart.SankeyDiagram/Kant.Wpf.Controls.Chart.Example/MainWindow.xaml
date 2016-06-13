@@ -47,10 +47,11 @@
                 <kantCharts:SankeyDiagram Height="800"
                                           NodeIntervalSpace="15"
                                           IsDiagramVertical="False"
-                                          ShowLabels="True"
                                           UseNodeLinksPalette="True"
+                                          ShowLabels="True"
                                           LabelStyle="{StaticResource SankeyLabelStyle}"
-                                          Datas="{Binding SankeyDatas}" />
+                                          Datas="{Binding SankeyDatas}"
+                                          NodeBrushes="{Binding SankeyNodeBrushes}" />
             </Border>
             <!--<Border Margin="20">
                 <StackPanel x:Name="panel"

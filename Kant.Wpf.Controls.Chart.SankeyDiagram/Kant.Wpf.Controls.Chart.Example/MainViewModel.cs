@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Kant.Wpf.Controls.Chart.Example
 {
@@ -31,6 +32,15 @@ namespace Kant.Wpf.Controls.Chart.Example
                 new SankeyDataRow("D", "I", 1555),
                 new SankeyDataRow("E", "H", 1555),
                 new SankeyDataRow("E", "I", 1555)
+            };
+
+            SankeyNodeBrushes = new Dictionary<string, Brush>()
+            {
+                { "A", new SolidColorBrush(Colors.Brown) { Opacity = 0.35 } },
+                { "B", new SolidColorBrush(Colors.Aqua) { Opacity = 0.25 } },
+                { "C", new SolidColorBrush(Colors.CornflowerBlue) { Opacity = 0.15 } },
+                { "D", new SolidColorBrush(Colors.DimGray) { Opacity = 0.45 } },
+                { "E", new SolidColorBrush(Colors.Firebrick) { Opacity = 0.65 } },
             };
 
             SankeyDatas = datas;
@@ -79,13 +89,31 @@ namespace Kant.Wpf.Controls.Chart.Example
             }
             set
             {
-                if (sankeyDatas != value)
+                if (value != sankeyDatas)
                 {
                     sankeyDatas = value;
                     RaisePropertyChanged(() => SankeyDatas);
                 }
             }
         }
+
+        private Dictionary<string, Brush> sankeyNodeBrushes;
+        public Dictionary<string, Brush> SankeyNodeBrushes
+        {
+            get
+            {
+                return sankeyNodeBrushes;
+            }
+            set
+            {
+                if(value != sankeyNodeBrushes)
+                {
+                    sankeyNodeBrushes = value;
+                    RaisePropertyChanged(() => SankeyNodeBrushes);
+                }
+            }
+        }
+
 
         #region INotifyPropertyChanged & ICommand
 

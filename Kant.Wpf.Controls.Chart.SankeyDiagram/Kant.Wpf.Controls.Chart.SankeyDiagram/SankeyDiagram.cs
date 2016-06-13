@@ -32,7 +32,7 @@ namespace Kant.Wpf.Controls.Chart
             // set default values
             NodeIntervalSpace = 5;
             NodeLength = 10;
-            NodeFill = new SolidColorBrush(Colors.Black);
+            NodeBrush = new SolidColorBrush(Colors.Black);
             defaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = 0.55 };
             LinkPoint1Curveless = 0.4;
             LinkPoint2Curveless = 0.6;
@@ -73,7 +73,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     return;
                 }
-
+                
                 CreateDiagram(currentNodes, currentLinks);
                 isDiagramLoaded = true;
             };
@@ -120,7 +120,7 @@ namespace Kant.Wpf.Controls.Chart
             {
                 return;
             }
-
+            
             // create nodes, dictionary key means col/row index
             var nodeDictionary = ProduceNodes(newDatas, new Dictionary<int, List<SankeyNode>>(), 0);
 
@@ -134,6 +134,35 @@ namespace Kant.Wpf.Controls.Chart
             if (isDiagramLoaded)
             {
                 CreateDiagram(currentNodes, currentLinks);
+            }
+        }
+
+        private static void OnNodeBrushesSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            ((SankeyDiagram)o).OnNodeBrushesChanged(e.NewValue as Dictionary<string, Brush>, e.OldValue as Dictionary<string, Brush>);
+        }
+
+        private void OnNodeBrushesChanged(Dictionary<string, Brush> newBrushes, Dictionary<string, Brush> oldBrushes)
+        {
+            if(newBrushes == null || newBrushes == oldBrushes || currentNodes == null || currentNodes.Count() == 0)
+            {
+                return;
+            }
+
+            foreach(var levelNodes in currentNodes.Values)
+            {
+                foreach (var node in levelNodes)
+                {
+                    if(newBrushes.Keys.Contains(node.Label.Text))
+                    {
+                        var brush = newBrushes[node.Label.Text];
+
+                        if (brush != node.Shape.Fill)
+                        {
+                            node.Shape.Fill = brush;
+                        }                               
+                    }
+                } 
             }
         }
 
@@ -174,7 +203,7 @@ namespace Kant.Wpf.Controls.Chart
                     // if use node-links color range and node colors property has no value then use default color range
                     if (UseNodeLinksPalette)
                     {
-                        if (NodeColors == null || NodeColors.Keys.Count == 0 || !NodeColors.Keys.Contains(node.Label.Text))
+                        if (NodeBrushes == null || !NodeBrushes.Keys.Contains(node.Label.Text))
                         {
                             node.Shape.Fill = defaultNodeLinksPalette[defaultNodeLinksPaletteIndex];
                             defaultNodeLinksPaletteIndex++;
@@ -208,7 +237,9 @@ namespace Kant.Wpf.Controls.Chart
 
             if(nodesOverallLength <= 0)
             {
-                throw new ArgumentOutOfRangeException("panel's length is not enough.");
+                DiagramPanel.Children.Add(new TextBlock() { Text = "diagram panel length is not enough" } );
+
+                return;
             }
 
             var unitLength = nodesOverallLength / maxGroupLength;
@@ -553,13 +584,13 @@ namespace Kant.Wpf.Controls.Chart
 
             var shape = new Rectangle();
             
-            if(NodeColors != null && NodeColors.Keys.Count != 0 && NodeColors.Keys.Contains(label))
+            if(NodeBrushes != null && NodeBrushes.Keys.Contains(label))
             {
-                shape.Fill = NodeColors[label];
+                shape.Fill = NodeBrushes[label];
             }
             else
             {
-                shape.Fill = NodeFill;
+                shape.Fill = NodeBrush;
             } 
 
             if(IsDiagramVertical)
@@ -688,6 +719,14 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty DatasProperty = DependencyProperty.Register("Datas", typeof(IEnumerable<SankeyDataRow>), typeof(SankeyDiagram), new PropertyMetadata(new List<SankeyDataRow>(), OnDatasSourceChanged));
 
+        public Dictionary<string, Brush> NodeBrushes
+        {
+            get { return (Dictionary<string, Brush>)GetValue(NodeBrushesProperty); }
+            set { SetValue(NodeBrushesProperty, value); }
+        }
+
+        public static readonly DependencyProperty NodeBrushesProperty = DependencyProperty.Register("NodeBrushes", typeof(Dictionary<string, Brush>), typeof(SankeyDiagram), new PropertyMetadata(OnNodeBrushesSourceChanged));
+
         public bool IsDiagramVertical { get; set; }
 
         public double LinkLength { get; set; }
@@ -700,14 +739,20 @@ namespace Kant.Wpf.Controls.Chart
 
         public double NodeIntervalSpace { get; set; }
 
-        public Brush NodeFill { get; set; }
-
-        public Dictionary<string, Brush> NodeColors { get; set; }
+        /// <summary>
+        /// brush applying on all nodes
+        /// it does not work if you set UseNodeLinksPalette to true
+        /// </summary>
+        public Brush NodeBrush { get; set; }
 
         public Style LabelStyle { get; set; }
 
         public bool ShowLabels { get; set; }
         
+        /// <summary>
+        /// using node links palette means coloring your link with fromNode's brush
+        /// if NodeBrushes exist, nodes & links will use it, if not, use default palette
+        /// </summary>
         public bool UseNodeLinksPalette { get; set; }
 
         public StackPanel DiagramPanel { get; set; }
