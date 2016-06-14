@@ -48,7 +48,9 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SankeyFlowDirection.cs" />
     <Compile Include="SankeyLink.cs" />
+    <Compile Include="SankeyLinkFinder.cs" />
     <Compile Include="SankeyLinkStyleFinder.cs" />
     <Compile Include="SankeyNode.cs" />
     <Page Include="Themes\Generic.xaml">

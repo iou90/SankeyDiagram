@@ -7,17 +7,11 @@ using System.Windows.Media;
 
 namespace Kant.Wpf.Controls.Chart
 {
-    public class SankeyLinkStyleFinder
+    public class SankeyLinkStyleFinder : SankeyLinkFinder
     {
-        public SankeyLinkStyleFinder(string from, string to)
+        public SankeyLinkStyleFinder(string from, string to) : base(from, to)
         {
-            From = from;
-            To = to;
         }
-
-        public string From { get; }
-
-        public string To { get; }
 
         public Brush Brush { get; set; }
     }

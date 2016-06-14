@@ -101,6 +101,8 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
+        #region dependency property methods
+
         private static void OnDatasSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
             ((SankeyDiagram)o).OnDatasChanged(e.NewValue as IEnumerable<SankeyDataRow>, e.OldValue as IEnumerable<SankeyDataRow>);
@@ -119,11 +121,7 @@ namespace Kant.Wpf.Controls.Chart
                 DiagramPanel.Children.Clear();
                 currentNodes.Clear();
                 currentLinks.Clear();
-                resetHighlightNodeBrushes.Clear();
-                resetHighlightNodeStyles.Clear();
-                resetHighlightLinkBrushes.Clear();
-                isHighlightResetted = false;
-                SetCurrentValue(HighlightNodeProperty, null);
+                ClearHighlightStyle();
             }
 
             if (newDatas == null || newDatas.Count() == 0)
@@ -159,10 +157,9 @@ namespace Kant.Wpf.Controls.Chart
                 return;
             }
 
-            resetHighlightNodeBrushes.Clear();
-            resetHighlightNodeStyles.Clear();
+            ClearHighlightStyle();
 
-            foreach(var levelNodes in currentNodes.Values)
+            foreach (var levelNodes in currentNodes.Values)
             {
                 foreach (var node in levelNodes)
                 {
@@ -180,21 +177,21 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        private static object HighlightNodeSourceValueCallback(DependencyObject o, object value)
+        private static object HighlightNodeValueCallback(DependencyObject o, object value)
         {
-            ((SankeyDiagram)o).HighlightNodeValueCallback(value as string);
+            ((SankeyDiagram)o).HighlightingNode(value as string);
 
             return value;
         }
 
-        private void HighlightNodeValueCallback(string highlightNode)
+        private void HighlightingNode(string highlightNode)
         {
             if ((string.IsNullOrEmpty(highlightNode) && string.IsNullOrEmpty(HighlightNode) || currentNodes == null || currentNodes.Count < 2 || currentLinks == null || currentLinks.Count == 0))
             {
                 return;
             }
 
-            // restore every element's style first
+            // restore each element's style first
             foreach (var levelLinks in currentLinks.Values)
             {
                 foreach (var link in levelLinks)
@@ -215,29 +212,40 @@ namespace Kant.Wpf.Controls.Chart
             // check whether highlight node exists
             if (!string.IsNullOrEmpty(highlightNode))
             {
-                if ((from node in currentNodes.Values.SelectMany(n => n) where node.Label.Text == highlightNode select node).Count() > 0)
+                if ((from node in currentNodes.Values.SelectMany(n => n) where node.Label.Text == highlightNode select node).Count() == 1)
                 {
                     resetBrushes = false;
                 };
             }
 
             // reset if highlight the same node twice
-            if (!resetBrushes  && !isHighlightResetted && highlightNode == HighlightNode)
+            if (!resetBrushes && !isHighlightNodeResetted && highlightNode == HighlightNode)
             {
-                resetBrushes = true;
+                if (!isHighlightLinkResetted || nodeHighlightCount > 0)
+                {
+                    if (!isNodeLinkHighlightSwitched)
+                    {
+                        resetBrushes = true;
+                    }
+                    else
+                    {
+                        isNodeLinkHighlightSwitched = false;
+
+                        if (nodeHighlightCount > 0)
+                        {
+                            resetBrushes = true;
+                        }
+                    }
+                }
             }
 
             // increasing opacity of the correlated element while lower the others  
-            for (var index = 0; index < currentLinks.Count; index++)
+            foreach (var levelLinks in currentLinks.Values)
             {
-                for(var lIndex = 0; lIndex < currentLinks[index].Count; lIndex++)
+                foreach (var link in levelLinks)
                 {
-                    var link = currentLinks[index][lIndex];
-                    //var isLinkFromLastLevel = index == currentLinks.Count - 1;
-
                     if (!resetBrushes)
                     {
-                        // if using node links palette, color of links will change with it's node 
                         if (link.FromNode.Label.Text == highlightNode || link.ToNode.Label.Text == highlightNode)
                         {
                             link.Shape.Stroke.Opacity = increasedOpacity;
@@ -273,15 +281,167 @@ namespace Kant.Wpf.Controls.Chart
                 }
             }
 
-            if(resetBrushes)
+            if (resetBrushes)
             {
-                isHighlightResetted = true;
+                isHighlightNodeResetted = true;
             }
             else
             {
-                isHighlightResetted = false;
+                isHighlightNodeResetted = false;
+                nodeHighlightCount++;
+            }
+
+            if (nodeHighlightCount == 1 && linkHightlightCount > 0)
+            {
+                isNodeLinkHighlightSwitched = true;
+            }
+            else
+            {
+                isNodeLinkHighlightSwitched = false;
+            }
+
+            if (isNodeLinkHighlightSwitched)
+            {
+                linkHightlightCount = 0;
             }
         }
+
+        private static object HighlightLinkSourceValueCallback(DependencyObject o, object value)
+        {
+            ((SankeyDiagram)o).HighlightingLink(value as SankeyLinkFinder);
+
+            return value;
+        }
+
+        private void HighlightingLink(SankeyLinkFinder linkStyleFinder)
+        {
+            if ((linkStyleFinder == null && HighlightLink == null || currentNodes == null || currentNodes.Count < 2 || currentLinks == null || currentLinks.Count == 0))
+            {
+                return;
+            }
+
+            // restore each element's style first
+            foreach (var levelLinks in currentLinks.Values)
+            {
+                foreach (var link in levelLinks)
+                {
+                    link.Shape.Stroke = resetHighlightLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
+                    link.FromNode.Shape.Fill = resetHighlightNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
+                    link.ToNode.Shape.Fill = resetHighlightNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
+                }
+            }
+
+            var minOpacity = 0.15;
+            var loweredOpacity = 0.25;
+            var increasedOpacity = 1;
+            var resetBrushes = true;
+            var highlightNodes = new List<string>();
+            var notHighlightNodes = new List<string>();
+
+            // check whether highlight node exist
+            if (linkStyleFinder != null)
+            {
+                var fromNode = (from node in currentNodes.Values.SelectMany(n => n) where node.Label.Text == linkStyleFinder.From select node).FirstOrDefault();
+                var toNode = (from node in currentNodes.Values.SelectMany(n => n) where node.Label.Text == linkStyleFinder.To select node).FirstOrDefault();
+
+                if (fromNode != null && toNode != null)
+                {
+                    if((from link in currentLinks.Values.SelectMany(l => l) where link.FromNode.Label.Text == linkStyleFinder.From & link.ToNode.Label.Text == linkStyleFinder.To select link).Count() > 0)
+                    {
+                        resetBrushes = false;
+                    }
+                };
+            }
+
+            // reset if highlight the same link twice
+            if (!resetBrushes && !isHighlightLinkResetted && (linkStyleFinder != null && HighlightLink != null) && (linkStyleFinder.From == HighlightLink.From && linkStyleFinder.To == HighlightLink.To))
+            {
+                if (!isHighlightNodeResetted || linkHightlightCount > 0)
+                {
+                    if (!isNodeLinkHighlightSwitched)
+                    {
+                        resetBrushes = true;
+                    }
+                    else
+                    {
+                        isNodeLinkHighlightSwitched = false;
+
+                        if (linkHightlightCount > 0)
+                        {
+                            resetBrushes = true;
+                        }
+                    }
+                }
+            }
+
+            // increasing opacity of the correlated element while lower the others  
+            foreach (var levelLinks in currentLinks.Values)
+            {
+                foreach (var link in levelLinks)
+                {
+                    if (!resetBrushes)
+                    {
+                        if (link.FromNode.Label.Text == linkStyleFinder.From && link.ToNode.Label.Text == linkStyleFinder.To)
+                        {
+                            link.Shape.Stroke.Opacity = increasedOpacity;
+                            link.FromNode.Shape.Fill.Opacity = increasedOpacity;
+                            link.ToNode.Shape.Fill.Opacity = increasedOpacity;
+                            highlightNodes.Add(link.FromNode.Label.Text);
+                            highlightNodes.Add(link.ToNode.Label.Text);
+                        }
+                        else
+                        {
+                            link.Shape.Stroke.Opacity = CalculateOpacity(link.Shape.Stroke.Opacity, minOpacity, loweredOpacity);
+
+                            // prevent changing node's brush again
+                            if (!highlightNodes.Exists(n => n == link.FromNode.Label.Text) && !notHighlightNodes.Exists(n => n == link.FromNode.Label.Text))
+                            {
+                                link.FromNode.Shape.Fill.Opacity = CalculateOpacity(link.FromNode.Shape.Fill.Opacity, minOpacity, loweredOpacity);
+                                notHighlightNodes.Add(link.FromNode.Label.Text);
+                            }
+
+                            if (!highlightNodes.Exists(n => n == link.ToNode.Label.Text) && !notHighlightNodes.Exists(n => n == link.ToNode.Label.Text))
+                            {
+                                link.ToNode.Shape.Fill.Opacity = CalculateOpacity(link.ToNode.Shape.Fill.Opacity, minOpacity, loweredOpacity);
+                                notHighlightNodes.Add(link.ToNode.Label.Text);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        link.Shape.Stroke = resetHighlightLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
+                        link.FromNode.Shape.Fill = resetHighlightNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
+                        link.ToNode.Shape.Fill = resetHighlightNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
+                    }
+                }
+            }
+
+            if (resetBrushes)
+            {
+                isHighlightLinkResetted = true;
+            }
+            else
+            {
+                isHighlightLinkResetted = false;
+                linkHightlightCount++;
+            }
+
+            if(nodeHighlightCount > 0 && linkHightlightCount == 1)
+            {
+                isNodeLinkHighlightSwitched = true;
+            }
+            else
+            {
+                isNodeLinkHighlightSwitched = false;
+            }
+
+            if (isNodeLinkHighlightSwitched)
+            {
+                nodeHighlightCount = 0;
+            }
+        }
+
+        #endregion
 
         private void CreateDiagram(Dictionary<int, List<SankeyNode>> nodes, Dictionary<int, List<SankeyLink>> links)
         {
@@ -293,7 +453,7 @@ namespace Kant.Wpf.Controls.Chart
             var panelLength = 0.0;
             var linkLength = 0.0;
 
-            if(FlowFromTopToBottom)
+            if(SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
             {
                 panelLength = DiagramPanel.ActualWidth;
                 linkLength = LinkLength > 0 ? LinkLength : (DiagramPanel.ActualHeight - nodes.Count * NodeThickness) / links.Count;
@@ -306,7 +466,7 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             var nodesGroupContainerStyle = new Style();
-            var margin = FlowFromTopToBottom ? new Thickness(0, 0, NodeIntervalSpace, 0) : new Thickness(0, NodeIntervalSpace, 0, 0);
+            var margin = SankeyFlowDirection == SankeyFlowDirection.TopToBottom ? new Thickness(0, 0, NodeIntervalSpace, 0) : new Thickness(0, NodeIntervalSpace, 0, 0);
             nodesGroupContainerStyle.Setters.Add(new Setter(FrameworkElement.MarginProperty, margin));
             var maxGroupLength = 0.0;
             var maxGroupCount = 0;
@@ -335,7 +495,7 @@ namespace Kant.Wpf.Controls.Chart
                     // save node fill
                     resetHighlightNodeBrushes.Add(node.Label.Text, node.Shape.Fill.CloneCurrentValue());
 
-                    if (FlowFromTopToBottom)
+                    if (SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
                         tempGroupLength += node.Shape.Width;
                     }
@@ -373,7 +533,7 @@ namespace Kant.Wpf.Controls.Chart
                 nodesGroup.SnapsToDevicePixels = true;
                 nodesGroup.ItemContainerStyle = nodesGroupContainerStyle;
 
-                if(FlowFromTopToBottom)
+                if(SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                 {
                     nodesGroup.HorizontalAlignment = HorizontalAlignment.Left;
                     var factory = new FrameworkElementFactory(typeof(StackPanel));
@@ -388,7 +548,7 @@ namespace Kant.Wpf.Controls.Chart
 
                 for (var nIndex = 0; nIndex < nodes[index].Count; nIndex++)
                 {
-                    if (FlowFromTopToBottom)
+                    if (SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
                         nodes[index][nIndex].Shape.Width = nodes[index][nIndex].Shape.Width * unitLength;
                         nodesGroupWidth += nodes[index][nIndex].Shape.Width;
@@ -402,7 +562,7 @@ namespace Kant.Wpf.Controls.Chart
                 }
 
                 // make HorizontalAlignment center manully because HorizontalAlignment.Center has deviation when calculating element's position 
-                if (FlowFromTopToBottom)
+                if (SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                 {
                     diagramVerticalMargin = (panelLength - nodesGroupWidth - ((nodes[index].Count - 1) * NodeIntervalSpace)) / 2;
                     nodesGroup.Margin = new Thickness(diagramVerticalMargin, 0, 0, 0);
@@ -416,7 +576,7 @@ namespace Kant.Wpf.Controls.Chart
                     canvas.SnapsToDevicePixels = true;
                     canvas.ClipToBounds = true;
 
-                    if(FlowFromTopToBottom)
+                    if(SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
                         canvas.Height = linkLength;
                     }
@@ -440,7 +600,7 @@ namespace Kant.Wpf.Controls.Chart
                     // add style here cause of the style of node is created completely
                     resetHighlightNodeStyles.Add(node.Label.Text, new Style(typeof(Rectangle), node.Shape.Style));
 
-                    if (FlowFromTopToBottom)
+                    if (SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
                         node.Position = node.Shape.TranslatePoint(new Point(), DiagramPanel).X;
                         node.Position = node.Shape.TranslatePoint(new Point(), DiagramPanel).X;
@@ -591,7 +751,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     foreach (var node in nodes[index])
                     {
-                        if (FlowFromTopToBottom)
+                        if (SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                         {
                             node.Shape.Width = nodeToLengthDictionary[node.Label.Text];
                         }
@@ -608,7 +768,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     foreach (var node in nodes[index])
                     {
-                        if (FlowFromTopToBottom)
+                        if (SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                         {
                             node.Shape.Width = nodeFromLengthDictionary[node.Label.Text];
                         }
@@ -626,7 +786,7 @@ namespace Kant.Wpf.Controls.Chart
                     var fromLength = nodeFromLengthDictionary[node.Label.Text];
                     var toLength = nodeToLengthDictionary[node.Label.Text];
 
-                    if (FlowFromTopToBottom)
+                    if (SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
                         node.Shape.Width = fromLength > toLength ? fromLength : toLength;
                     }
@@ -716,7 +876,7 @@ namespace Kant.Wpf.Controls.Chart
             {
                 node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-                if (FlowFromTopToBottom)
+                if (SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                 {
                     Canvas.SetLeft(node.Label, NodeIntervalSpace + node.Position + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
 
@@ -759,7 +919,7 @@ namespace Kant.Wpf.Controls.Chart
                 shape.Fill = NodeBrush.CloneCurrentValue();
             } 
 
-            if(FlowFromTopToBottom)
+            if(SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
             {
                 shape.Height = NodeThickness;
             }
@@ -794,7 +954,7 @@ namespace Kant.Wpf.Controls.Chart
             var bezierControlPoint1 = new Point();
             var bezierCOntrolPoint2 = new Point();
 
-            if(FlowFromTopToBottom)
+            if(SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
             {
                 fromPoint.X = link.FromNode.Position + link.FromNode.NextOccupiedLength + link.Shape.StrokeThickness / 2;
                 toPoint.X = link.ToNode.Position + link.ToNode.PreviousOccupiedLength + link.Shape.StrokeThickness / 2;
@@ -844,6 +1004,19 @@ namespace Kant.Wpf.Controls.Chart
             return link;
         }
 
+        private void ClearHighlightStyle()
+        {
+            nodeHighlightCount = 0;
+            linkHightlightCount = 0;
+            resetHighlightNodeBrushes.Clear();
+            resetHighlightNodeStyles.Clear();
+            resetHighlightLinkBrushes.Clear();
+            isHighlightNodeResetted = false;
+            isHighlightLinkResetted = false;
+            SetCurrentValue(HighlightNodeProperty, null);
+            SetCurrentValue(HighlightLinkProperty, null);
+        }
+
         private double CalculateOpacity(double originOpacity, double minOpacity, double loweredOpacity)
         {
             var opacity = originOpacity;
@@ -888,7 +1061,15 @@ namespace Kant.Wpf.Controls.Chart
             set { SetValue(HighlightNodeProperty, value); }
         }
 
-        public static readonly DependencyProperty HighlightNodeProperty = DependencyProperty.Register("HighlightNode", typeof(string), typeof(SankeyDiagram), new PropertyMetadata(null, null, HighlightNodeSourceValueCallback));
+        public static readonly DependencyProperty HighlightNodeProperty = DependencyProperty.Register("HighlightNode", typeof(string), typeof(SankeyDiagram), new PropertyMetadata(null, null, HighlightNodeValueCallback));
+
+        public SankeyLinkFinder HighlightLink
+        {
+            get { return (SankeyLinkFinder)GetValue(HighlightLinkProperty); }
+            set { SetValue(HighlightLinkProperty, value); }
+        }
+
+        public static readonly DependencyProperty HighlightLinkProperty = DependencyProperty.Register("HighlightLink", typeof(SankeyLinkFinder), typeof(SankeyDiagram), new PropertyMetadata(null, null, HighlightLinkSourceValueCallback));
 
         #endregion
 
@@ -897,8 +1078,8 @@ namespace Kant.Wpf.Controls.Chart
         // you can custom the style of diagram panel with this property
         public StackPanel DiagramPanel { get; set; }
 
-        // if true flowing from top to bottom or from left to right 
-        public bool FlowFromTopToBottom { get; set; }
+        // left to right by default
+        public SankeyFlowDirection SankeyFlowDirection { get; set; }
 
         public double NodeThickness { get; set; }
 
@@ -946,7 +1127,15 @@ namespace Kant.Wpf.Controls.Chart
 
         private List<SankeyLinkStyleFinder> resetHighlightLinkBrushes;
 
-        private bool isHighlightResetted;
+        private int nodeHighlightCount;
+
+        private int linkHightlightCount;
+
+        private bool isNodeLinkHighlightSwitched;
+
+        private bool isHighlightNodeResetted;
+
+        private bool isHighlightLinkResetted;
 
         private bool isDiagramLoaded;
 

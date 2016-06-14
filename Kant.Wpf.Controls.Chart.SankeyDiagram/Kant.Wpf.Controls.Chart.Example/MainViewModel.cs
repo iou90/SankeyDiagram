@@ -87,29 +87,42 @@ namespace Kant.Wpf.Controls.Chart.Example
             }
         }
 
-        private ICommand highlight;
-        public ICommand Highlight
+        private ICommand highlightingNode;
+        public ICommand HighlightingNode
         {
             get
             {
-                return GetCommand(highlight, new CommandBase(() =>
+                return GetCommand(highlightingNode, new CommandBase(() =>
                 {
-                    var fromNodes = new List<string>();
+                    //var fromNodes = new List<string>();
 
-                    foreach(var data in SankeyDatas)
-                    {
-                        if(!fromNodes.Exists(n => n == data.From))
-                        {
-                            fromNodes.Add(data.From);
-                        }
-                    }
+                    //foreach(var data in SankeyDatas)
+                    //{
+                    //    if(!fromNodes.Exists(n => n == data.From))
+                    //    {
+                    //        fromNodes.Add(data.From);
+                    //    }
+                    //}
 
-                    //HighlightSankeyNode = random.Next(15).ToString();
                     //HighlightSankeyNode = fromNodes[random.Next(fromNodes.Count)];
-                    HighlightSankeyNode = "H";
+                    HighlightSankeyNode = random.Next(25).ToString();
+                    //HighlightSankeyNode = "H";
                     //HighlightSankeyNode = "5";
                     //HighlightSankeyNode = "";
                     //HighlightSankeyNode = "Z";
+                }));
+            }
+        }
+
+        private ICommand highlightingLink;
+        public ICommand HighlightingLink
+        {
+            get
+            {
+                return GetCommand(highlightingLink, new CommandBase(() =>
+                {
+                    //HighlightSankeyLink = new SankeyLinkFinder("C", "F");
+                    HighlightSankeyLink = new SankeyLinkFinder("5", random.Next(9, 20).ToString());
                 }));
             }
         }
@@ -163,6 +176,23 @@ namespace Kant.Wpf.Controls.Chart.Example
             {
                 highlightSankeyNode = value;
                 RaisePropertyChanged(() => HighlightSankeyNode);
+            }
+        }
+
+        private SankeyLinkFinder highlightSankeyLink;
+        public SankeyLinkFinder HighlightSankeyLink
+        {
+            get
+            {
+                return highlightSankeyLink;
+            }
+            set
+            {
+                if(value != highlightSankeyLink)
+                {
+                    highlightSankeyLink = value;
+                    RaisePropertyChanged(() => HighlightSankeyLink);
+                }
             }
         }
 
