@@ -57,7 +57,7 @@
             <Border Margin="20">
                 <kantCharts:SankeyDiagram Height="800"
                                           NodeIntervalSpace="15"
-                                          IsDiagramVertical="False"
+                                          FlowFromTopToBottom="True"
                                           UseNodeLinksPalette="True"
                                           ShowLabels="True"
                                           LabelStyle="{StaticResource SankeyLabelStyle}"

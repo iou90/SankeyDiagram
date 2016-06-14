@@ -66,9 +66,9 @@ namespace Kant.Wpf.Controls.Chart
             };
 
             defaultNodeLinksPaletteIndex = 0;
-            originalNodeBrushes = new Dictionary<string, Brush>();
-            originalNodeStyles = new Dictionary<string, Style>();
-            originalLinkBrushes = new List<SankeyLinkStyleFinder>();
+            resetHighlightNodeBrushes = new Dictionary<string, Brush>();
+            resetHighlightNodeStyles = new Dictionary<string, Style>();
+            resetHighlightLinkBrushes = new List<SankeyLinkStyleFinder>();
 
             Loaded += (s, e) =>
             {
@@ -119,9 +119,9 @@ namespace Kant.Wpf.Controls.Chart
                 DiagramPanel.Children.Clear();
                 currentNodes.Clear();
                 currentLinks.Clear();
-                originalNodeBrushes.Clear();
-                originalNodeStyles.Clear();
-                originalLinkBrushes.Clear();
+                resetHighlightNodeBrushes.Clear();
+                resetHighlightNodeStyles.Clear();
+                resetHighlightLinkBrushes.Clear();
                 isHighlightResetted = false;
                 SetCurrentValue(HighlightNodeProperty, null);
             }
@@ -159,6 +159,9 @@ namespace Kant.Wpf.Controls.Chart
                 return;
             }
 
+            resetHighlightNodeBrushes.Clear();
+            resetHighlightNodeStyles.Clear();
+
             foreach(var levelNodes in currentNodes.Values)
             {
                 foreach (var node in levelNodes)
@@ -170,6 +173,7 @@ namespace Kant.Wpf.Controls.Chart
                         if (brush != node.Shape.Fill)
                         {
                             node.Shape.Fill = brush.CloneCurrentValue();
+                            resetHighlightNodeBrushes.Add(node.Label.Text, brush.CloneCurrentValue());
                         }                               
                     }
                 } 
@@ -195,9 +199,9 @@ namespace Kant.Wpf.Controls.Chart
             {
                 foreach (var link in levelLinks)
                 {
-                    link.Shape.Stroke = originalLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
-                    link.FromNode.Shape.Fill = originalNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
-                    link.ToNode.Shape.Fill = originalNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
+                    link.Shape.Stroke = resetHighlightLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
+                    link.FromNode.Shape.Fill = resetHighlightNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
+                    link.ToNode.Shape.Fill = resetHighlightNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
                 }
             }
 
@@ -262,9 +266,9 @@ namespace Kant.Wpf.Controls.Chart
                     }
                     else
                     {
-                        link.Shape.Stroke = originalLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
-                        link.FromNode.Shape.Fill = originalNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
-                        link.ToNode.Shape.Fill = originalNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
+                        link.Shape.Stroke = resetHighlightLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
+                        link.FromNode.Shape.Fill = resetHighlightNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
+                        link.ToNode.Shape.Fill = resetHighlightNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
                     }
                 }
             }
@@ -289,7 +293,7 @@ namespace Kant.Wpf.Controls.Chart
             var panelLength = 0.0;
             var linkLength = 0.0;
 
-            if(IsDiagramVertical)
+            if(FlowFromTopToBottom)
             {
                 panelLength = DiagramPanel.ActualWidth;
                 linkLength = LinkLength > 0 ? LinkLength : (DiagramPanel.ActualHeight - nodes.Count * NodeThickness) / links.Count;
@@ -302,7 +306,7 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             var nodesGroupContainerStyle = new Style();
-            var margin = IsDiagramVertical ? new Thickness(0, 0, NodeIntervalSpace, 0) : new Thickness(0, NodeIntervalSpace, 0, 0);
+            var margin = FlowFromTopToBottom ? new Thickness(0, 0, NodeIntervalSpace, 0) : new Thickness(0, NodeIntervalSpace, 0, 0);
             nodesGroupContainerStyle.Setters.Add(new Setter(FrameworkElement.MarginProperty, margin));
             var maxGroupLength = 0.0;
             var maxGroupCount = 0;
@@ -329,9 +333,9 @@ namespace Kant.Wpf.Controls.Chart
                     }
 
                     // save node fill
-                    originalNodeBrushes.Add(node.Label.Text, node.Shape.Fill.CloneCurrentValue());
+                    resetHighlightNodeBrushes.Add(node.Label.Text, node.Shape.Fill.CloneCurrentValue());
 
-                    if (IsDiagramVertical)
+                    if (FlowFromTopToBottom)
                     {
                         tempGroupLength += node.Shape.Width;
                     }
@@ -365,12 +369,13 @@ namespace Kant.Wpf.Controls.Chart
             {
                 var nodesGroup = new ItemsControl();
                 var nodesGroupWidth = 0.0;
+                var diagramVerticalMargin = 0.0;
                 nodesGroup.SnapsToDevicePixels = true;
                 nodesGroup.ItemContainerStyle = nodesGroupContainerStyle;
 
-                if(IsDiagramVertical)
+                if(FlowFromTopToBottom)
                 {
-                    nodesGroup.HorizontalAlignment = HorizontalAlignment.Center;
+                    nodesGroup.HorizontalAlignment = HorizontalAlignment.Left;
                     var factory = new FrameworkElementFactory(typeof(StackPanel));
                     factory.Name = "StackPanel";
                     factory.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
@@ -383,7 +388,7 @@ namespace Kant.Wpf.Controls.Chart
 
                 for (var nIndex = 0; nIndex < nodes[index].Count; nIndex++)
                 {
-                    if (IsDiagramVertical)
+                    if (FlowFromTopToBottom)
                     {
                         nodes[index][nIndex].Shape.Width = nodes[index][nIndex].Shape.Width * unitLength;
                         nodesGroupWidth += nodes[index][nIndex].Shape.Width;
@@ -396,6 +401,13 @@ namespace Kant.Wpf.Controls.Chart
                     nodesGroup.Items.Add(nodes[index][nIndex].Shape);
                 }
 
+                // make HorizontalAlignment center manully because HorizontalAlignment.Center has deviation when calculating element's position 
+                if (FlowFromTopToBottom)
+                {
+                    diagramVerticalMargin = (panelLength - nodesGroupWidth - ((nodes[index].Count - 1) * NodeIntervalSpace)) / 2;
+                    nodesGroup.Margin = new Thickness(diagramVerticalMargin, 0, 0, 0);
+                }
+
                 DiagramPanel.Children.Add(nodesGroup);
 
                 if (index != nodes.Count - 1)
@@ -404,7 +416,7 @@ namespace Kant.Wpf.Controls.Chart
                     canvas.SnapsToDevicePixels = true;
                     canvas.ClipToBounds = true;
 
-                    if(IsDiagramVertical)
+                    if(FlowFromTopToBottom)
                     {
                         canvas.Height = linkLength;
                     }
@@ -426,9 +438,9 @@ namespace Kant.Wpf.Controls.Chart
                 foreach (var node in levelNodes)
                 {
                     // add style here cause of the style of node is created completely
-                    originalNodeStyles.Add(node.Label.Text, new Style(typeof(Rectangle), node.Shape.Style));
+                    resetHighlightNodeStyles.Add(node.Label.Text, new Style(typeof(Rectangle), node.Shape.Style));
 
-                    if (IsDiagramVertical)
+                    if (FlowFromTopToBottom)
                     {
                         node.Position = node.Shape.TranslatePoint(new Point(), DiagramPanel).X;
                         node.Position = node.Shape.TranslatePoint(new Point(), DiagramPanel).X;
@@ -447,7 +459,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     var link = links[index][lIndex];
                     linkContainers[index].Children.Add(DrawLink(link, linkLength, unitLength).Shape);
-                    originalLinkBrushes.Add(new SankeyLinkStyleFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
+                    resetHighlightLinkBrushes.Add(new SankeyLinkStyleFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
                 }
 
                 if (ShowLabels)
@@ -579,7 +591,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     foreach (var node in nodes[index])
                     {
-                        if (IsDiagramVertical)
+                        if (FlowFromTopToBottom)
                         {
                             node.Shape.Width = nodeToLengthDictionary[node.Label.Text];
                         }
@@ -596,7 +608,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     foreach (var node in nodes[index])
                     {
-                        if (IsDiagramVertical)
+                        if (FlowFromTopToBottom)
                         {
                             node.Shape.Width = nodeFromLengthDictionary[node.Label.Text];
                         }
@@ -614,7 +626,7 @@ namespace Kant.Wpf.Controls.Chart
                     var fromLength = nodeFromLengthDictionary[node.Label.Text];
                     var toLength = nodeToLengthDictionary[node.Label.Text];
 
-                    if (IsDiagramVertical)
+                    if (FlowFromTopToBottom)
                     {
                         node.Shape.Width = fromLength > toLength ? fromLength : toLength;
                     }
@@ -704,7 +716,7 @@ namespace Kant.Wpf.Controls.Chart
             {
                 node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-                if (IsDiagramVertical)
+                if (FlowFromTopToBottom)
                 {
                     Canvas.SetLeft(node.Label, NodeIntervalSpace + node.Position + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
 
@@ -747,7 +759,7 @@ namespace Kant.Wpf.Controls.Chart
                 shape.Fill = NodeBrush.CloneCurrentValue();
             } 
 
-            if(IsDiagramVertical)
+            if(FlowFromTopToBottom)
             {
                 shape.Height = NodeThickness;
             }
@@ -782,7 +794,7 @@ namespace Kant.Wpf.Controls.Chart
             var bezierControlPoint1 = new Point();
             var bezierCOntrolPoint2 = new Point();
 
-            if(IsDiagramVertical)
+            if(FlowFromTopToBottom)
             {
                 fromPoint.X = link.FromNode.Position + link.FromNode.NextOccupiedLength + link.Shape.StrokeThickness / 2;
                 toPoint.X = link.ToNode.Position + link.ToNode.PreviousOccupiedLength + link.Shape.StrokeThickness / 2;
@@ -880,19 +892,31 @@ namespace Kant.Wpf.Controls.Chart
 
         #endregion
 
-        #region diagram settings
+        #region diagram initial settings
 
-        public bool IsDiagramVertical { get; set; }
+        // you can custom the style of diagram panel with this property
+        public StackPanel DiagramPanel { get; set; }
 
-        public double LinkLength { get; set; }
-
-        public double LinkPoint1Curveless { get; set; }
-
-        public double LinkPoint2Curveless { get; set; }
+        // if true flowing from top to bottom or from left to right 
+        public bool FlowFromTopToBottom { get; set; }
 
         public double NodeThickness { get; set; }
 
         public double NodeIntervalSpace { get; set; }
+
+        public double LinkLength { get; set; }
+
+        // bezier curve control point1's position (point.X or point.Y)
+        public double LinkPoint1Curveless { get; set; }
+
+        // bezier curve control point2's position (point.X or point.Y)
+        public double LinkPoint2Curveless { get; set; }
+
+        /// <summary>
+        /// using node links palette means coloring your link with fromNode's brush
+        /// if NodeBrushes exist, nodes & links will use it, if not, use default palette
+        /// </summary>
+        public bool UseNodeLinksPalette { get; set; }
 
         /// <summary>
         /// brush applying on all nodes
@@ -903,14 +927,6 @@ namespace Kant.Wpf.Controls.Chart
         public Style LabelStyle { get; set; }
 
         public bool ShowLabels { get; set; }
-        
-        /// <summary>
-        /// using node links palette means coloring your link with fromNode's brush
-        /// if NodeBrushes exist, nodes & links will use it, if not, use default palette
-        /// </summary>
-        public bool UseNodeLinksPalette { get; set; }
-
-        public StackPanel DiagramPanel { get; set; }
 
         #endregion
 
@@ -924,11 +940,11 @@ namespace Kant.Wpf.Controls.Chart
 
         private List<Brush> defaultNodeLinksPalette;
 
-        private Dictionary<string, Brush> originalNodeBrushes;
+        private Dictionary<string, Brush> resetHighlightNodeBrushes;
 
-        private Dictionary<string, Style> originalNodeStyles;
+        private Dictionary<string, Style> resetHighlightNodeStyles;
 
-        private List<SankeyLinkStyleFinder> originalLinkBrushes;
+        private List<SankeyLinkStyleFinder> resetHighlightLinkBrushes;
 
         private bool isHighlightResetted;
 
