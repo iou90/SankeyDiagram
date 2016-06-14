@@ -104,6 +104,7 @@ namespace Kant.Wpf.Controls.Chart.Example
                         }
                     }
 
+                    //HighlightSankeyNode = random.Next(9).ToString();
                     //HighlightSankeyNode = fromNodes[random.Next(fromNodes.Count)];
                     //HighlightSankeyNode = "D";
                     HighlightSankeyNode = "5";

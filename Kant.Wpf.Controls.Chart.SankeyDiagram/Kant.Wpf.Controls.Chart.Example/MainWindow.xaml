@@ -47,12 +47,14 @@
                         Width="200"
                         Height="20"
                         Command="{Binding Highlight}" />
+                <TextBlock Text="{Binding HighlightSankeyNode}"
+                           Margin="10,0,0,0" />
             </StackPanel>
             <Border Margin="20">
                 <kantCharts:SankeyDiagram Height="800"
                                           NodeIntervalSpace="15"
                                           IsDiagramVertical="False"
-                                          UseNodeLinksPalette="False"
+                                          UseNodeLinksPalette="True"
                                           ShowLabels="True"
                                           LabelStyle="{StaticResource SankeyLabelStyle}"
                                           Datas="{Binding SankeyDatas}"

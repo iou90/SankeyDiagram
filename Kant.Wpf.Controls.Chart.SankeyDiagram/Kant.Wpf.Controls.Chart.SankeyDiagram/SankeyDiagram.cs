@@ -67,6 +67,7 @@ namespace Kant.Wpf.Controls.Chart
 
             defaultNodeLinksPaletteIndex = 0;
             originalNodeBrushes = new Dictionary<string, Brush>();
+            originalNodeStyles = new Dictionary<string, Style>();
             originalLinkBrushes = new List<SankeyLinkBrushFinder>();
 
             Loaded += (s, e) =>
@@ -119,6 +120,8 @@ namespace Kant.Wpf.Controls.Chart
                 currentNodes.Clear();
                 currentLinks.Clear();
                 originalNodeBrushes.Clear();
+                originalNodeStyles.Clear();
+                originalLinkBrushes.Clear();
                 isHighlightResetted = false;
                 SetCurrentValue(HighlightNodeProperty, null);
             }
@@ -187,6 +190,17 @@ namespace Kant.Wpf.Controls.Chart
                 return;
             }
 
+            // restore every element's style first
+            foreach (var levelLinks in currentLinks.Values)
+            {
+                foreach (var link in levelLinks)
+                {
+                    link.Shape.Stroke = originalLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
+                    link.FromNode.Shape.Fill = originalNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
+                    link.ToNode.Shape.Fill = originalNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
+                }
+            }
+
             var minOpacity = 0.15;
             var loweredOpacity = 0.25;
             var increasedOpacity = 1;
@@ -246,8 +260,8 @@ namespace Kant.Wpf.Controls.Chart
                     else
                     {
                         link.Shape.Stroke = originalLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
-                        link.FromNode.Shape.Fill = originalNodeBrushes[link.FromNode.Label.Text];
-                        link.ToNode.Shape.Fill = originalNodeBrushes[link.ToNode.Label.Text];
+                        link.FromNode.Shape.Fill = originalNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
+                        link.ToNode.Shape.Fill = originalNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
                     }
                 }
             }
@@ -406,6 +420,9 @@ namespace Kant.Wpf.Controls.Chart
             {
                 foreach (var node in levelNodes)
                 {
+                    // add style here cause of the style of node is created completely
+                    originalNodeStyles.Add(node.Label.Text, new Style(typeof(Rectangle), node.Shape.Style));
+
                     if (IsDiagramVertical)
                     {
                         node.Position = node.Shape.TranslatePoint(new Point(), DiagramPanel).X;
@@ -903,6 +920,8 @@ namespace Kant.Wpf.Controls.Chart
         private List<Brush> defaultNodeLinksPalette;
 
         private Dictionary<string, Brush> originalNodeBrushes;
+
+        private Dictionary<string, Style> originalNodeStyles;
 
         private List<SankeyLinkBrushFinder> originalLinkBrushes;
 
