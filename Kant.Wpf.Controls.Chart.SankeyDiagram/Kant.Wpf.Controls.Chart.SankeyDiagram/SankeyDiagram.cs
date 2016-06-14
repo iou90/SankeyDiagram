@@ -235,8 +235,8 @@ namespace Kant.Wpf.Controls.Chart
                     else
                     {
                         link.Shape.Stroke = originalLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
-                        link.FromNode.Shape.Fill = originalNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
-                        link.ToNode.Shape.Fill = originalNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
+                        link.FromNode.Shape.Fill = originalNodeBrushes[link.FromNode.Label.Text];
+                        link.ToNode.Shape.Fill = originalNodeBrushes[link.ToNode.Label.Text];
                     }
                 }
             }
