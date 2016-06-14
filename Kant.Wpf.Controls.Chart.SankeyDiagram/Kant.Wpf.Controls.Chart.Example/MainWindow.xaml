@@ -47,8 +47,12 @@
                         Width="200"
                         Height="20"
                         Command="{Binding Highlight}" />
-                <TextBlock Text="{Binding HighlightSankeyNode}"
-                           Margin="10,0,0,0" />
+                <StackPanel Orientation="Horizontal"
+                            Margin="10">
+                <TextBlock Text="highlight node:" />
+                    <TextBlock Text="{Binding HighlightSankeyNode}"
+                               Margin="2,0,0,0" />
+                </StackPanel>
             </StackPanel>
             <Border Margin="20">
                 <kantCharts:SankeyDiagram Height="800"

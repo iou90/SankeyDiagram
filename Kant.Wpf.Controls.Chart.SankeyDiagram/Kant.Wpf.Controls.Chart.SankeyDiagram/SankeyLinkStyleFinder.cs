@@ -7,9 +7,9 @@ using System.Windows.Media;
 
 namespace Kant.Wpf.Controls.Chart
 {
-    public class SankeyLinkBrushFinder
+    public class SankeyLinkStyleFinder
     {
-        public SankeyLinkBrushFinder(string from, string to)
+        public SankeyLinkStyleFinder(string from, string to)
         {
             From = from;
             To = to;

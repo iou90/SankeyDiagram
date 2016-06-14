@@ -68,7 +68,7 @@ namespace Kant.Wpf.Controls.Chart
             defaultNodeLinksPaletteIndex = 0;
             originalNodeBrushes = new Dictionary<string, Brush>();
             originalNodeStyles = new Dictionary<string, Style>();
-            originalLinkBrushes = new List<SankeyLinkBrushFinder>();
+            originalLinkBrushes = new List<SankeyLinkStyleFinder>();
 
             Loaded += (s, e) =>
             {
@@ -224,14 +224,17 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             // increasing opacity of the correlated element while lower the others  
-            foreach (var levelLinks in currentLinks.Values)
+            for (var index = 0; index < currentLinks.Count; index++)
             {
-                foreach (var link in levelLinks)
+                for(var lIndex = 0; lIndex < currentLinks[index].Count; lIndex++)
                 {
+                    var link = currentLinks[index][lIndex];
+                    //var isLinkFromLastLevel = index == currentLinks.Count - 1;
+
                     if (!resetBrushes)
                     {
-                        // if using node links palette, color of links will change with it's from node 
-                        if (link.FromNode.Label.Text == highlightNode)
+                        // if using node links palette, color of links will change with it's node 
+                        if (link.FromNode.Label.Text == highlightNode || link.ToNode.Label.Text == highlightNode)
                         {
                             link.Shape.Stroke.Opacity = increasedOpacity;
                             link.FromNode.Shape.Fill.Opacity = increasedOpacity;
@@ -250,9 +253,9 @@ namespace Kant.Wpf.Controls.Chart
                                 notHighlightNodes.Add(link.FromNode.Label.Text);
                             }
 
-                            if (!highlightNodes.Exists(n => n == link.ToNode.Label.Text) && !notHighlightNodes.Exists(n => n == link.FromNode.Label.Text))
+                            if (!highlightNodes.Exists(n => n == link.ToNode.Label.Text) && !notHighlightNodes.Exists(n => n == link.ToNode.Label.Text))
                             {
-                                link.ToNode.Shape.Fill.Opacity = CalculateOpacity(link.FromNode.Shape.Fill.Opacity, minOpacity, loweredOpacity);
+                                link.ToNode.Shape.Fill.Opacity = CalculateOpacity(link.ToNode.Shape.Fill.Opacity, minOpacity, loweredOpacity);
                                 notHighlightNodes.Add(link.ToNode.Label.Text);
                             }
                         }
@@ -362,6 +365,7 @@ namespace Kant.Wpf.Controls.Chart
             {
                 var nodesGroup = new ItemsControl();
                 var nodesGroupWidth = 0.0;
+                nodesGroup.SnapsToDevicePixels = true;
                 nodesGroup.ItemContainerStyle = nodesGroupContainerStyle;
 
                 if(IsDiagramVertical)
@@ -397,6 +401,7 @@ namespace Kant.Wpf.Controls.Chart
                 if (index != nodes.Count - 1)
                 {
                     var canvas = new Canvas();
+                    canvas.SnapsToDevicePixels = true;
                     canvas.ClipToBounds = true;
 
                     if(IsDiagramVertical)
@@ -442,7 +447,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     var link = links[index][lIndex];
                     linkContainers[index].Children.Add(DrawLink(link, linkLength, unitLength).Shape);
-                    originalLinkBrushes.Add(new SankeyLinkBrushFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
+                    originalLinkBrushes.Add(new SankeyLinkStyleFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
                 }
 
                 if (ShowLabels)
@@ -923,7 +928,7 @@ namespace Kant.Wpf.Controls.Chart
 
         private Dictionary<string, Style> originalNodeStyles;
 
-        private List<SankeyLinkBrushFinder> originalLinkBrushes;
+        private List<SankeyLinkStyleFinder> originalLinkBrushes;
 
         private bool isHighlightResetted;
 
