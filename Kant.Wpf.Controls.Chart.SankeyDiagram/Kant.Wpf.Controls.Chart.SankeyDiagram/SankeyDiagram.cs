@@ -405,6 +405,37 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
+        private SankeyNode CreateNode(SankeyDataRow data, string label)
+        {
+            var l = new TextBlock()
+            {
+                Text = label,
+                Style = LabelStyle
+            };
+
+            var shape = new Rectangle();
+
+            if (NodeBrushes != null && NodeBrushes.Keys.Contains(label))
+            {
+                shape.Fill = NodeBrushes[label];
+            }
+            else
+            {
+                shape.Fill = NodeBrush;
+            }
+
+            if (IsDiagramVertical)
+            {
+                shape.Height = NodeLength;
+            }
+            else
+            {
+                shape.Width = NodeLength;
+            }
+
+            return new SankeyNode(shape, l);
+        }
+
         private Dictionary<int, List<SankeyNode>> CalculateNodesLength(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes)
         {
             var nodeFromLengthDictionary = new Dictionary<string, double>();
@@ -495,9 +526,9 @@ namespace Kant.Wpf.Controls.Chart
 
             foreach (var data in tempDatas)
             {
-                for (var fCount = 0; fCount < nodes.Count; fCount++)
+                for (var levelIndex = 0; levelIndex < nodes.Count; levelIndex++)
                 {
-                    var fromNode = nodes[fCount].Find(findNode => findNode.Label.Text == data.From);
+                    var fromNode = nodes[levelIndex].Find(findNode => findNode.Label.Text == data.From);
 
                     if (fromNode != null)
                     {
@@ -523,69 +554,19 @@ namespace Kant.Wpf.Controls.Chart
                         shape.StrokeThickness = data.Weight;
                         link.Shape = shape;
 
-                        if (linkDictionary.Keys.Contains(fCount))
+                        if (linkDictionary.Keys.Contains(levelIndex))
                         {
-                            linkDictionary[fCount].Add(link);
+                            linkDictionary[levelIndex].Add(link);
                         }
                         else
                         {
-                            linkDictionary.Add(fCount, new List<SankeyLink>() { link });
+                            linkDictionary.Add(levelIndex, new List<SankeyLink>() { link });
                         }
                     }
                 }
             }
 
             return linkDictionary;
-        }
-
-        private Dictionary<int, List<SankeyNode>> UpdateNodes(Dictionary<int, List<SankeyNode>> nodes, int index, SankeyDataRow data, string label)
-        {
-            if (nodes.Keys.Contains(index))
-            {
-                var n = nodes[index].Find(findNode => label == findNode.Label.Text);
-
-                if (n == null)
-                {
-                    nodes[index].Add(CreateNode(data, label));
-                }
-            }
-            else
-            {
-                nodes.Add(index, new List<SankeyNode>() { CreateNode(data, label) });
-            }
-
-            return nodes;
-        }
-
-        private SankeyNode CreateNode(SankeyDataRow data, string label)
-        {
-            var l = new TextBlock()
-            {
-                Text = label,
-                Style = LabelStyle
-            };
-
-            var shape = new Rectangle();
-
-            if (NodeBrushes != null && NodeBrushes.Keys.Contains(label))
-            {
-                shape.Fill = NodeBrushes[label];
-            }
-            else
-            {
-                shape.Fill = NodeBrush;
-            }
-
-            if (IsDiagramVertical)
-            {
-                shape.Height = NodeLength;
-            }
-            else
-            {
-                shape.Width = NodeLength;
-            }
-
-            return new SankeyNode(shape, l);
         }
 
         private SankeyLink DrawLink(SankeyLink link, double linkLength, double unitLength)
