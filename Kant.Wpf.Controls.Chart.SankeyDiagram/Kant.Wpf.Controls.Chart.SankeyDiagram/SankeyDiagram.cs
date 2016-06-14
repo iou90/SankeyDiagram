@@ -116,6 +116,11 @@ namespace Kant.Wpf.Controls.Chart
             if (!(DiagramPanel == null || DiagramPanel.Children == null || DiagramPanel.Children.Count == 0))
             {
                 DiagramPanel.Children.Clear();
+                currentNodes.Clear();
+                currentLinks.Clear();
+                originalNodeBrushes.Clear();
+                isHighlightResetted = false;
+                SetCurrentValue(HighlightNodeProperty, null);
             }
 
             if (newDatas == null || newDatas.Count() == 0)
@@ -161,7 +166,7 @@ namespace Kant.Wpf.Controls.Chart
 
                         if (brush != node.Shape.Fill)
                         {
-                            node.Shape.Fill = brush;
+                            node.Shape.Fill = brush.CloneCurrentValue();
                         }                               
                     }
                 } 
@@ -177,7 +182,7 @@ namespace Kant.Wpf.Controls.Chart
 
         private void HighlightNodeValueCallback(string highlightNode)
         {
-            if ((string.IsNullOrEmpty(highlightNode) && string.IsNullOrEmpty(HighlightNode) || currentNodes == null))
+            if ((string.IsNullOrEmpty(highlightNode) && string.IsNullOrEmpty(HighlightNode) || currentNodes == null || currentNodes.Count < 2 || currentLinks == null || currentLinks.Count == 0))
             {
                 return;
             }
@@ -186,6 +191,8 @@ namespace Kant.Wpf.Controls.Chart
             var loweredOpacity = 0.25;
             var increasedOpacity = 1;
             var resetBrushes = true;
+            var highlightNodes = new List<string>();
+            var notHighlightNodes = new List<string>();
 
             // check whether highlight node exists
             if (!string.IsNullOrEmpty(highlightNode))
@@ -215,20 +222,24 @@ namespace Kant.Wpf.Controls.Chart
                             link.Shape.Stroke.Opacity = increasedOpacity;
                             link.FromNode.Shape.Fill.Opacity = increasedOpacity;
                             link.ToNode.Shape.Fill.Opacity = increasedOpacity;
+                            highlightNodes.Add(link.FromNode.Label.Text);
+                            highlightNodes.Add(link.ToNode.Label.Text);
                         }
                         else
                         {
                             link.Shape.Stroke.Opacity = CalculateOpacity(link.Shape.Stroke.Opacity, minOpacity, loweredOpacity);
 
-                            // prevent highlight node changes it's brush again
-                            if (link.FromNode.Shape.Fill.Equals(originalNodeBrushes[link.FromNode.Label.Text]))
+                            // prevent changing node's brush again
+                            if (!highlightNodes.Exists(n => n == link.FromNode.Label.Text) && !notHighlightNodes.Exists(n => n == link.FromNode.Label.Text))
                             {
                                 link.FromNode.Shape.Fill.Opacity = CalculateOpacity(link.FromNode.Shape.Fill.Opacity, minOpacity, loweredOpacity);
+                                notHighlightNodes.Add(link.FromNode.Label.Text);
                             }
 
-                            if (link.ToNode.Shape.Fill.Equals(originalNodeBrushes[link.ToNode.Label.Text]))
+                            if (!highlightNodes.Exists(n => n == link.ToNode.Label.Text) && !notHighlightNodes.Exists(n => n == link.FromNode.Label.Text))
                             {
                                 link.ToNode.Shape.Fill.Opacity = CalculateOpacity(link.FromNode.Shape.Fill.Opacity, minOpacity, loweredOpacity);
+                                notHighlightNodes.Add(link.ToNode.Label.Text);
                             }
                         }
                     }
@@ -244,6 +255,10 @@ namespace Kant.Wpf.Controls.Chart
             if(resetBrushes)
             {
                 isHighlightResetted = true;
+            }
+            else
+            {
+                isHighlightResetted = false;
             }
         }
 
@@ -286,7 +301,7 @@ namespace Kant.Wpf.Controls.Chart
                     {
                         if (NodeBrushes == null || !NodeBrushes.Keys.Contains(node.Label.Text))
                         {
-                            node.Shape.Fill = defaultNodeLinksPalette[defaultNodeLinksPaletteIndex];
+                            node.Shape.Fill = defaultNodeLinksPalette[defaultNodeLinksPaletteIndex].CloneCurrentValue();
                             defaultNodeLinksPaletteIndex++;
 
                             if (defaultNodeLinksPaletteIndex >= defaultNodeLinksPalette.Count)
@@ -623,7 +638,7 @@ namespace Kant.Wpf.Controls.Chart
 
                         var shape = new Path();
                         shape.SnapsToDevicePixels = true;
-                        shape.Stroke = data.LinkStroke == null ? defaultLinkBrush : data.LinkStroke;
+                        shape.Stroke = data.LinkStroke == null ? defaultLinkBrush.CloneCurrentValue() : data.LinkStroke.CloneCurrentValue();
                         shape.StrokeThickness = data.Weight;
                         link.Shape = shape;
 
@@ -703,11 +718,11 @@ namespace Kant.Wpf.Controls.Chart
 
             if (NodeBrushes != null && NodeBrushes.Keys.Contains(label))
             {
-                shape.Fill = NodeBrushes[label];
+                shape.Fill = NodeBrushes[label].CloneCurrentValue();
             }
             else
             {
-                shape.Fill = NodeBrush;
+                shape.Fill = NodeBrush.CloneCurrentValue();
             } 
 
             if(IsDiagramVertical)
@@ -736,7 +751,7 @@ namespace Kant.Wpf.Controls.Chart
 
             if(UseNodeLinksPalette)
             {
-                link.Shape.Stroke = link.FromNode.Shape.Fill;
+                link.Shape.Stroke = link.FromNode.Shape.Fill.CloneCurrentValue();
             }
 
             link.Shape.StrokeThickness = link.Shape.StrokeThickness * unitLength;
