@@ -372,7 +372,6 @@ namespace Kant.Wpf.Controls.Chart
                 var nodesGroup = new ItemsControl();
                 var nodesGroupWidth = 0.0;
                 var diagramVerticalMargin = 0.0;
-                nodesGroup.SnapsToDevicePixels = true;
                 nodesGroup.ItemContainerStyle = nodesGroupContainerStyle;
 
                 if(SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
@@ -415,7 +414,6 @@ namespace Kant.Wpf.Controls.Chart
                 if (index != nodes.Count - 1)
                 {
                     var canvas = new Canvas();
-                    canvas.SnapsToDevicePixels = true;
                     canvas.ClipToBounds = true;
 
                     if(SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
@@ -435,7 +433,7 @@ namespace Kant.Wpf.Controls.Chart
             // prepare for translatepoint method
             UpdateLayout();
 
-            foreach(var levelNodes in nodes.Values)
+            foreach (var levelNodes in nodes.Values)
             {
                 foreach (var node in levelNodes)
                 {
@@ -653,24 +651,35 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     var fromNode = nodes[fCount].Find(findNode => findNode.Label.Text == data.From);
 
+                    // if from node not exists, continue
                     if (fromNode != null)
                     {
-                        var link = new SankeyLink()
-                        {
-                            FromNode = fromNode
-                        };
+                        var toNode = (from node in nodes.Values.SelectMany(n => n) where node.Label.Text == data.To select node).FirstOrDefault();
 
-                        foreach(var levelNodes in nodes.Values)
+                        // if to node not exists, continue
+                        if (toNode == null)
                         {
-                            var toNode = levelNodes.Find(findNode => findNode.Label.Text == data.To);
+                            continue;
+                        }
 
-                            if (toNode != null)
+                        // merge links which has the same from & to
+                        if (linkDictionary != null)
+                        {
+                            var previousLink = (from findLink in linkDictionary.Values.SelectMany(l => l) where findLink.FromNode.Label.Text == fromNode.Label.Text && findLink.ToNode.Label.Text == toNode.Label.Text select findLink).FirstOrDefault();
+
+                            if(previousLink != null)
                             {
-                                link.ToNode = toNode;
+                                previousLink.Shape.StrokeThickness += data.Weight;
 
-                                break;
+                                continue;
                             }
                         }
+
+                        var link = new SankeyLink()
+                        {
+                            FromNode = fromNode,
+                            ToNode = toNode
+                        };
 
                         var shape = new Path();
 
@@ -684,7 +693,6 @@ namespace Kant.Wpf.Controls.Chart
                         shape.MouseLeftButtonUp += LinkMouseLeftButtonUp;
 
                         shape.Tag = new SankeyLinkFinder(data.From, data.To);
-                        shape.SnapsToDevicePixels = true;
                         shape.Stroke = data.LinkStroke == null ? defaultLinkBrush.CloneCurrentValue() : data.LinkStroke.CloneCurrentValue();
                         shape.StrokeThickness = data.Weight;
                         link.Shape = shape;
@@ -796,7 +804,6 @@ namespace Kant.Wpf.Controls.Chart
             shape.MouseLeftButtonUp += NodeMouseLeftButtonUp;
 
             shape.Tag = label;
-            shape.SnapsToDevicePixels = true;
 
             if (NodeBrushes != null && NodeBrushes.Keys.Contains(label))
             {
