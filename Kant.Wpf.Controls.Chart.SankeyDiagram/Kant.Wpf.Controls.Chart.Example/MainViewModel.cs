@@ -105,8 +105,8 @@ namespace Kant.Wpf.Controls.Chart.Example
                     //}
 
                     //HighlightSankeyNode = fromNodes[random.Next(fromNodes.Count)];
-                    HighlightSankeyNode = random.Next(25).ToString();
-                    //HighlightSankeyNode = "H";
+                    //HighlightSankeyNode = random.Next(25).ToString();
+                    HighlightSankeyNode = "H";
                     //HighlightSankeyNode = "5";
                     //HighlightSankeyNode = "";
                     //HighlightSankeyNode = "Z";
@@ -121,8 +121,8 @@ namespace Kant.Wpf.Controls.Chart.Example
             {
                 return GetCommand(highlightingLink, new CommandBase(() =>
                 {
-                    //HighlightSankeyLink = new SankeyLinkFinder("C", "F");
-                    HighlightSankeyLink = new SankeyLinkFinder("5", random.Next(9, 20).ToString());
+                    HighlightSankeyLink = new SankeyLinkFinder("C", "F");
+                    //HighlightSankeyLink = new SankeyLinkFinder("5", random.Next(9, 20).ToString());
                 }));
             }
         }

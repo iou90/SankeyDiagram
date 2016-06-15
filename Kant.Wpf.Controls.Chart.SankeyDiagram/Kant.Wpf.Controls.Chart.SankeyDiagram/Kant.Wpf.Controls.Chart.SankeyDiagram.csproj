@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="SankeyFlowDirection.cs" />
+    <Compile Include="SankeyHighlightMode.cs" />
     <Compile Include="SankeyLink.cs" />
     <Compile Include="SankeyLinkFinder.cs" />
     <Compile Include="SankeyLinkStyleFinder.cs" />

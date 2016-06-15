@@ -74,6 +74,7 @@
             <Border Margin="20">
                 <kantCharts:SankeyDiagram Height="800"
                                           NodeIntervalSpace="15"
+                                          HighlightMode="MouseEnter"
                                           SankeyFlowDirection="LeftToRight"
                                           UseNodeLinksPalette="True"
                                           ShowLabels="True"
