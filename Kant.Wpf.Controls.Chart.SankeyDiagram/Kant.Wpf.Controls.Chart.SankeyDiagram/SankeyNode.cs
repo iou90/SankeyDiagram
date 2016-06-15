@@ -29,5 +29,7 @@ namespace Kant.Wpf.Controls.Chart
         public double PreviousOccupiedLength { get; set; }
 
         public double NextOccupiedLength { get; set; }
+
+        public bool IsHighlight { get; set; }
     }
 }

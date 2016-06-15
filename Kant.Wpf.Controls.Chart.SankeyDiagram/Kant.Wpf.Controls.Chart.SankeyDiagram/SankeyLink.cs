@@ -25,5 +25,7 @@ namespace Kant.Wpf.Controls.Chart
         public SankeyNode ToNode { get; set; }
 
         public Path Shape { get; set; }
+
+        public bool IsHighlight { get; set; }
     }
 }
