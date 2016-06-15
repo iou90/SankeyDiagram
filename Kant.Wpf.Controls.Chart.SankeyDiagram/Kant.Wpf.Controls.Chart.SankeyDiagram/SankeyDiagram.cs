@@ -73,7 +73,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     return;
                 }
-                
+
                 CreateDiagram(currentNodes, currentLinks);
                 isDiagramLoaded = true;
             };
@@ -105,7 +105,7 @@ namespace Kant.Wpf.Controls.Chart
 
         private void OnDatasChanged(IEnumerable<SankeyDataRow> newDatas, IEnumerable<SankeyDataRow> oldDatas)
         {
-            if(newDatas == oldDatas)
+            if (newDatas == oldDatas)
             {
                 return;
             }
@@ -120,9 +120,9 @@ namespace Kant.Wpf.Controls.Chart
             {
                 return;
             }
-            
+
             // create nodes, dictionary key means col/row index
-            var nodeDictionary = ProduceNodes(newDatas, new Dictionary<int, List<SankeyNode>>(), 0);
+            var nodeDictionary = ProduceNodes(newDatas);
 
             // calculate node length
             currentNodes = CalculateNodesLength(newDatas, nodeDictionary);
@@ -144,31 +144,31 @@ namespace Kant.Wpf.Controls.Chart
 
         private void OnNodeBrushesChanged(Dictionary<string, Brush> newBrushes, Dictionary<string, Brush> oldBrushes)
         {
-            if(newBrushes == null || newBrushes == oldBrushes || currentNodes == null || currentNodes.Count() == 0)
+            if (newBrushes == null || newBrushes == oldBrushes || currentNodes == null || currentNodes.Count() == 0)
             {
                 return;
             }
 
-            foreach(var levelNodes in currentNodes.Values)
+            foreach (var levelNodes in currentNodes.Values)
             {
                 foreach (var node in levelNodes)
                 {
-                    if(newBrushes.Keys.Contains(node.Label.Text))
+                    if (newBrushes.Keys.Contains(node.Label.Text))
                     {
                         var brush = newBrushes[node.Label.Text];
 
                         if (brush != node.Shape.Fill)
                         {
                             node.Shape.Fill = brush;
-                        }                               
+                        }
                     }
-                } 
+                }
             }
         }
 
         private void CreateDiagram(Dictionary<int, List<SankeyNode>> nodes, Dictionary<int, List<SankeyLink>> links)
         {
-            if(DiagramPanel.ActualHeight <= 0 || DiagramPanel.ActualWidth <= 0 || nodes == null || nodes.Count < 2 || links == null || links.Count == 0)
+            if (DiagramPanel.ActualHeight <= 0 || DiagramPanel.ActualWidth <= 0 || nodes == null || nodes.Count < 2 || links == null || links.Count == 0)
             {
                 return;
             }
@@ -176,7 +176,7 @@ namespace Kant.Wpf.Controls.Chart
             var panelLength = 0.0;
             var linkLength = 0.0;
 
-            if(IsDiagramVertical)
+            if (IsDiagramVertical)
             {
                 panelLength = DiagramPanel.ActualWidth;
                 linkLength = LinkLength > 0 ? LinkLength : (DiagramPanel.ActualHeight - nodes.Count * NodeLength) / links.Count;
@@ -194,11 +194,11 @@ namespace Kant.Wpf.Controls.Chart
             var maxGroupLength = 0.0;
             var maxGroupCount = 0;
 
-            foreach(var levelNodes in nodes.Values)
+            foreach (var levelNodes in nodes.Values)
             {
                 var tempGroupLength = 0.0;
 
-                foreach(var node in levelNodes)
+                foreach (var node in levelNodes)
                 {
                     // if use node-links color range and node colors property has no value then use default color range
                     if (UseNodeLinksPalette)
@@ -225,7 +225,7 @@ namespace Kant.Wpf.Controls.Chart
                     }
                 }
 
-                if(tempGroupLength > maxGroupLength)
+                if (tempGroupLength > maxGroupLength)
                 {
                     maxGroupLength = tempGroupLength;
                     maxGroupCount = levelNodes.Count;
@@ -235,9 +235,9 @@ namespace Kant.Wpf.Controls.Chart
             // - 15 means you have to remain some margin to calculate node's position, or a wrong position of the top node
             var nodesOverallLength = panelLength - (maxGroupCount * NodeIntervalSpace) - 15;
 
-            if(nodesOverallLength <= 0)
+            if (nodesOverallLength <= 0)
             {
-                DiagramPanel.Children.Add(new TextBlock() { Text = "diagram panel length is not enough" } );
+                DiagramPanel.Children.Add(new TextBlock() { Text = "diagram panel length is not enough" });
 
                 return;
             }
@@ -251,7 +251,7 @@ namespace Kant.Wpf.Controls.Chart
                 var nodesGroupWidth = 0.0;
                 nodesGroup.ItemContainerStyle = nodesGroupContainerStyle;
 
-                if(IsDiagramVertical)
+                if (IsDiagramVertical)
                 {
                     nodesGroup.HorizontalAlignment = HorizontalAlignment.Center;
                     var factory = new FrameworkElementFactory(typeof(StackPanel));
@@ -286,7 +286,7 @@ namespace Kant.Wpf.Controls.Chart
                     var canvas = new Canvas();
                     canvas.ClipToBounds = true;
 
-                    if(IsDiagramVertical)
+                    if (IsDiagramVertical)
                     {
                         canvas.Height = linkLength;
                     }
@@ -303,7 +303,7 @@ namespace Kant.Wpf.Controls.Chart
             // prepare for translatepoint method
             UpdateLayout();
 
-            foreach(var levelNodes in nodes.Values)
+            foreach (var levelNodes in nodes.Values)
             {
                 foreach (var node in levelNodes)
                 {
@@ -344,82 +344,96 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        private Dictionary<int, List<SankeyNode>> ProduceNodes(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes, int levelIndex)
+        /// <summary>
+        /// Produce Nodes by DataRows
+        /// </summary>
+        /// <param name="datas">DataRows</param>
+        /// <returns>Nodes</returns>
+        public Dictionary<int, List<SankeyNode>> ProduceNodes(IEnumerable<SankeyDataRow> datas)
         {
-            var isDatasUpdated = false;
-            var tempDatas = datas.ToList();
+            Dictionary<int, List<SankeyNode>> nodes = new Dictionary<int, List<SankeyNode>>();
+            nodes.Add(0, new List<SankeyNode>());
 
-            foreach(var data in datas)
+            foreach (var data in datas)
             {
-                // if a node name only exists in From property, it'll be in the first col/row
-                if (levelIndex == 0 && tempDatas.Exists(d => d.To == data.From))
+                // root nodes
+                if (datas.Count(d => d.To == data.From) == 0
+                    && !nodes[0].Exists(n => n.Label.Text == data.From))
                 {
-                    continue;
+                    var newNode = CreateNode(data, data.From);
+                    nodes[0].Add(newNode);
+
+                    ProduceChildNodes(datas, nodes, newNode, 1);
                 }
-
-                if(levelIndex > 0)
-                {
-                    var node = nodes[levelIndex - 1].Find(findNode => findNode.Label.Text == data.From);
-
-                    if(node != null)
-                    { 
-                        var previousLevelNodes = tempDatas.FindAll(d => d.From == node.Label.Text);
-
-                        if (previousLevelNodes.Count == 0)
-                        {
-                            break;
-                        }
-
-                        foreach(var pNode in previousLevelNodes)
-                        {
-                            if (pNode.To == data.To)
-                            {
-                                isDatasUpdated = true;
-                                nodes = UpdateNodes(nodes, levelIndex, data, data.To);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    var isDataDuplicate = false;
-
-                    for (var i = 1; i < levelIndex + 1; i++)
-                    {
-                        if (nodes[levelIndex - i].Exists(findNode => findNode.Label.Text == data.From))
-                        {
-                            isDataDuplicate = true;
-
-                            break;
-                        }
-                    }
-
-                    if(isDataDuplicate)
-                    {
-                        continue;
-                    }
-                }
-
-                isDatasUpdated = true;
-
-                // if a node name only exists in To property, it'll be in the last col/row
-                var label = !tempDatas.Exists(d => d.From == data.From) ? data.To : data.From;
-
-                nodes = UpdateNodes(nodes, levelIndex, data, label);
             }
 
-            if(isDatasUpdated)
-            {
-                levelIndex++;
+            return nodes;
+        }
 
-                return ProduceNodes(datas, nodes, levelIndex);
+        /// <summary>
+        /// Produce child Nodes by parent Node
+        /// </summary>
+        /// <param name="datas">DataRows</param>
+        /// <param name="nodes">Nodes</param>
+        /// <param name="parentNode">Parent Node</param>
+        /// <param name="childLevelIndex">Child Level Index</param>
+        private void ProduceChildNodes(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes, SankeyNode parentNode, int childLevelIndex)
+        {
+            if (!nodes.Keys.Contains(childLevelIndex))
+            {
+                nodes.Add(childLevelIndex, new List<SankeyNode>());
+            }
+
+            // get to-child node RowDatas
+            var currentRowData = datas.Where(d => d.From == parentNode.Label.Text);
+            if (currentRowData == null || currentRowData.Count() == 0)
+            {
+                nodes.Remove(childLevelIndex);
+
+                return;
+            }
+
+            foreach (var data in currentRowData)
+            {
+                if (!nodes[childLevelIndex].Exists(n => n.Label.Text == data.To))
+                {
+                    var newNode = CreateNode(data, data.To);
+                    nodes[childLevelIndex].Add(newNode);
+
+                    ProduceChildNodes(datas, nodes, newNode, childLevelIndex + 1);
+                }
+            }
+        }
+
+        private SankeyNode CreateNode(SankeyDataRow data, string label)
+        {
+            var l = new TextBlock()
+            {
+                Text = label,
+                Style = LabelStyle
+            };
+
+            var shape = new Rectangle();
+
+            if (NodeBrushes != null && NodeBrushes.Keys.Contains(label))
+            {
+                shape.Fill = NodeBrushes[label];
             }
             else
             {
-                return nodes;
+                shape.Fill = NodeBrush;
             }
+
+            if (IsDiagramVertical)
+            {
+                shape.Height = NodeLength;
+            }
+            else
+            {
+                shape.Width = NodeLength;
+            }
+
+            return new SankeyNode(shape, l);
         }
 
         private Dictionary<int, List<SankeyNode>> CalculateNodesLength(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes)
@@ -427,7 +441,7 @@ namespace Kant.Wpf.Controls.Chart
             var nodeFromLengthDictionary = new Dictionary<string, double>();
             var nodeToLengthDictionary = new Dictionary<string, double>();
 
-            foreach(var data in datas)
+            foreach (var data in datas)
             {
                 var length = data.Weight;
 
@@ -510,11 +524,11 @@ namespace Kant.Wpf.Controls.Chart
             var linkDictionary = new Dictionary<int, List<SankeyLink>>();
             var tempDatas = datas.ToList();
 
-            foreach(var data in tempDatas)
+            foreach (var data in tempDatas)
             {
-                for (var fCount = 0; fCount < nodes.Count; fCount++)
+                for (var levelIndex = 0; levelIndex < nodes.Count; levelIndex++)
                 {
-                    var fromNode = nodes[fCount].Find(findNode => findNode.Label.Text == data.From);
+                    var fromNode = nodes[levelIndex].Find(findNode => findNode.Label.Text == data.From);
 
                     if (fromNode != null)
                     {
@@ -523,7 +537,7 @@ namespace Kant.Wpf.Controls.Chart
                             FromNode = fromNode
                         };
 
-                        foreach(var levelNodes in nodes.Values)
+                        foreach (var levelNodes in nodes.Values)
                         {
                             var toNode = levelNodes.Find(findNode => findNode.Label.Text == data.To);
 
@@ -540,13 +554,13 @@ namespace Kant.Wpf.Controls.Chart
                         shape.StrokeThickness = data.Weight;
                         link.Shape = shape;
 
-                        if (linkDictionary.Keys.Contains(fCount))
+                        if (linkDictionary.Keys.Contains(levelIndex))
                         {
-                            linkDictionary[fCount].Add(link);
+                            linkDictionary[levelIndex].Add(link);
                         }
                         else
                         {
-                            linkDictionary.Add(fCount, new List<SankeyLink>() { link });
+                            linkDictionary.Add(levelIndex, new List<SankeyLink>() { link });
                         }
                     }
                 }
@@ -555,59 +569,9 @@ namespace Kant.Wpf.Controls.Chart
             return linkDictionary;
         }
 
-        private Dictionary<int, List<SankeyNode>> UpdateNodes(Dictionary<int, List<SankeyNode>> nodes, int index, SankeyDataRow data, string label)
-        {
-            if (nodes.Keys.Contains(index))
-            {
-                var n = nodes[index].Find(findNode => label == findNode.Label.Text);
-
-                if (n == null)
-                {
-                    nodes[index].Add(CreateNode(data, label));
-                }
-            }
-            else
-            {
-                nodes.Add(index, new List<SankeyNode>() { CreateNode(data, label) });
-            }
-
-            return nodes;
-        }
-
-        private SankeyNode CreateNode(SankeyDataRow data, string label)
-        {
-            var l = new TextBlock()
-            {
-                Text = label,
-                Style = LabelStyle
-            };
-
-            var shape = new Rectangle();
-            
-            if(NodeBrushes != null && NodeBrushes.Keys.Contains(label))
-            {
-                shape.Fill = NodeBrushes[label];
-            }
-            else
-            {
-                shape.Fill = NodeBrush;
-            } 
-
-            if(IsDiagramVertical)
-            {
-                shape.Height = NodeLength;
-            }
-           else
-            {
-                shape.Width = NodeLength;
-            }
-
-            return new SankeyNode(shape, l);
-        }
-
         private SankeyLink DrawLink(SankeyLink link, double linkLength, double unitLength)
         {
-            if(LinkPoint1Curveless <= 0 || LinkPoint1Curveless > 1)
+            if (LinkPoint1Curveless <= 0 || LinkPoint1Curveless > 1)
             {
                 throw new ArgumentOutOfRangeException("curveless should be between 0 and 1.");
             }
@@ -617,7 +581,7 @@ namespace Kant.Wpf.Controls.Chart
                 throw new ArgumentOutOfRangeException("curveless should be between 0 and 1.");
             }
 
-            if(UseNodeLinksPalette)
+            if (UseNodeLinksPalette)
             {
                 link.Shape.Stroke = link.FromNode.Shape.Fill;
             }
@@ -628,7 +592,7 @@ namespace Kant.Wpf.Controls.Chart
             var bezierControlPoint1 = new Point();
             var bezierCOntrolPoint2 = new Point();
 
-            if(IsDiagramVertical)
+            if (IsDiagramVertical)
             {
                 fromPoint.X = link.FromNode.Position + link.FromNode.NextOccupiedLength + link.Shape.StrokeThickness / 2;
                 toPoint.X = link.ToNode.Position + link.ToNode.PreviousOccupiedLength + link.Shape.StrokeThickness / 2;
@@ -697,7 +661,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     Canvas.SetTop(node.Label, node.Position + (node.Shape.Height / 2) - (node.Label.DesiredSize.Height / 2));
 
-                    if(index == nodes.Count - 1)
+                    if (index == nodes.Count - 1)
                     {
                         Canvas.SetRight(node.Label, 0);
                     }
@@ -748,7 +712,7 @@ namespace Kant.Wpf.Controls.Chart
         public Style LabelStyle { get; set; }
 
         public bool ShowLabels { get; set; }
-        
+
         /// <summary>
         /// using node links palette means coloring your link with fromNode's brush
         /// if NodeBrushes exist, nodes & links will use it, if not, use default palette
