@@ -48,6 +48,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SankeyDiagramAssist.cs" />
     <Compile Include="SankeyFlowDirection.cs" />
     <Compile Include="SankeyHighlightMode.cs" />
     <Compile Include="SankeyLink.cs" />

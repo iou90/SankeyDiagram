@@ -24,7 +24,7 @@ namespace Kant.Wpf.Controls.Chart
 
         public TextBlock Label { get; set; }
 
-        public double Position { get; set; }
+        public double? Position { get; set; }
 
         public double PreviousOccupiedLength { get; set; }
 

@@ -27,6 +27,7 @@ namespace Kant.Wpf.Controls.Chart
             labelStye.Setters.Add(new Setter(TextBlock.MarginProperty, new Thickness(2)));
             diagram.LabelStyle = labelStye;
             diagram.ShowLabels = true;
+            diagram.UseNodeLinksPalette = true;
             DefaultNodeLinksPaletteIndex = 0;
             ResetHighlightNodeBrushes = new Dictionary<string, Brush>();
             ResetHighlightLinkBrushes = new List<SankeyLinkStyleFinder>();
