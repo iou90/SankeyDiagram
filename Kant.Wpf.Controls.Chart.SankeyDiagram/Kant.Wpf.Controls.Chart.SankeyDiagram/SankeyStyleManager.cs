@@ -9,9 +9,6 @@ using System.Windows.Media;
 
 namespace Kant.Wpf.Controls.Chart
 {
-    /// <summary>
-    /// controll alteration of a SankeyDiagram's styles
-    /// </summary>
     public class SankeyStyleManager
     {
         #region Methods
