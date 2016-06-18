@@ -30,46 +30,8 @@ namespace Kant.Wpf.Controls.Chart
         public SankeyDiagram()
         {
             // set default values
-            NodeIntervalSpace = 5;
-            NodeThickness = 10;
-            NodeBrush = new SolidColorBrush(Colors.Black);
-            defaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = 0.55 };
-            HighlightOpacity = 1.0;
-            LoweredOpacity = 0.25;
-            LinkPoint1Curveless = 0.4;
-            LinkPoint2Curveless = 0.6;
-            var labelStye = new Style(typeof(TextBlock));
-            labelStye.Setters.Add(new Setter(TextBlock.MarginProperty, new Thickness(2)));
-            LabelStyle = labelStye;
-            ShowLabels = true;
-
-            defaultNodeLinksPalette = new List<Brush>()
-            {
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0095fb")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ff0000")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ffa200")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00f2c8")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#7373ff")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#91bc61")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#dc89d9")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#fff100")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#44c5f1")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#85e91f")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00b192")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1cbe65")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#278bcc")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#954ab3")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#f3bc00")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#e47403")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ce3e29")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#d8dddf")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#60e8a4")) { Opacity = 0.55 },
-                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ffb5ff")) { Opacity = 0.55 }
-            };
-
-            defaultNodeLinksPaletteIndex = 0;
-            resetHighlightNodeBrushes = new Dictionary<string, Brush>();
-            resetHighlightLinkBrushes = new List<SankeyLinkStyleFinder>();
+            styleManager = new SankeyStyleManager();
+            styleManager.SetDefaultStyles(this);
 
             Loaded += (s, e) =>
             {
@@ -172,7 +134,7 @@ namespace Kant.Wpf.Controls.Chart
                         if (brush != node.Shape.Fill)
                         {
                             node.Shape.Fill = brush.CloneCurrentValue();
-                            resetHighlightNodeBrushes.Add(node.Label.Text, brush.CloneCurrentValue());
+                            styleManager.ResetHighlightNodeBrushes.Add(node.Label.Text, brush.CloneCurrentValue());
                         }                               
                     }
                 } 
@@ -194,7 +156,7 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             // reset each element's style first
-            ResetHighlights(false);
+            styleManager.ResetHighlights(currentLinks, false);
 
             var resetBrushes = true;
             var highlightNodes = new List<string>();
@@ -212,7 +174,7 @@ namespace Kant.Wpf.Controls.Chart
             // reset highlight if highlighting the same node twice
             if (highlightNode == HighlightNode && (from node in currentNodes.Values.SelectMany(n => n) where node.Label.Text == HighlightNode & node.IsHighlight select node).Count() == 1)
             {
-                ResetHighlights();
+                styleManager.ResetHighlights(currentLinks);
 
                 return;
             }
@@ -221,7 +183,7 @@ namespace Kant.Wpf.Controls.Chart
             HighlightLink = null;
 
             // increasing opacity of the correlated element while lower the others  
-            Highlighting(resetBrushes, HighlightOpacity, LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Label.Text == highlightNode || link.ToNode.Label.Text == highlightNode; }));
+            styleManager.Highlighting(currentLinks, resetBrushes, HighlightOpacity, LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Label.Text == highlightNode || link.ToNode.Label.Text == highlightNode; }));
         }
 
         private static object HighlightLinkSourceValueCallback(DependencyObject o, object value)
@@ -239,7 +201,7 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             // reset each element's style first
-            ResetHighlights(false);
+            styleManager.ResetHighlights(currentLinks, false);
 
             var resetBrushes = true;
             var highlightNodes = new List<string>();
@@ -265,7 +227,7 @@ namespace Kant.Wpf.Controls.Chart
             {
                 if ((HighlightLink.From == linkStyleFinder.From && HighlightLink.To == linkStyleFinder.To) && (from link in currentLinks.Values.SelectMany(l => l) where (link.FromNode.Label.Text == HighlightLink.From && link.ToNode.Label.Text == HighlightLink.To) & link.IsHighlight select link).Count() == 1)
                 {
-                    ResetHighlights();
+                    styleManager.ResetHighlights(currentLinks);
 
                     return;
                 }
@@ -275,7 +237,7 @@ namespace Kant.Wpf.Controls.Chart
             HighlightNode = null;
 
             // increasing opacity of the correlated element while lower the others  
-            Highlighting(resetBrushes, HighlightOpacity, LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Label.Text == linkStyleFinder.From && link.ToNode.Label.Text == linkStyleFinder.To; }));
+            styleManager.Highlighting(currentLinks, resetBrushes, HighlightOpacity, LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Label.Text == linkStyleFinder.From && link.ToNode.Label.Text == linkStyleFinder.To; }));
         }
 
         #endregion
@@ -319,18 +281,18 @@ namespace Kant.Wpf.Controls.Chart
                     {
                         if (NodeBrushes == null || !NodeBrushes.Keys.Contains(node.Label.Text))
                         {
-                            node.Shape.Fill = defaultNodeLinksPalette[defaultNodeLinksPaletteIndex].CloneCurrentValue();
-                            defaultNodeLinksPaletteIndex++;
+                            node.Shape.Fill = styleManager.DefaultNodeLinksPalette[styleManager.DefaultNodeLinksPaletteIndex].CloneCurrentValue();
+                            styleManager.DefaultNodeLinksPaletteIndex++;
 
-                            if (defaultNodeLinksPaletteIndex >= defaultNodeLinksPalette.Count)
+                            if (styleManager.DefaultNodeLinksPaletteIndex >= styleManager.DefaultNodeLinksPalette.Count)
                             {
-                                defaultNodeLinksPaletteIndex = 0;
+                                styleManager.DefaultNodeLinksPaletteIndex = 0;
                             }
                         }
                     }
 
                     // save node fill
-                    resetHighlightNodeBrushes.Add(node.Label.Text, node.Shape.Fill.CloneCurrentValue());
+                    styleManager.ResetHighlightNodeBrushes.Add(node.Label.Text, node.Shape.Fill.CloneCurrentValue());
 
                     if (SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
@@ -451,12 +413,12 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     var link = links[index][lIndex];
                     linkContainers[index].Children.Add(DrawLink(link, linkLength, unitLength).Shape);
-                    resetHighlightLinkBrushes.Add(new SankeyLinkStyleFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
+                    styleManager.ResetHighlightLinkBrushes.Add(new SankeyLinkStyleFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
                 }
 
                 if (ShowLabels)
                 {
-                    resetLabelOpacity = currentNodes[0][0].Label.Opacity;
+                    styleManager.ResetLabelOpacity = currentNodes[0][0].Label.Opacity;
 
                     // add last & last but one group node labels in last container
                     if (index == linkContainers.Count - 1)
@@ -687,7 +649,7 @@ namespace Kant.Wpf.Controls.Chart
                         shape.MouseLeftButtonUp += LinkMouseLeftButtonUp;
 
                         shape.Tag = new SankeyLinkFinder(data.From, data.To);
-                        shape.Stroke = data.LinkStroke == null ? defaultLinkBrush.CloneCurrentValue() : data.LinkStroke.CloneCurrentValue();
+                        shape.Stroke = data.LinkStroke == null ? styleManager.DefaultLinkBrush.CloneCurrentValue() : data.LinkStroke.CloneCurrentValue();
                         shape.StrokeThickness = data.Weight;
                         link.Shape = shape;
 
@@ -961,102 +923,10 @@ namespace Kant.Wpf.Controls.Chart
 
         private void ClearHighlightStyle()
         {
-            resetHighlightNodeBrushes.Clear();
-            resetHighlightLinkBrushes.Clear();
+            styleManager.ResetHighlightNodeBrushes.Clear();
+            styleManager.ResetHighlightLinkBrushes.Clear();
             SetCurrentValue(HighlightNodeProperty, null);
             SetCurrentValue(HighlightLinkProperty, null);
-        }
-
-        private void Highlighting(bool resetBrushes, double highlightOpacity, double loweredOpacity, List<string> highlightNodes, List<string> minimizeNodes, Func<SankeyLink, bool> check)
-        {
-            foreach (var levelLinks in currentLinks.Values)
-            {
-                foreach (var link in levelLinks)
-                {
-                    if (!resetBrushes)
-                    {
-                        if (check(link))
-                        {
-                            link.FromNode.Shape.Fill.Opacity = link.ToNode.Shape.Fill.Opacity = link.Shape.Stroke.Opacity = highlightOpacity;
-                            link.IsHighlight = true;
-                            link.FromNode.IsHighlight = true;
-                            link.ToNode.IsHighlight = true;
-                            highlightNodes.Add(link.FromNode.Label.Text);
-                            highlightNodes.Add(link.ToNode.Label.Text);
-
-                            if(ShowLabels)
-                            {
-                                link.ToNode.Label.Opacity = link.FromNode.Label.Opacity = highlightOpacity;
-                            }
-                        }
-                        else
-                        {
-                            var minimizeOpacity = link.Shape.Stroke.Opacity - loweredOpacity < 0 ? 0 : link.Shape.Stroke.Opacity - loweredOpacity;
-                            link.Shape.Stroke.Opacity = minimizeOpacity;
-                            link.IsHighlight = false;
-
-                            // prevent changing node's brush again
-                            if (!highlightNodes.Exists(n => n == link.FromNode.Label.Text) && !minimizeNodes.Exists(n => n == link.FromNode.Label.Text))
-                            {
-                                link.FromNode.Shape.Fill.Opacity = minimizeOpacity;
-                                link.FromNode.IsHighlight = false;
-                                minimizeNodes.Add(link.FromNode.Label.Text);
-
-                                if(ShowLabels)
-                                {
-                                    link.FromNode.Label.Opacity = minimizeOpacity;
-                                }
-                            }
-
-                            if (!highlightNodes.Exists(n => n == link.ToNode.Label.Text) && !minimizeNodes.Exists(n => n == link.ToNode.Label.Text))
-                            {
-                                link.ToNode.Shape.Fill.Opacity = minimizeOpacity;
-                                link.ToNode.IsHighlight = false;
-                                minimizeNodes.Add(link.ToNode.Label.Text);
-
-                                if (ShowLabels)
-                                {
-                                    link.ToNode.Label.Opacity = minimizeOpacity;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        ResetHighlights(link);
-                    }
-                }
-            }
-        }
-
-        private void ResetHighlights(bool resetHighlightStatus = true)
-        {
-            foreach (var levelLinks in currentLinks.Values)
-            {
-                foreach (var link in levelLinks)
-                {
-                    ResetHighlights(link, resetHighlightStatus);
-                }
-            }
-        }
-
-        private void ResetHighlights(SankeyLink link, bool resetHighlightStatus = true)
-        {
-            link.Shape.Stroke = resetHighlightLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
-            link.FromNode.Shape.Fill = resetHighlightNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
-            link.ToNode.Shape.Fill = resetHighlightNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
-
-            if(ShowLabels)
-            {
-                link.ToNode.Label.Opacity = link.FromNode.Label.Opacity = resetLabelOpacity;
-            }
-
-            if(resetHighlightStatus)
-            {
-                link.IsHighlight = false;
-                link.FromNode.IsHighlight = false;
-                link.ToNode.IsHighlight = false;
-            }
         }
 
         #endregion
@@ -1196,17 +1066,7 @@ namespace Kant.Wpf.Controls.Chart
 
         private Dictionary<int, List<SankeyLink>> currentLinks;
 
-        private Brush defaultLinkBrush;
-
-        private int defaultNodeLinksPaletteIndex;
-
-        private List<Brush> defaultNodeLinksPalette;
-
-        private double resetLabelOpacity;
-
-        private Dictionary<string, Brush> resetHighlightNodeBrushes;
-
-        private List<SankeyLinkStyleFinder> resetHighlightLinkBrushes;
+        private SankeyStyleManager styleManager;
 
         private bool isDiagramLoaded;
 
