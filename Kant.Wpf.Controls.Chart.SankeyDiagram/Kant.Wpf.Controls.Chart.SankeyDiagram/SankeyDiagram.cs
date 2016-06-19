@@ -67,12 +67,18 @@ namespace Kant.Wpf.Controls.Chart
 
         private static void OnDatasSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            ((SankeyDiagram)o).assist.UpdateDiagram(e.NewValue as IEnumerable<SankeyDataRow>, e.OldValue as IEnumerable<SankeyDataRow>);
+            ((SankeyDiagram)o).assist.UpdateDiagram(e.NewValue as IEnumerable<SankeyDataRow>);
         }
 
         private static void OnNodeBrushesSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
             ((SankeyDiagram)o).assist.UpdateNodeBrushes(e.NewValue as Dictionary<string, Brush>, e.OldValue as Dictionary<string, Brush>);
+        }
+
+        private static void OnSankeyFlowDirectionSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            var diagram = (SankeyDiagram)o;
+            diagram.assist.UpdateDiagram(diagram.Datas);
         }
 
         private static object HighlightNodeValueCallback(DependencyObject o, object value)
@@ -129,14 +135,20 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty HighlightLinkProperty = DependencyProperty.Register("HighlightLink", typeof(SankeyLinkFinder), typeof(SankeyDiagram), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, null, HighlightLinkSourceValueCallback));
 
-        #endregion
-
-        #region diagram initial settings
-
         /// <summary>
         /// LeftToRight by default
         /// </summary>
-        public SankeyFlowDirection SankeyFlowDirection { get; set; }
+        public SankeyFlowDirection SankeyFlowDirection
+        {
+            get { return (SankeyFlowDirection)GetValue(SankeyFlowDirectionProperty); }
+            set { SetValue(SankeyFlowDirectionProperty, value); }
+        }
+
+        public static readonly DependencyProperty SankeyFlowDirectionProperty = DependencyProperty.Register("SankeyFlowDirection", typeof(SankeyFlowDirection), typeof(SankeyDiagram), new PropertyMetadata(SankeyFlowDirection.LeftToRight, OnSankeyFlowDirectionSourceChanged));
+
+        #endregion
+
+        #region diagram initial settings
 
         /// <summary>
         /// Show by default

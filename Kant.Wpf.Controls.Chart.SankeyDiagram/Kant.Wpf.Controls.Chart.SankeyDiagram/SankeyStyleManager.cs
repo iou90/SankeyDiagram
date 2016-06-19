@@ -38,7 +38,6 @@ namespace Kant.Wpf.Controls.Chart
             diagram.LabelStyle = labelStye;
             diagram.ShowLabels = true;
             diagram.UseNodeLinksPalette = true;
-            DefaultNodeLinksPaletteIndex = 0;
             ResettedHighlightNodeBrushes = new Dictionary<string, Brush>();
             ResettedHighlightLinkBrushes = new List<SankeyLinkStyleFinder>();
             DefaultNodeLinksPalette = GetNodeLinksPalette(opacity);

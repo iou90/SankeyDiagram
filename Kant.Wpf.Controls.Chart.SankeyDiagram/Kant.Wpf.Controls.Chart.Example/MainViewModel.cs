@@ -127,6 +127,18 @@ namespace Kant.Wpf.Controls.Chart.Example
             }
         }
 
+        private ICommand changeStyles;
+        public ICommand ChangeStyles
+        {
+            get
+            {
+                return GetCommand(changeStyles, new CommandBase(() =>
+                {
+                    SankeyFlowDirection = random.Next(2) == 1 ? SankeyFlowDirection.TopToBottom : SankeyFlowDirection.LeftToRight;
+                }));
+            }
+        }
+
         #endregion
 
         #region Fields & Properties
@@ -192,6 +204,23 @@ namespace Kant.Wpf.Controls.Chart.Example
                 {
                     highlightSankeyLink = value;
                     RaisePropertyChanged(() => HighlightSankeyLink);
+                }
+            }
+        }
+
+        private SankeyFlowDirection sankeyFlowDirection;
+        public SankeyFlowDirection SankeyFlowDirection
+        {
+            get
+            {
+                return sankeyFlowDirection;
+            }
+            set
+            {
+                if(value != sankeyFlowDirection)
+                {
+                    sankeyFlowDirection = value;
+                    RaisePropertyChanged(() => SankeyFlowDirection);
                 }
             }
         }

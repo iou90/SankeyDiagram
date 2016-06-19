@@ -13,7 +13,9 @@
         <local:MainViewModel />
     </Window.DataContext>
     <Window.Resources>
-        <SolidColorBrush x:Key="SankeyHighlightBrush" Opacity="0.65" Color="Tomato" />
+        <SolidColorBrush x:Key="SankeyHighlightBrush"
+                         Opacity="0.65"
+                         Color="Tomato" />
         <Style x:Key="SankeyHighlightLabelStyle"
                TargetType="TextBlock">
             <Setter Property="FontSize"
@@ -45,6 +47,11 @@
                         Width="100"
                         Height="20"
                         Command="{Binding TestBigData}" />
+                <Button Content="random change styles"
+                        Margin="10,0,0,0"
+                        Width="200"
+                        Height="20"
+                        Command="{Binding ChangeStyles}" />
                 <Button Content="random hightlight a node"
                         Margin="10,0,0,0"
                         Width="200"
@@ -77,7 +84,6 @@
                 <kantCharts:SankeyDiagram Height="800"
                                           NodeIntervalSpace="15"
                                           HighlightMode="MouseEnter"
-                                          SankeyFlowDirection="LeftToRight"
                                           UseNodeLinksPalette="True"
                                           ShowLabels="True"
                                           HighlightOpacity="0.95"
@@ -86,9 +92,10 @@
                                           LabelStyle="{StaticResource SankeyLabelStyle}"
                                           HighlightLabelStyle="{StaticResource SankeyHighlightLabelStyle}"
                                           Datas="{Binding SankeyDatas}"
+                                          SankeyFlowDirection="{Binding SankeyFlowDirection}"
                                           NodeBrushes="{Binding SankeyNodeBrushes}"
                                           HighlightNode="{Binding HighlightSankeyNode}"
-                                          HighlightLink="{Binding HighlightSankeyLink}"/>
+                                          HighlightLink="{Binding HighlightSankeyLink}" />
             </Border>
         </StackPanel>
     </Grid>

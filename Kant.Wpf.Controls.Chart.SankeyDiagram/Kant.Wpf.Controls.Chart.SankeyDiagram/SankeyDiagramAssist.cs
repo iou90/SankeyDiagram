@@ -25,14 +25,9 @@ namespace Kant.Wpf.Controls.Chart
 
         #region Methods
 
-        public void UpdateDiagram(IEnumerable<SankeyDataRow> newDatas, IEnumerable<SankeyDataRow> oldDatas)
+        public void UpdateDiagram(IEnumerable<SankeyDataRow> datas)
         {
-            if (newDatas == oldDatas)
-            {
-                return;
-            }
-
-            // clean panel
+            // clear diagram
             if (!(diagram.DiagramPanel == null || diagram.DiagramPanel.Children == null || diagram.DiagramPanel.Children.Count == 0))
             {
                 RemoveElementEventHandlers();
@@ -42,19 +37,19 @@ namespace Kant.Wpf.Controls.Chart
                 ResetHighlight();
             }
 
-            if (newDatas == null || newDatas.Count() == 0)
+            if (datas == null || datas.Count() == 0)
             {
                 return;
             }
 
             // create nodes, dictionary key means col/row index
-            var nodes = ProduceNodes(newDatas, new Dictionary<int, List<SankeyNode>>(), 0);
+            var nodes = ProduceNodes(datas, new Dictionary<int, List<SankeyNode>>(), 0);
 
             // calculate node length
-            currentNodes = CalculateNodesLength(newDatas, nodes);
+            currentNodes = CalculateNodesLength(datas, nodes);
 
             // create links
-            currentLinks = ProduceLinks(newDatas, nodes);
+            currentLinks = ProduceLinks(datas, nodes);
 
             // drawing...
             if (diagram.IsDiagramCreated)
@@ -65,7 +60,7 @@ namespace Kant.Wpf.Controls.Chart
 
         public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes, Dictionary<string, Brush> oldBrushes)
         {
-            if (newBrushes == null || newBrushes == oldBrushes || currentNodes == null || currentNodes.Count() == 0)
+            if (newBrushes == null || currentNodes == null || currentNodes.Count() == 0)
             {
                 return;
             }
@@ -186,9 +181,11 @@ namespace Kant.Wpf.Controls.Chart
 
             var panelLength = 0.0;
             var linkLength = 0.0;
+            styleManager.DefaultNodeLinksPaletteIndex = 0;
 
             if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
             {
+                diagram.DiagramPanel.Orientation = Orientation.Vertical;
                 panelLength = diagram.DiagramPanel.ActualWidth;
                 linkLength = diagram.LinkAeraLength > 0 ? diagram.LinkAeraLength : (diagram.DiagramPanel.ActualHeight - currentNodes.Count * diagram.NodeThickness) / currentLinks.Count;
             }
@@ -227,7 +224,10 @@ namespace Kant.Wpf.Controls.Chart
                     }
 
                     // save node fill
-                    styleManager.ResettedHighlightNodeBrushes.Add(node.Label.Text, node.Shape.Fill.CloneCurrentValue());
+                    if (!styleManager.ResettedHighlightNodeBrushes.Keys.Contains(node.Label.Text))
+                    {
+                        styleManager.ResettedHighlightNodeBrushes.Add(node.Label.Text, node.Shape.Fill.CloneCurrentValue());
+                    }
 
                     if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
@@ -356,7 +356,11 @@ namespace Kant.Wpf.Controls.Chart
                     setNodePostion(link.FromNode);
                     setNodePostion(link.ToNode);
                     linkContainers[index].Children.Add(DrawLink(link, linkLength, unitLength).Shape);
-                    styleManager.ResettedHighlightLinkBrushes.Add(new SankeyLinkStyleFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
+
+                    if (!styleManager.ResettedHighlightLinkBrushes.Exists(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text))
+                    {
+                        styleManager.ResettedHighlightLinkBrushes.Add(new SankeyLinkStyleFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
+                    }
                 }
 
                 if (diagram.ShowLabels)
