@@ -83,7 +83,7 @@ namespace Kant.Wpf.Controls.Chart
                         if (brush != node.Shape.Fill)
                         {
                             node.Shape.Fill = brush.CloneCurrentValue();
-                            styleManager.ResetHighlightNodeBrushes.Add(node.Label.Text, brush.CloneCurrentValue());
+                            styleManager.ResettedHighlightNodeBrushes.Add(node.Label.Text, brush.CloneCurrentValue());
                         }
                     }
                 }
@@ -227,7 +227,7 @@ namespace Kant.Wpf.Controls.Chart
                     }
 
                     // save node fill
-                    styleManager.ResetHighlightNodeBrushes.Add(node.Label.Text, node.Shape.Fill.CloneCurrentValue());
+                    styleManager.ResettedHighlightNodeBrushes.Add(node.Label.Text, node.Shape.Fill.CloneCurrentValue());
 
                     if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
@@ -356,12 +356,12 @@ namespace Kant.Wpf.Controls.Chart
                     setNodePostion(link.FromNode);
                     setNodePostion(link.ToNode);
                     linkContainers[index].Children.Add(DrawLink(link, linkLength, unitLength).Shape);
-                    styleManager.ResetHighlightLinkBrushes.Add(new SankeyLinkStyleFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
+                    styleManager.ResettedHighlightLinkBrushes.Add(new SankeyLinkStyleFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
                 }
 
                 if (diagram.ShowLabels)
                 {
-                    styleManager.ResetLabelOpacity = this.currentNodes[0][0].Label.Opacity;
+                    styleManager.ResettedLabelOpacity = this.currentNodes[0][0].Label.Opacity;
 
                     // add last & last but one group node labels in last container
                     if (index == linkContainers.Count - 1)
@@ -691,7 +691,7 @@ namespace Kant.Wpf.Controls.Chart
 
                 if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                 {
-                    Canvas.SetLeft(node.Label, diagram.NodeIntervalSpace + node.Position.Value + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
+                    Canvas.SetLeft(node.Label, node.Position.Value + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
 
                     if (index == nodes.Count - 1)
                     {
@@ -853,8 +853,8 @@ namespace Kant.Wpf.Controls.Chart
 
         private void ResetHighlight()
         {
-            styleManager.ResetHighlightNodeBrushes.Clear();
-            styleManager.ResetHighlightLinkBrushes.Clear();
+            styleManager.ResettedHighlightNodeBrushes.Clear();
+            styleManager.ResettedHighlightLinkBrushes.Clear();
             diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, null);
             diagram.SetCurrentValue(SankeyDiagram.HighlightLinkProperty, null);
         }

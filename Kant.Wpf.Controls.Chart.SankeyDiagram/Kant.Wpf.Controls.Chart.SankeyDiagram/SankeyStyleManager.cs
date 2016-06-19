@@ -11,9 +11,19 @@ namespace Kant.Wpf.Controls.Chart
 {
     public class SankeyStyleManager
     {
+        #region Constructor
+
+        public SankeyStyleManager(SankeyDiagram diagram)
+        {
+            this.diagram = diagram;
+            SetDefaultStyles();
+        }
+
+        #endregion
+
         #region Methods
 
-        public void SetDefaultStyles(SankeyDiagram diagram)
+        public void SetDefaultStyles()
         {
             var opacity = 0.55;
             diagram.NodeIntervalSpace = 5;
@@ -29,14 +39,22 @@ namespace Kant.Wpf.Controls.Chart
             diagram.ShowLabels = true;
             diagram.UseNodeLinksPalette = true;
             DefaultNodeLinksPaletteIndex = 0;
-            ResetHighlightNodeBrushes = new Dictionary<string, Brush>();
-            ResetHighlightLinkBrushes = new List<SankeyLinkStyleFinder>();
+            ResettedHighlightNodeBrushes = new Dictionary<string, Brush>();
+            ResettedHighlightLinkBrushes = new List<SankeyLinkStyleFinder>();
             DefaultNodeLinksPalette = GetNodeLinksPalette(opacity);
             DefaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = opacity };
         }
 
         public void Highlighting(Dictionary<int, List<SankeyLink>> links, bool resetBrushes, double highlightOpacity, double loweredOpacity, List<string> highlightNodes, List<string> minimizeNodes, Func<SankeyLink, bool> check)
         {
+            var setStyle = new Action<FrameworkElement, Style>((e, style) =>
+            {
+                if(style != null)
+                {
+                    e.Style = style;
+                }
+            });
+
             foreach (var levelLinks in links.Values)
             {
                 foreach (var link in levelLinks)
@@ -52,6 +70,18 @@ namespace Kant.Wpf.Controls.Chart
                             highlightNodes.Add(link.FromNode.Label.Text);
                             highlightNodes.Add(link.ToNode.Label.Text);
                             link.ToNode.Label.Opacity = link.FromNode.Label.Opacity = highlightOpacity;
+
+                            if(diagram.HighlightBrush != null)
+                            {
+                                link.Shape.Stroke = diagram.HighlightBrush.CloneCurrentValue();
+                                link.FromNode.Shape.Fill = diagram.HighlightBrush.CloneCurrentValue();
+                                link.ToNode.Shape.Fill = diagram.HighlightBrush.CloneCurrentValue();
+                            }
+
+                            if(diagram.HighlightLabelStyle != null)
+                            {
+                                link.ToNode.Label.Style = link.FromNode.Label.Style = diagram.HighlightLabelStyle;
+                            }
                         }
                         else
                         {
@@ -92,10 +122,11 @@ namespace Kant.Wpf.Controls.Chart
 
         private void ResetHighlights(SankeyLink link, bool resetHighlightStatus = true)
         {
-            link.Shape.Stroke = ResetHighlightLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
-            link.FromNode.Shape.Fill = ResetHighlightNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
-            link.ToNode.Shape.Fill = ResetHighlightNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
-            link.ToNode.Label.Opacity = link.FromNode.Label.Opacity = ResetLabelOpacity;
+            link.Shape.Stroke = ResettedHighlightLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
+            link.FromNode.Shape.Fill = ResettedHighlightNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
+            link.ToNode.Shape.Fill = ResettedHighlightNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
+            link.ToNode.Label.Style = link.FromNode.Label.Style = diagram.LabelStyle;
+            link.ToNode.Label.Opacity = link.FromNode.Label.Opacity = ResettedLabelOpacity;
 
             if (resetHighlightStatus)
             {
@@ -152,13 +183,15 @@ namespace Kant.Wpf.Controls.Chart
 
         #region highlight
 
-        public double ResetLabelOpacity { get; set; }
+        public double ResettedLabelOpacity { get; set; }
 
-        public Dictionary<string, Brush> ResetHighlightNodeBrushes { get; set; }
+        public Dictionary<string, Brush> ResettedHighlightNodeBrushes { get; set; }
 
-        public List<SankeyLinkStyleFinder> ResetHighlightLinkBrushes { get; set; }
+        public List<SankeyLinkStyleFinder> ResettedHighlightLinkBrushes { get; set; }
 
         #endregion
+
+        private SankeyDiagram diagram;
 
         #endregion
     }

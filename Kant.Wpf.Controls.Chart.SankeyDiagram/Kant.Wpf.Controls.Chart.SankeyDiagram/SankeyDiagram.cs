@@ -29,10 +29,8 @@ namespace Kant.Wpf.Controls.Chart
 
         public SankeyDiagram()
         {
-            // set default values
-            styleManager = new SankeyStyleManager();
+            styleManager = new SankeyStyleManager(this);
             assist = new SankeyDiagramAssist(this, styleManager);
-            styleManager.SetDefaultStyles(this);
 
             Loaded += (s, e) =>
             {
@@ -184,14 +182,29 @@ namespace Kant.Wpf.Controls.Chart
         /// </summary>
         public bool UseNodeLinksPalette { get; set; }
 
+        public List<Brush> DefaultNodeLinksPalette
+        {
+            get
+            {
+                return styleManager.DefaultNodeLinksPalette;
+            }
+        }
+
         /// <summary>
         /// brush applying on all nodes
         /// it does not work if you set UseNodeLinksPalette to true
         /// </summary>
         public Brush NodeBrush { get; set; }
 
+        public Style LabelStyle { get; set; }
+
+        public Style HighlightLabelStyle { get; set; }
+
+        public Brush HighlightBrush { get; set; }
+
         /// <summary>
         /// apply to nodes, links
+        /// it does not work if you have already setted HighlightBrush property
         /// 1.0 by default
         /// </summary>
         public double HighlightOpacity { get; set; }
@@ -201,24 +214,6 @@ namespace Kant.Wpf.Controls.Chart
         /// 0.25 by default
         /// </summary>
         public double LoweredOpacity { get; set; }
-
-        //public Style NodeStyle { get; set; }
-
-        //public Style HighlightNodeStyle { get; set; }
-
-        //public Style MinimizeNodeStyle { get; set; }
-
-        //public Style LinkStyle { get; set; }
-
-        //public Style HighlightLinkStyle { get; set; }
-
-        //public Style MinimizeLinkStyle { get; set; }
-
-        public Style LabelStyle { get; set; }
-
-        //public Style HighlightLabelStyle { get; set; }
-
-        //public Style MinimizeLabelStyle { get; set; }
 
         #endregion
 
