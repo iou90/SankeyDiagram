@@ -33,6 +33,7 @@ namespace Kant.Wpf.Controls.Chart
                 RemoveElementEventHandlers();
                 diagram.DiagramPanel.Children.Clear();
                 currentNodes.Clear();
+                CurrentLabels.Clear();
                 currentLinks.Clear();
                 ResetHighlight();
             }
@@ -48,6 +49,8 @@ namespace Kant.Wpf.Controls.Chart
             // calculate node length
             currentNodes = CalculateNodesLength(datas, nodes);
 
+            CurrentLabels = new List<TextBlock>();
+
             // create links
             currentLinks = ProduceLinks(datas, nodes);
 
@@ -58,7 +61,7 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes, Dictionary<string, Brush> oldBrushes)
+        public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes)
         {
             if (newBrushes == null || currentNodes == null || currentNodes.Count() == 0)
             {
@@ -348,6 +351,8 @@ namespace Kant.Wpf.Controls.Chart
                 }
             });
 
+            var needAddLabels = CurrentLabels.Count == 0 ? true : false;
+
             for (var index = 0; index < linkContainers.Count; index++)
             {
                 for (var lIndex = 0; lIndex < currentLinks[index].Count; lIndex++)
@@ -363,7 +368,7 @@ namespace Kant.Wpf.Controls.Chart
                     }
                 }
 
-                if (diagram.ShowLabels)
+                if (needAddLabels)
                 {
                     styleManager.ResettedLabelOpacity = this.currentNodes[0][0].Label.Opacity;
 
@@ -380,6 +385,8 @@ namespace Kant.Wpf.Controls.Chart
                     }
                 }
             }
+
+            styleManager.ChangeLabelsVisibility(diagram.ShowLabels, CurrentLabels);
 
             #endregion
         }
@@ -712,6 +719,7 @@ namespace Kant.Wpf.Controls.Chart
                     }
                 }
 
+                CurrentLabels.Add(node.Label);
                 container.Children.Add(node.Label);
             }
         }
@@ -866,6 +874,8 @@ namespace Kant.Wpf.Controls.Chart
         #endregion
 
         #region Fields & Properties
+
+        public List<TextBlock> CurrentLabels { get; set; }
 
         private SankeyDiagram diagram;
 

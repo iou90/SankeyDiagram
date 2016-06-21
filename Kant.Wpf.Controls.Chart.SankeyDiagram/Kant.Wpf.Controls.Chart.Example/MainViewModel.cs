@@ -135,6 +135,7 @@ namespace Kant.Wpf.Controls.Chart.Example
                 return GetCommand(changeStyles, new CommandBase(() =>
                 {
                     SankeyFlowDirection = random.Next(2) == 1 ? SankeyFlowDirection.TopToBottom : SankeyFlowDirection.LeftToRight;
+                    SankeyShowLabels = random.Next(2) == 1 ? false : true;
                 }));
             }
         }
@@ -221,6 +222,23 @@ namespace Kant.Wpf.Controls.Chart.Example
                 {
                     sankeyFlowDirection = value;
                     RaisePropertyChanged(() => SankeyFlowDirection);
+                }
+            }
+        }
+
+        private bool sankeyShowLabels;
+        public bool SankeyShowLabels
+        {
+            get
+            {
+                return sankeyShowLabels;
+            }
+            set
+            {
+                if (value != sankeyShowLabels)
+                {
+                    sankeyShowLabels = value;
+                    RaisePropertyChanged(() => SankeyShowLabels);
                 }
             }
         }

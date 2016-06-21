@@ -85,7 +85,6 @@
                                           NodeIntervalSpace="15"
                                           HighlightMode="MouseEnter"
                                           UseNodeLinksPalette="True"
-                                          ShowLabels="True"
                                           HighlightOpacity="0.95"
                                           LoweredOpacity="0.45"
                                           HighlightBrush="{StaticResource SankeyHighlightBrush}"
@@ -93,6 +92,7 @@
                                           HighlightLabelStyle="{StaticResource SankeyHighlightLabelStyle}"
                                           Datas="{Binding SankeyDatas}"
                                           SankeyFlowDirection="{Binding SankeyFlowDirection}"
+                                          ShowLabels="{Binding SankeyShowLabels}"
                                           NodeBrushes="{Binding SankeyNodeBrushes}"
                                           HighlightNode="{Binding HighlightSankeyNode}"
                                           HighlightLink="{Binding HighlightSankeyLink}" />

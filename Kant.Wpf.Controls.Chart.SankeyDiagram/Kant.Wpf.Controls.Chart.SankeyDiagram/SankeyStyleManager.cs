@@ -36,12 +36,24 @@ namespace Kant.Wpf.Controls.Chart
             var labelStye = new Style(typeof(TextBlock));
             labelStye.Setters.Add(new Setter(TextBlock.MarginProperty, new Thickness(2)));
             diagram.LabelStyle = labelStye;
-            diagram.ShowLabels = true;
             diagram.UseNodeLinksPalette = true;
             ResettedHighlightNodeBrushes = new Dictionary<string, Brush>();
             ResettedHighlightLinkBrushes = new List<SankeyLinkStyleFinder>();
             DefaultNodeLinksPalette = GetNodeLinksPalette(opacity);
             DefaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = opacity };
+        }
+
+        public void ChangeLabelsVisibility(bool showLabels, List<TextBlock> labels)
+        {
+            if(labels == null)
+            {
+                return;
+            }
+
+            foreach (var label in labels)
+            {
+                label.Visibility = showLabels ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
 
         public void Highlighting(Dictionary<int, List<SankeyLink>> links, bool resetBrushes, double highlightOpacity, double loweredOpacity, List<string> highlightNodes, List<string> minimizeNodes, Func<SankeyLink, bool> check)

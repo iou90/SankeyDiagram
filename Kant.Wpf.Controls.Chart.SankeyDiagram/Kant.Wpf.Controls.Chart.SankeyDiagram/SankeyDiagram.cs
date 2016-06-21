@@ -67,18 +67,24 @@ namespace Kant.Wpf.Controls.Chart
 
         private static void OnDatasSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            ((SankeyDiagram)o).assist.UpdateDiagram(e.NewValue as IEnumerable<SankeyDataRow>);
+            ((SankeyDiagram)o).assist.UpdateDiagram((IEnumerable<SankeyDataRow>)e.NewValue);
         }
 
         private static void OnNodeBrushesSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            ((SankeyDiagram)o).assist.UpdateNodeBrushes(e.NewValue as Dictionary<string, Brush>, e.OldValue as Dictionary<string, Brush>);
+            ((SankeyDiagram)o).assist.UpdateNodeBrushes((Dictionary<string, Brush>)e.NewValue);
         }
 
         private static void OnSankeyFlowDirectionSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
             var diagram = (SankeyDiagram)o;
             diagram.assist.UpdateDiagram(diagram.Datas);
+        }
+
+        private static void OnShowLabelsSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            var diagram = (SankeyDiagram)o;
+            diagram.styleManager.ChangeLabelsVisibility((bool)e.NewValue, diagram.assist.CurrentLabels);
         }
 
         private static object HighlightNodeValueCallback(DependencyObject o, object value)
@@ -146,6 +152,17 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty SankeyFlowDirectionProperty = DependencyProperty.Register("SankeyFlowDirection", typeof(SankeyFlowDirection), typeof(SankeyDiagram), new PropertyMetadata(SankeyFlowDirection.LeftToRight, OnSankeyFlowDirectionSourceChanged));
 
+        /// <summary>
+        /// Show labels by default
+        /// </summary>
+        public bool ShowLabels
+        {
+            get { return (bool)GetValue(ShowLabelsProperty); }
+            set { SetValue(ShowLabelsProperty, value); }
+        }
+
+        public static readonly DependencyProperty ShowLabelsProperty = DependencyProperty.Register("ShowLabels", typeof(bool), typeof(SankeyDiagram), new PropertyMetadata(true, OnShowLabelsSourceChanged));
+
         #endregion
 
         #region diagram initial settings
@@ -153,7 +170,7 @@ namespace Kant.Wpf.Controls.Chart
         /// <summary>
         /// Show by default
         /// </summary>
-        public bool ShowLabels { get; set; }
+        //public bool ShowLabels { get; set; }
 
         /// <summary>
         /// MouseLeftButtonUp by default
@@ -194,6 +211,9 @@ namespace Kant.Wpf.Controls.Chart
         /// </summary>
         public bool UseNodeLinksPalette { get; set; }
 
+        /// <summary>
+        /// get default palette for reference
+        /// </summary>
         public List<Brush> DefaultNodeLinksPalette
         {
             get
