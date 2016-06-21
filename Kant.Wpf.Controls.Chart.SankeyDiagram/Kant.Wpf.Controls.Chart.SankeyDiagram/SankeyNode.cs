@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace Kant.Wpf.Controls.Chart
@@ -31,5 +32,7 @@ namespace Kant.Wpf.Controls.Chart
         public double NextOccupiedLength { get; set; }
 
         public bool IsHighlight { get; set; }
+
+        public Brush OriginalShapBrush { get; set; }
     }
 }

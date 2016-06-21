@@ -83,7 +83,6 @@
             <Border Margin="20">
                 <kantCharts:SankeyDiagram Height="800"
                                           NodeIntervalSpace="15"
-                                          HighlightMode="MouseEnter"
                                           UseNodeLinksPalette="True"
                                           HighlightOpacity="0.95"
                                           LoweredOpacity="0.45"
@@ -93,6 +92,7 @@
                                           Datas="{Binding SankeyDatas}"
                                           SankeyFlowDirection="{Binding SankeyFlowDirection}"
                                           ShowLabels="{Binding SankeyShowLabels}"
+                                          HighlightMode="{Binding SankeyHighlightMode}"
                                           NodeBrushes="{Binding SankeyNodeBrushes}"
                                           HighlightNode="{Binding HighlightSankeyNode}"
                                           HighlightLink="{Binding HighlightSankeyLink}" />

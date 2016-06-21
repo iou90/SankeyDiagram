@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace Kant.Wpf.Controls.Chart
@@ -13,11 +14,12 @@ namespace Kant.Wpf.Controls.Chart
         {
         }
 
-        public SankeyLink(SankeyNode fromNode, SankeyNode toNode, Path shape)
+        public SankeyLink(SankeyNode fromNode, SankeyNode toNode, Path shape, Brush originalShapeBrush)
         {
             FromNode = fromNode;
             ToNode = toNode;
             Shape = shape;
+            OriginalShapBrush = originalShapeBrush;
         }
 
         public SankeyNode FromNode { get; set; }
@@ -27,5 +29,7 @@ namespace Kant.Wpf.Controls.Chart
         public Path Shape { get; set; }
 
         public bool IsHighlight { get; set; }
+
+        public Brush OriginalShapBrush { get; set; }
     }
 }

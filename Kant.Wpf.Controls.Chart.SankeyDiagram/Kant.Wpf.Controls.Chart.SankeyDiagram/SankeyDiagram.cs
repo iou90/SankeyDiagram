@@ -72,7 +72,8 @@ namespace Kant.Wpf.Controls.Chart
 
         private static void OnNodeBrushesSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            ((SankeyDiagram)o).assist.UpdateNodeBrushes((Dictionary<string, Brush>)e.NewValue);
+            var diagram = (SankeyDiagram)o;
+            diagram.styleManager.UpdateNodeBrushes((Dictionary<string, Brush>)e.NewValue, diagram.assist.CurrentNodes, diagram.assist.CurrentLinks);
         }
 
         private static void OnSankeyFlowDirectionSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
@@ -87,16 +88,25 @@ namespace Kant.Wpf.Controls.Chart
             diagram.styleManager.ChangeLabelsVisibility((bool)e.NewValue, diagram.assist.CurrentLabels);
         }
 
+        private static void OnHighlightModeSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            var diagram = (SankeyDiagram)o;
+            diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, null);
+            diagram.SetCurrentValue(SankeyDiagram.HighlightLinkProperty, null);
+        }
+
         private static object HighlightNodeValueCallback(DependencyObject o, object value)
         {
-            ((SankeyDiagram)o).assist.HighlightingNode(value as string);
+            var diagram = (SankeyDiagram)o;
+            diagram.styleManager.HighlightingNode((string)value, diagram.assist.CurrentNodes, diagram.assist.CurrentLinks);
 
             return value;
         }
 
         private static object HighlightLinkSourceValueCallback(DependencyObject o, object value)
         {
-            ((SankeyDiagram)o).assist.HighlightingLink(value as SankeyLinkFinder);
+            var diagram = (SankeyDiagram)o;
+            diagram.styleManager.HighlightingLink((SankeyLinkFinder)value, diagram.assist.CurrentNodes, diagram.assist.CurrentLinks);
 
             return value;
         }
@@ -163,19 +173,20 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty ShowLabelsProperty = DependencyProperty.Register("ShowLabels", typeof(bool), typeof(SankeyDiagram), new PropertyMetadata(true, OnShowLabelsSourceChanged));
 
-        #endregion
-
-        #region diagram initial settings
-
-        /// <summary>
-        /// Show by default
-        /// </summary>
-        //public bool ShowLabels { get; set; }
-
         /// <summary>
         /// MouseLeftButtonUp by default
         /// </summary>
-        public SankeyHighlightMode HighlightMode { get; set; }
+        public SankeyHighlightMode HighlightMode
+        {
+            get { return (SankeyHighlightMode)GetValue(HighlightModeProperty); }
+            set { SetValue(HighlightModeProperty, value); }
+        }
+
+        public static readonly DependencyProperty HighlightModeProperty = DependencyProperty.Register("HighlightMode", typeof(SankeyHighlightMode), typeof(SankeyDiagram), new PropertyMetadata(SankeyHighlightMode.MouseLeftButtonUp, OnHighlightModeSourceChanged));
+
+        #endregion
+
+        #region diagram initial settings
 
         /// <summary>
         /// 10 by default

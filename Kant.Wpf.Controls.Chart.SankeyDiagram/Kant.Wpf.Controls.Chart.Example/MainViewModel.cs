@@ -134,8 +134,19 @@ namespace Kant.Wpf.Controls.Chart.Example
             {
                 return GetCommand(changeStyles, new CommandBase(() =>
                 {
+                    //random.Next(2) == 1
+                    SankeyNodeBrushes = new Dictionary<string, Brush>()
+                    {
+                        { "A", new SolidColorBrush(Colors.Brown) { Opacity = 0.35 } },
+                        { "B", new SolidColorBrush(Colors.Aqua) { Opacity = 0.25 } },
+                        { "C", new SolidColorBrush(Colors.CornflowerBlue) { Opacity = 0.15 } },
+                        { "D", new SolidColorBrush(Colors.DimGray) { Opacity = 0.45 } },
+                        { "E", new SolidColorBrush(Colors.Firebrick) { Opacity = 0.65 } },
+                    };
+
                     SankeyFlowDirection = random.Next(2) == 1 ? SankeyFlowDirection.TopToBottom : SankeyFlowDirection.LeftToRight;
                     SankeyShowLabels = random.Next(2) == 1 ? false : true;
+                    SankeyHighlightMode = random.Next(2) == 1 ? SankeyHighlightMode.MouseEnter : SankeyHighlightMode.MouseLeftButtonUp;
                 }));
             }
         }
@@ -239,6 +250,23 @@ namespace Kant.Wpf.Controls.Chart.Example
                 {
                     sankeyShowLabels = value;
                     RaisePropertyChanged(() => SankeyShowLabels);
+                }
+            }
+        }
+
+        private SankeyHighlightMode sankeyHighlightMode;
+        public SankeyHighlightMode SankeyHighlightMode
+        {
+            get
+            {
+                return sankeyHighlightMode;
+            }
+            set
+            {
+                if (value != sankeyHighlightMode)
+                {
+                    sankeyHighlightMode = value;
+                    RaisePropertyChanged(() => SankeyHighlightMode);
                 }
             }
         }

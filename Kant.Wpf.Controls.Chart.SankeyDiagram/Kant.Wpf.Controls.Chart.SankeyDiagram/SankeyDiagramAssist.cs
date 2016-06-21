@@ -32,10 +32,10 @@ namespace Kant.Wpf.Controls.Chart
             {
                 RemoveElementEventHandlers();
                 diagram.DiagramPanel.Children.Clear();
-                currentNodes.Clear();
+                CurrentNodes.Clear();
                 CurrentLabels.Clear();
-                currentLinks.Clear();
-                ResetHighlight();
+                CurrentLinks.Clear();
+                styleManager.ClearHighlight();
             }
 
             if (datas == null || datas.Count() == 0)
@@ -46,13 +46,13 @@ namespace Kant.Wpf.Controls.Chart
             // create nodes, dictionary key means col/row index
             var nodes = ProduceNodes(datas, new Dictionary<int, List<SankeyNode>>(), 0);
 
-            // calculate node length
-            currentNodes = CalculateNodesLength(datas, nodes);
+            // calculate node length & set node shape brush
+            CurrentNodes = ShapingNodes(datas, nodes);
 
             CurrentLabels = new List<TextBlock>();
 
-            // create links
-            currentLinks = ProduceLinks(datas, nodes);
+            // create links, has to be putted after ShapingNodes method
+            CurrentLinks = ProduceLinks(datas, nodes);
 
             // drawing...
             if (diagram.IsDiagramCreated)
@@ -61,121 +61,9 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes)
-        {
-            if (newBrushes == null || currentNodes == null || currentNodes.Count() == 0)
-            {
-                return;
-            }
-
-            ResetHighlight();
-
-            foreach (var levelNodes in currentNodes.Values)
-            {
-                foreach (var node in levelNodes)
-                {
-                    if (newBrushes.Keys.Contains(node.Label.Text))
-                    {
-                        var brush = newBrushes[node.Label.Text];
-
-                        if (brush != node.Shape.Fill)
-                        {
-                            node.Shape.Fill = brush.CloneCurrentValue();
-                            styleManager.ResettedHighlightNodeBrushes.Add(node.Label.Text, brush.CloneCurrentValue());
-                        }
-                    }
-                }
-            }
-        }
-
-        public void HighlightingNode(string highlightNode)
-        {
-            if ((string.IsNullOrEmpty(highlightNode) && string.IsNullOrEmpty(diagram.HighlightNode) || currentNodes == null || currentNodes.Count < 2 || currentLinks == null || currentLinks.Count == 0))
-            {
-                return;
-            }
-
-            // reset each element's style first
-            styleManager.ResetHighlights(currentLinks, false);
-
-            var resetBrushes = true;
-            var highlightNodes = new List<string>();
-            var minimizeNodes = new List<string>();
-
-            // check whether highlight node exists
-            if (!string.IsNullOrEmpty(highlightNode))
-            {
-                if ((from node in currentNodes.Values.SelectMany(n => n) where node.Label.Text == highlightNode select node).Count() == 1)
-                {
-                    resetBrushes = false;
-                };
-            }
-
-            // reset highlight if highlighting the same node twice
-            if (highlightNode == diagram.HighlightNode && (from node in currentNodes.Values.SelectMany(n => n) where node.Label.Text == diagram.HighlightNode & node.IsHighlight select node).Count() == 1)
-            {
-                styleManager.ResetHighlights(currentLinks);
-
-                return;
-            }
-
-            // for node, link highlighting switching
-            diagram.HighlightLink = null;
-
-            // increasing opacity of the correlated element while lower the others  
-            styleManager.Highlighting(currentLinks, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Label.Text == highlightNode || link.ToNode.Label.Text == highlightNode; }));
-        }
-
-        public void HighlightingLink(SankeyLinkFinder linkStyleFinder)
-        {
-            if ((linkStyleFinder == null && diagram.HighlightLink == null || currentNodes == null || currentNodes.Count < 2 || currentLinks == null || currentLinks.Count == 0))
-            {
-                return;
-            }
-
-            // reset each element's style first
-            styleManager.ResetHighlights(currentLinks, false);
-
-            var resetBrushes = true;
-            var highlightNodes = new List<string>();
-            var minimizeNodes = new List<string>();
-
-            // check whether highlight node exist
-            if (linkStyleFinder != null)
-            {
-                var fromNode = (from node in currentNodes.Values.SelectMany(n => n) where node.Label.Text == linkStyleFinder.From select node).FirstOrDefault();
-                var toNode = (from node in currentNodes.Values.SelectMany(n => n) where node.Label.Text == linkStyleFinder.To select node).FirstOrDefault();
-
-                if (fromNode != null && toNode != null)
-                {
-                    if ((from link in currentLinks.Values.SelectMany(l => l) where link.FromNode.Label.Text == linkStyleFinder.From & link.ToNode.Label.Text == linkStyleFinder.To select link).Count() > 0)
-                    {
-                        resetBrushes = false;
-                    }
-                };
-            }
-
-            // reset highlight if highlighting the same link twice
-            if (diagram.HighlightLink != null && linkStyleFinder != null)
-            {
-                if ((diagram.HighlightLink.From == linkStyleFinder.From && diagram.HighlightLink.To == linkStyleFinder.To) && (from link in currentLinks.Values.SelectMany(l => l) where (link.FromNode.Label.Text == diagram.HighlightLink.From && link.ToNode.Label.Text == diagram.HighlightLink.To) & link.IsHighlight select link).Count() == 1)
-                {
-                    styleManager.ResetHighlights(currentLinks);
-
-                    return;
-                }
-            }
-
-            // for node, link highlighting switching
-            diagram.HighlightNode = null;
-
-            // increasing opacity of the correlated element while lower the others  
-            styleManager.Highlighting(currentLinks, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Label.Text == linkStyleFinder.From && link.ToNode.Label.Text == linkStyleFinder.To; }));
-        }
-
         public void CreateDiagram()
         {
-            if (diagram.DiagramPanel.ActualHeight <= 0 || diagram.DiagramPanel.ActualWidth <= 0 || currentNodes == null || currentNodes.Count < 2 || currentLinks == null || currentLinks.Count == 0)
+            if (diagram.DiagramPanel.ActualHeight <= 0 || diagram.DiagramPanel.ActualWidth <= 0 || CurrentNodes == null || CurrentNodes.Count < 2 || CurrentLinks == null || CurrentLinks.Count == 0)
             {
                 return;
             }
@@ -184,19 +72,18 @@ namespace Kant.Wpf.Controls.Chart
 
             var panelLength = 0.0;
             var linkLength = 0.0;
-            styleManager.DefaultNodeLinksPaletteIndex = 0;
 
             if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
             {
                 diagram.DiagramPanel.Orientation = Orientation.Vertical;
                 panelLength = diagram.DiagramPanel.ActualWidth;
-                linkLength = diagram.LinkAeraLength > 0 ? diagram.LinkAeraLength : (diagram.DiagramPanel.ActualHeight - currentNodes.Count * diagram.NodeThickness) / currentLinks.Count;
+                linkLength = diagram.LinkAeraLength > 0 ? diagram.LinkAeraLength : (diagram.DiagramPanel.ActualHeight - CurrentNodes.Count * diagram.NodeThickness) / CurrentLinks.Count;
             }
             else
             {
                 diagram.DiagramPanel.Orientation = Orientation.Horizontal;
                 panelLength = diagram.DiagramPanel.ActualHeight;
-                linkLength = diagram.LinkAeraLength > 0 ? diagram.LinkAeraLength : (diagram.DiagramPanel.ActualWidth - currentNodes.Count * diagram.NodeThickness) / currentLinks.Count;
+                linkLength = diagram.LinkAeraLength > 0 ? diagram.LinkAeraLength : (diagram.DiagramPanel.ActualWidth - CurrentNodes.Count * diagram.NodeThickness) / CurrentLinks.Count;
             }
 
             var nodesGroupContainerStyle = new Style();
@@ -205,33 +92,12 @@ namespace Kant.Wpf.Controls.Chart
             var maxGroupLength = 0.0;
             var maxGroupCount = 0;
 
-            foreach (var levelNodes in currentNodes.Values)
+            foreach (var levelNodes in CurrentNodes.Values)
             {
                 var tempGroupLength = 0.0;
 
                 foreach (var node in levelNodes)
                 {
-                    // if using node-links palette and no node brushes then using default palette
-                    if (diagram.UseNodeLinksPalette)
-                    {
-                        if (diagram.NodeBrushes == null || !diagram.NodeBrushes.Keys.Contains(node.Label.Text))
-                        {
-                            node.Shape.Fill = styleManager.DefaultNodeLinksPalette[styleManager.DefaultNodeLinksPaletteIndex].CloneCurrentValue();
-                            styleManager.DefaultNodeLinksPaletteIndex++;
-
-                            if (styleManager.DefaultNodeLinksPaletteIndex >= styleManager.DefaultNodeLinksPalette.Count)
-                            {
-                                styleManager.DefaultNodeLinksPaletteIndex = 0;
-                            }
-                        }
-                    }
-
-                    // save node fill
-                    if (!styleManager.ResettedHighlightNodeBrushes.Keys.Contains(node.Label.Text))
-                    {
-                        styleManager.ResettedHighlightNodeBrushes.Add(node.Label.Text, node.Shape.Fill.CloneCurrentValue());
-                    }
-
                     if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
                         tempGroupLength += node.Shape.Width;
@@ -266,7 +132,7 @@ namespace Kant.Wpf.Controls.Chart
 
             #region add nodes
 
-            for (var index = 0; index < currentNodes.Count; index++)
+            for (var index = 0; index < CurrentNodes.Count; index++)
             {
                 var nodesGroup = new ItemsControl();
                 var nodesGroupWidth = 0.0;
@@ -286,31 +152,31 @@ namespace Kant.Wpf.Controls.Chart
                     nodesGroup.VerticalAlignment = VerticalAlignment.Bottom;
                 }
 
-                for (var nIndex = 0; nIndex < currentNodes[index].Count; nIndex++)
+                for (var nIndex = 0; nIndex < CurrentNodes[index].Count; nIndex++)
                 {
                     if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
-                        currentNodes[index][nIndex].Shape.Width = currentNodes[index][nIndex].Shape.Width * unitLength;
-                        nodesGroupWidth += currentNodes[index][nIndex].Shape.Width;
+                        CurrentNodes[index][nIndex].Shape.Width = CurrentNodes[index][nIndex].Shape.Width * unitLength;
+                        nodesGroupWidth += CurrentNodes[index][nIndex].Shape.Width;
                     }
                     else
                     {
-                        currentNodes[index][nIndex].Shape.Height = currentNodes[index][nIndex].Shape.Height * unitLength;
+                        CurrentNodes[index][nIndex].Shape.Height = CurrentNodes[index][nIndex].Shape.Height * unitLength;
                     }
 
-                    nodesGroup.Items.Add(currentNodes[index][nIndex].Shape);
+                    nodesGroup.Items.Add(CurrentNodes[index][nIndex].Shape);
                 }
 
                 // make HorizontalAlignment center manully because HorizontalAlignment.Center can not keep diagram's position  while panel size changing
                 if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                 {
-                    diagramVerticalMargin = (panelLength - nodesGroupWidth - ((currentNodes[index].Count - 1) * diagram.NodeIntervalSpace)) / 2;
+                    diagramVerticalMargin = (panelLength - nodesGroupWidth - ((CurrentNodes[index].Count - 1) * diagram.NodeIntervalSpace)) / 2;
                     nodesGroup.Margin = new Thickness(diagramVerticalMargin, 0, 0, 0);
                 }
 
                 diagram.DiagramPanel.Children.Add(nodesGroup);
 
-                if (index != currentNodes.Count - 1)
+                if (index != CurrentNodes.Count - 1)
                 {
                     var canvas = new Canvas();
                     canvas.ClipToBounds = true;
@@ -355,33 +221,28 @@ namespace Kant.Wpf.Controls.Chart
 
             for (var index = 0; index < linkContainers.Count; index++)
             {
-                for (var lIndex = 0; lIndex < currentLinks[index].Count; lIndex++)
+                for (var lIndex = 0; lIndex < CurrentLinks[index].Count; lIndex++)
                 {
-                    var link = currentLinks[index][lIndex];
+                    var link = CurrentLinks[index][lIndex];
                     setNodePostion(link.FromNode);
                     setNodePostion(link.ToNode);
                     linkContainers[index].Children.Add(DrawLink(link, linkLength, unitLength).Shape);
-
-                    if (!styleManager.ResettedHighlightLinkBrushes.Exists(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text))
-                    {
-                        styleManager.ResettedHighlightLinkBrushes.Add(new SankeyLinkStyleFinder(link.FromNode.Label.Text, link.ToNode.Label.Text) { Brush = link.Shape.Stroke.CloneCurrentValue() });
-                    }
                 }
 
                 if (needAddLabels)
                 {
-                    styleManager.ResettedLabelOpacity = this.currentNodes[0][0].Label.Opacity;
+                    styleManager.ResettedLabelOpacity = this.CurrentNodes[0][0].Label.Opacity;
 
                     // add last & last but one group node labels in last container
                     if (index == linkContainers.Count - 1)
                     {
-                        AddLabels(linkContainers[index], currentNodes, index);
-                        AddLabels(linkContainers[index], currentNodes, index + 1);
+                        AddLabels(linkContainers[index], CurrentNodes, index);
+                        AddLabels(linkContainers[index], CurrentNodes, index + 1);
                     }
                     // add from nodes labels
                     else
                     {
-                        AddLabels(linkContainers[index], currentNodes, index);
+                        AddLabels(linkContainers[index], CurrentNodes, index);
                     }
                 }
             }
@@ -419,7 +280,9 @@ namespace Kant.Wpf.Controls.Chart
 
                         foreach (var pNode in previousLevelNodes)
                         {
-                            if (pNode.To == data.To)
+                            var checkNodes = from d in datas where d.To == pNode.To & !nodes.Values.SelectMany(n => n).ToList().Exists(existNode => existNode.Label.Text == d.From) select d;
+
+                            if (pNode.To == data.To && checkNodes.Count() == 0)
                             {
                                 isDatasUpdated = true;
                                 nodes = FeedNodes(nodes, levelIndex, data, data.To);
@@ -497,26 +360,12 @@ namespace Kant.Wpf.Controls.Chart
             };
 
             var shape = new Rectangle();
-
-            if (diagram.HighlightMode == SankeyHighlightMode.MouseEnter)
-            {
-                shape.MouseEnter += NodeMouseEnter;
-                shape.MouseLeave += NodeMouseLeave;
-            }
-
-            // hightlight or prepare for custom action
-            shape.MouseLeftButtonUp += NodeMouseLeftButtonUp;
-
             shape.Tag = label;
 
-            if (diagram.NodeBrushes != null && diagram.NodeBrushes.Keys.Contains(label))
-            {
-                shape.Fill = diagram.NodeBrushes[label].CloneCurrentValue();
-            }
-            else
-            {
-                shape.Fill = diagram.NodeBrush.CloneCurrentValue();
-            }
+            // for highlighting or other actions
+            shape.MouseEnter += NodeMouseEnter;
+            shape.MouseLeave += NodeMouseLeave;
+            shape.MouseLeftButtonUp += NodeMouseLeftButtonUp;
 
             if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
             {
@@ -530,7 +379,7 @@ namespace Kant.Wpf.Controls.Chart
             return new SankeyNode(shape, l);
         }
 
-        private Dictionary<int, List<SankeyNode>> CalculateNodesLength(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes)
+        private Dictionary<int, List<SankeyNode>> ShapingNodes(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes)
         {
             var nodeFromLengthDictionary = new Dictionary<string, double>();
             var nodeToLengthDictionary = new Dictionary<string, double>();
@@ -565,6 +414,37 @@ namespace Kant.Wpf.Controls.Chart
                 }
             });
 
+            var setBrush = new Action<SankeyNode>(node =>
+            {
+                var brushCheck = diagram.NodeBrushes != null && diagram.NodeBrushes.Keys.Contains(node.Label.Text);
+
+                if (brushCheck)
+                {
+                    node.Shape.Fill = diagram.NodeBrushes[node.Label.Text].CloneCurrentValue();
+                }
+                else
+                {
+                    if (diagram.UseNodeLinksPalette)
+                    {
+                        node.Shape.Fill = styleManager.DefaultNodeLinksPalette[styleManager.DefaultNodeLinksPaletteIndex].CloneCurrentValue();
+                        styleManager.DefaultNodeLinksPaletteIndex++;
+
+                        if (styleManager.DefaultNodeLinksPaletteIndex >= styleManager.DefaultNodeLinksPalette.Count)
+                        {
+                            styleManager.DefaultNodeLinksPaletteIndex = 0;
+                        }
+                    }
+                    else
+                    {
+                        node.Shape.Fill = diagram.NodeBrush.CloneCurrentValue();
+                    }
+                }
+
+                node.OriginalShapBrush = node.Shape.Fill.CloneCurrentValue();
+            });
+
+            styleManager.DefaultNodeLinksPaletteIndex = 0;
+
             for (var index = 0; index < nodes.Count; index++)
             {
                 if (index == nodes.Count - 1)
@@ -572,6 +452,7 @@ namespace Kant.Wpf.Controls.Chart
                     foreach (var node in nodes[index])
                     {
                         setLengh(node, nodeToLengthDictionary[node.Label.Text]);
+                        setBrush(node);
                     }
 
                     continue;
@@ -582,6 +463,7 @@ namespace Kant.Wpf.Controls.Chart
                     foreach (var node in nodes[index])
                     {
                         setLengh(node, nodeFromLengthDictionary[node.Label.Text]);
+                        setBrush(node);
                     }
 
                     continue;
@@ -592,6 +474,7 @@ namespace Kant.Wpf.Controls.Chart
                     var fromLength = nodeFromLengthDictionary[node.Label.Text];
                     var toLength = nodeToLengthDictionary[node.Label.Text];
                     setLengh(node, fromLength > toLength ? fromLength : toLength);
+                    setBrush(node);
                 }
             }
 
@@ -633,27 +516,14 @@ namespace Kant.Wpf.Controls.Chart
                             }
                         }
 
-                        var link = new SankeyLink()
-                        {
-                            FromNode = fromNode,
-                            ToNode = toNode
-                        };
-
                         var shape = new Path();
-
-                        if (diagram.HighlightMode == SankeyHighlightMode.MouseEnter)
-                        {
-                            shape.MouseEnter += LinkMouseEnter;
-                            shape.MouseLeave += LinkMouseLeave;
-                        }
-
-                        // hightlight or prepare for custom action
+                        shape.MouseEnter += LinkMouseEnter;
+                        shape.MouseLeave += LinkMouseLeave;
                         shape.MouseLeftButtonUp += LinkMouseLeftButtonUp;
-
                         shape.Tag = new SankeyLinkFinder(data.From, data.To);
-                        shape.Stroke = data.LinkStroke == null ? styleManager.DefaultLinkBrush.CloneCurrentValue() : data.LinkStroke.CloneCurrentValue();
+                        shape.Stroke = diagram.UseNodeLinksPalette ? fromNode.Shape.Fill.CloneCurrentValue() : data.LinkStroke == null ? styleManager.DefaultLinkBrush.CloneCurrentValue() : data.LinkStroke.CloneCurrentValue();
                         shape.StrokeThickness = data.Weight;
-                        link.Shape = shape;
+                        var link = new SankeyLink(fromNode, toNode, shape, shape.Stroke.CloneCurrentValue());
 
                         if (linkDictionary.Keys.Contains(fCount))
                         {
@@ -694,36 +564,6 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        private void AddLabels(Canvas container, Dictionary<int, List<SankeyNode>> nodes, int index)
-        {
-            foreach (var node in nodes[index])
-            {
-                node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-
-                if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
-                {
-                    Canvas.SetLeft(node.Label, node.Position.Value + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
-
-                    if (index == nodes.Count - 1)
-                    {
-                        Canvas.SetBottom(node.Label, 0);
-                    }
-                }
-                else
-                {
-                    Canvas.SetTop(node.Label, node.Position.Value + (node.Shape.Height / 2) - (node.Label.DesiredSize.Height / 2));
-
-                    if (index == nodes.Count - 1)
-                    {
-                        Canvas.SetRight(node.Label, 0);
-                    }
-                }
-
-                CurrentLabels.Add(node.Label);
-                container.Children.Add(node.Label);
-            }
-        }
-
         private void NodeMouseEnter(object sender, MouseEventArgs e)
         {
             if (diagram.HighlightMode == SankeyHighlightMode.MouseEnter)
@@ -758,11 +598,6 @@ namespace Kant.Wpf.Controls.Chart
             if (diagram.LinkPoint2Curveless <= 0 || diagram.LinkPoint2Curveless > 1)
             {
                 throw new ArgumentOutOfRangeException("curveless should be between 0 and 1.");
-            }
-
-            if (diagram.UseNodeLinksPalette)
-            {
-                link.Shape.Stroke = link.FromNode.Shape.Fill.CloneCurrentValue();
             }
 
             link.Shape.StrokeThickness = link.Shape.StrokeThickness * unitLength;
@@ -821,69 +656,73 @@ namespace Kant.Wpf.Controls.Chart
             return link;
         }
 
-        private void RemoveElementEventHandlers()
+        private void AddLabels(Canvas container, Dictionary<int, List<SankeyNode>> nodes, int index)
         {
-            if (currentLinks != null && currentNodes != null)
+            foreach (var node in nodes[index])
             {
-                (currentNodes.Values.SelectMany(n => n)).Select(findNode =>
+                node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+                if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                 {
-                    switch (diagram.HighlightMode)
+                    Canvas.SetLeft(node.Label, node.Position.Value + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
+
+                    if (index == nodes.Count - 1)
                     {
-                        case SankeyHighlightMode.MouseEnter:
-                            findNode.Shape.MouseEnter -= NodeMouseEnter;
-                            findNode.Shape.MouseLeave -= NodeMouseLeave;
-
-                            break;
-                        default:
-                            break;
+                        Canvas.SetBottom(node.Label, 0);
                     }
-
-                    findNode.Shape.MouseLeftButtonUp -= NodeMouseLeftButtonUp;
-
-                    return findNode;
-                });
-
-                (currentLinks.Values.SelectMany(l => l)).Select(findLink =>
+                }
+                else
                 {
-                    switch (diagram.HighlightMode)
+                    Canvas.SetTop(node.Label, node.Position.Value + (node.Shape.Height / 2) - (node.Label.DesiredSize.Height / 2));
+
+                    if (index == nodes.Count - 1)
                     {
-                        case SankeyHighlightMode.MouseEnter:
-                            findLink.Shape.MouseEnter -= LinkMouseEnter;
-                            findLink.Shape.MouseLeave -= LinkMouseLeave;
-
-                            break;
-                        default:
-                            break;
+                        Canvas.SetRight(node.Label, 0);
                     }
+                }
 
-                    findLink.Shape.MouseLeftButtonUp -= LinkMouseLeftButtonUp;
-
-                    return findLink;
-                });
+                CurrentLabels.Add(node.Label);
+                container.Children.Add(node.Label);
             }
         }
 
-        private void ResetHighlight()
+        private void RemoveElementEventHandlers()
         {
-            styleManager.ResettedHighlightNodeBrushes.Clear();
-            styleManager.ResettedHighlightLinkBrushes.Clear();
-            diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, null);
-            diagram.SetCurrentValue(SankeyDiagram.HighlightLinkProperty, null);
+            if (CurrentLinks != null && CurrentNodes != null)
+            {
+                (CurrentNodes.Values.SelectMany(n => n)).Select(node =>
+                {
+                    node.Shape.MouseEnter -= NodeMouseEnter;
+                    node.Shape.MouseLeave -= NodeMouseLeave;
+                    node.Shape.MouseLeftButtonUp -= NodeMouseLeftButtonUp;
+
+                    return node;
+                });
+
+                (CurrentLinks.Values.SelectMany(l => l)).Select(link =>
+                {
+                    link.Shape.MouseEnter -= LinkMouseEnter;
+                    link.Shape.MouseLeave -= LinkMouseLeave;
+                    link.Shape.MouseLeftButtonUp -= LinkMouseLeftButtonUp;
+
+                    return link;
+                });
+            }
         }
 
         #endregion
 
         #region Fields & Properties
 
-        public List<TextBlock> CurrentLabels { get; set; }
+        public List<TextBlock> CurrentLabels { get; private set; }
+
+        public Dictionary<int, List<SankeyNode>> CurrentNodes { get; private set; }
+
+        public Dictionary<int, List<SankeyLink>> CurrentLinks { get; private set; }
 
         private SankeyDiagram diagram;
 
         private SankeyStyleManager styleManager;
-
-        private Dictionary<int, List<SankeyNode>> currentNodes;
-
-        private Dictionary<int, List<SankeyLink>> currentLinks;
 
         #endregion
     }

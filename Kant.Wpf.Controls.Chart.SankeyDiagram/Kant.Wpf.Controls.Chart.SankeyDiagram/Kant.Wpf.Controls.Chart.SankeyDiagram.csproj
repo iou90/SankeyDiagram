@@ -53,7 +53,6 @@
     <Compile Include="SankeyHighlightMode.cs" />
     <Compile Include="SankeyLink.cs" />
     <Compile Include="SankeyLinkFinder.cs" />
-    <Compile Include="SankeyLinkStyleFinder.cs" />
     <Compile Include="SankeyNode.cs" />
     <Compile Include="SankeyStyleManager.cs" />
     <Page Include="Themes\Generic.xaml">
