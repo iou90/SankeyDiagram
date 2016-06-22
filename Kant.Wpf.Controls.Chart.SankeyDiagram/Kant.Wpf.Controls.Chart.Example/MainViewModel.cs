@@ -23,7 +23,7 @@ namespace Kant.Wpf.Controls.Chart.Example
             {
                 new SankeyDataRow("A", "C", 2555),
                 new SankeyDataRow("A", "D", 3555),
-                new SankeyDataRow("A", "E", 1555),
+                new SankeyDataRow("A", "H", 1555),
                 new SankeyDataRow("B", "C", 1555),
                 new SankeyDataRow("B", "D", 2555),
                 new SankeyDataRow("B", "E", 1555),
@@ -48,6 +48,8 @@ namespace Kant.Wpf.Controls.Chart.Example
             //};
 
             SankeyDatas = datas;
+            SankeyShowLabels = true;
+            //SankeyFlowDirection = SankeyFlowDirection.TopToBottom;
         }
 
         #endregion
@@ -134,15 +136,21 @@ namespace Kant.Wpf.Controls.Chart.Example
             {
                 return GetCommand(changeStyles, new CommandBase(() =>
                 {
-                    //random.Next(2) == 1
-                    SankeyNodeBrushes = new Dictionary<string, Brush>()
+                    if (random.Next(2) == 1)
                     {
-                        { "A", new SolidColorBrush(Colors.Brown) { Opacity = 0.35 } },
-                        { "B", new SolidColorBrush(Colors.Aqua) { Opacity = 0.25 } },
-                        { "C", new SolidColorBrush(Colors.CornflowerBlue) { Opacity = 0.15 } },
-                        { "D", new SolidColorBrush(Colors.DimGray) { Opacity = 0.45 } },
-                        { "E", new SolidColorBrush(Colors.Firebrick) { Opacity = 0.65 } },
-                    };
+                        SankeyNodeBrushes = new Dictionary<string, Brush>()
+                        {
+                            { "A", new SolidColorBrush(Colors.Brown) { Opacity = 0.35 } },
+                            { "B", new SolidColorBrush(Colors.Aqua) { Opacity = 0.25 } },
+                            { "C", new SolidColorBrush(Colors.CornflowerBlue) { Opacity = 0.15 } },
+                            { "D", new SolidColorBrush(Colors.DimGray) { Opacity = 0.45 } },
+                            { "E", new SolidColorBrush(Colors.Firebrick) { Opacity = 0.65 } },
+                        };
+                    }
+                    else
+                    {
+                        SankeyNodeBrushes = null;
+                    }
 
                     SankeyFlowDirection = random.Next(2) == 1 ? SankeyFlowDirection.TopToBottom : SankeyFlowDirection.LeftToRight;
                     SankeyShowLabels = random.Next(2) == 1 ? false : true;

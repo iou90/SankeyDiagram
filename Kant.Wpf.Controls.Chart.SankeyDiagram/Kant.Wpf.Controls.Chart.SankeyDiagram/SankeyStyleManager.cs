@@ -37,13 +37,11 @@ namespace Kant.Wpf.Controls.Chart
             labelStye.Setters.Add(new Setter(TextBlock.MarginProperty, new Thickness(2)));
             diagram.LabelStyle = labelStye;
             diagram.UseNodeLinksPalette = true;
-            //ResettedHighlightNodeBrushes = new Dictionary<string, Brush>();
-            //ResettedHighlightLinkBrushes = new List<SankeyLinkStyleFinder>();
             DefaultNodeLinksPalette = GetNodeLinksPalette(opacity);
             DefaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = opacity };
         }
 
-        public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes, Dictionary<int, List<SankeyNode>> nodes, Dictionary<int, List<SankeyLink>> links)
+        public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
         {
             if (newBrushes == null || nodes == null || nodes.Count() < 2)
             {
@@ -74,23 +72,20 @@ namespace Kant.Wpf.Controls.Chart
                 return;
             }
 
-            if(diagram.UseNodeLinksPalette)
+            if (diagram.UseNodeLinksPalette)
             {
-                if(links == null || links.Count == 0)
+                if (links == null || links.Count == 0)
                 {
                     return;
                 }
 
-                foreach(var levelLinks in links.Values)
+                foreach (var link in links)
                 {
-                    foreach(var link in levelLinks)
+                    if (brushChangedNodes.Contains(link.FromNode.Label.Text))
                     {
-                        if (brushChangedNodes.Contains(link.FromNode.Label.Text))
-                        {
-                            var brush = link.FromNode.Shape.Fill;
-                            link.Shape.Stroke = brush.CloneCurrentValue();
-                            link.OriginalShapBrush = brush.CloneCurrentValue();
-                        }
+                        var brush = link.FromNode.Shape.Fill;
+                        link.Shape.Stroke = brush.CloneCurrentValue();
+                        link.OriginalShapBrush = brush.CloneCurrentValue();
                     }
                 }
             }
@@ -114,7 +109,7 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        public void HighlightingNode(string highlightNode, Dictionary<int, List<SankeyNode>> nodes, Dictionary<int, List<SankeyLink>> links)
+        public void HighlightingNode(string highlightNode, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
         {
             if ((string.IsNullOrEmpty(highlightNode) && string.IsNullOrEmpty(diagram.HighlightNode) || nodes == null || nodes.Count < 2 || links == null || links.Count == 0))
             {
@@ -152,7 +147,7 @@ namespace Kant.Wpf.Controls.Chart
             Highlighting(links, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Label.Text == highlightNode || link.ToNode.Label.Text == highlightNode; }));
         }
 
-        public void HighlightingLink(SankeyLinkFinder linkStyleFinder, Dictionary<int, List<SankeyNode>> nodes, Dictionary<int, List<SankeyLink>> links)
+        public void HighlightingLink(SankeyLinkFinder linkStyleFinder, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
         {
             if ((linkStyleFinder == null && diagram.HighlightLink == null || nodes == null || nodes.Count < 2 || links == null || links.Count == 0))
             {
@@ -174,7 +169,7 @@ namespace Kant.Wpf.Controls.Chart
 
                 if (fromNode != null && toNode != null)
                 {
-                    if ((from link in links.Values.SelectMany(l => l) where link.FromNode.Label.Text == linkStyleFinder.From & link.ToNode.Label.Text == linkStyleFinder.To select link).Count() > 0)
+                    if ((from link in links where link.FromNode.Label.Text == linkStyleFinder.From & link.ToNode.Label.Text == linkStyleFinder.To select link).Count() > 0)
                     {
                         resetBrushes = false;
                     }
@@ -184,7 +179,7 @@ namespace Kant.Wpf.Controls.Chart
             // reset highlight if highlighting the same link twice
             if (diagram.HighlightLink != null && linkStyleFinder != null)
             {
-                if ((diagram.HighlightLink.From == linkStyleFinder.From && diagram.HighlightLink.To == linkStyleFinder.To) && (from link in links.Values.SelectMany(l => l) where (link.FromNode.Label.Text == diagram.HighlightLink.From && link.ToNode.Label.Text == diagram.HighlightLink.To) & link.IsHighlight select link).Count() == 1)
+                if ((diagram.HighlightLink.From == linkStyleFinder.From && diagram.HighlightLink.To == linkStyleFinder.To) && (from link in links where (link.FromNode.Label.Text == diagram.HighlightLink.From && link.ToNode.Label.Text == diagram.HighlightLink.To) & link.IsHighlight select link).Count() == 1)
                 {
                     RecoverFromHighlights(links);
 
@@ -199,91 +194,82 @@ namespace Kant.Wpf.Controls.Chart
             Highlighting(links, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Label.Text == linkStyleFinder.From && link.ToNode.Label.Text == linkStyleFinder.To; }));
         }
 
-        private void Highlighting(Dictionary<int, List<SankeyLink>> links, bool resetBrushes, double highlightOpacity, double loweredOpacity, List<string> highlightNodes, List<string> minimizeNodes, Func<SankeyLink, bool> check)
+        private void Highlighting(List<SankeyLink> links, bool resetBrushes, double highlightOpacity, double loweredOpacity, List<string> highlightNodes, List<string> minimizeNodes, Func<SankeyLink, bool> check)
         {
             var setStyle = new Action<FrameworkElement, Style>((e, style) =>
             {
-                if(style != null)
+                if (style != null)
                 {
                     e.Style = style;
                 }
             });
 
-            foreach (var levelLinks in links.Values)
+            foreach (var link in links)
             {
-                foreach (var link in levelLinks)
+                if (!resetBrushes)
                 {
-                    if (!resetBrushes)
+                    if (check(link))
                     {
-                        if (check(link))
+                        link.FromNode.Shape.Fill.Opacity = link.ToNode.Shape.Fill.Opacity = link.Shape.Stroke.Opacity = highlightOpacity;
+                        link.IsHighlight = true;
+                        link.FromNode.IsHighlight = true;
+                        link.ToNode.IsHighlight = true;
+                        highlightNodes.Add(link.FromNode.Label.Text);
+                        highlightNodes.Add(link.ToNode.Label.Text);
+                        link.ToNode.Label.Opacity = link.FromNode.Label.Opacity = highlightOpacity;
+
+                        if (diagram.HighlightBrush != null)
                         {
-                            link.FromNode.Shape.Fill.Opacity = link.ToNode.Shape.Fill.Opacity = link.Shape.Stroke.Opacity = highlightOpacity;
-                            link.IsHighlight = true;
-                            link.FromNode.IsHighlight = true;
-                            link.ToNode.IsHighlight = true;
-                            highlightNodes.Add(link.FromNode.Label.Text);
-                            highlightNodes.Add(link.ToNode.Label.Text);
-                            link.ToNode.Label.Opacity = link.FromNode.Label.Opacity = highlightOpacity;
-
-                            if(diagram.HighlightBrush != null)
-                            {
-                                link.Shape.Stroke = diagram.HighlightBrush.CloneCurrentValue();
-                                link.FromNode.Shape.Fill = diagram.HighlightBrush.CloneCurrentValue();
-                                link.ToNode.Shape.Fill = diagram.HighlightBrush.CloneCurrentValue();
-                            }
-
-                            if(diagram.HighlightLabelStyle != null)
-                            {
-                                link.ToNode.Label.Style = link.FromNode.Label.Style = diagram.HighlightLabelStyle;
-                            }
+                            link.Shape.Stroke = diagram.HighlightBrush.CloneCurrentValue();
+                            link.FromNode.Shape.Fill = diagram.HighlightBrush.CloneCurrentValue();
+                            link.ToNode.Shape.Fill = diagram.HighlightBrush.CloneCurrentValue();
                         }
-                        else
+
+                        if (diagram.HighlightLabelStyle != null)
                         {
-                            var minimizeOpacity = link.Shape.Stroke.Opacity - loweredOpacity < 0 ? 0 : link.Shape.Stroke.Opacity - loweredOpacity;
-                            link.Shape.Stroke.Opacity = minimizeOpacity;
-                            link.IsHighlight = false;
-
-                            // prevent changing node's brush again
-                            if (!highlightNodes.Exists(n => n == link.FromNode.Label.Text) && !minimizeNodes.Exists(n => n == link.FromNode.Label.Text))
-                            {
-                                MinimizeNode(link.FromNode, minimizeOpacity, minimizeNodes);
-                            }
-
-                            if (!highlightNodes.Exists(n => n == link.ToNode.Label.Text) && !minimizeNodes.Exists(n => n == link.ToNode.Label.Text))
-                            {
-                                MinimizeNode(link.ToNode, minimizeOpacity, minimizeNodes);
-                            }
+                            link.ToNode.Label.Style = link.FromNode.Label.Style = diagram.HighlightLabelStyle;
                         }
                     }
                     else
                     {
-                        RecoverFromHighlights(link);
+                        var minimizeOpacity = link.Shape.Stroke.Opacity - loweredOpacity < 0 ? 0 : link.Shape.Stroke.Opacity - loweredOpacity;
+                        link.Shape.Stroke.Opacity = minimizeOpacity;
+                        link.IsHighlight = false;
+
+                        // prevent changing node's brush again
+                        if (!highlightNodes.Exists(n => n == link.FromNode.Label.Text) && !minimizeNodes.Exists(n => n == link.FromNode.Label.Text))
+                        {
+                            MinimizeNode(link.FromNode, minimizeOpacity, minimizeNodes);
+                        }
+
+                        if (!highlightNodes.Exists(n => n == link.ToNode.Label.Text) && !minimizeNodes.Exists(n => n == link.ToNode.Label.Text))
+                        {
+                            MinimizeNode(link.ToNode, minimizeOpacity, minimizeNodes);
+                        }
                     }
+                }
+                else
+                {
+                    RecoverFromHighlights(link);
                 }
             }
         }
 
-        public void RecoverFromHighlights(Dictionary<int, List<SankeyLink>> links, bool resetHighlightStatus = true)
+        public void RecoverFromHighlights(List<SankeyLink> links, bool resetHighlightStatus = true)
         {
-            foreach (var levelLinks in links.Values)
+            foreach (var link in links)
             {
-                foreach (var link in levelLinks)
-                {
-                    RecoverFromHighlights(link, resetHighlightStatus);
-                }
+                RecoverFromHighlights(link, resetHighlightStatus);
             }
         }
 
         private void RecoverFromHighlights(SankeyLink link, bool resetHighlightStatus = true)
         {
-            //link.Shape.Stroke = ResettedHighlightLinkBrushes.Find(l => l.From == link.FromNode.Label.Text && l.To == link.ToNode.Label.Text).Brush.CloneCurrentValue();
-            //link.FromNode.Shape.Fill = ResettedHighlightNodeBrushes[link.FromNode.Label.Text].CloneCurrentValue();
-            //link.ToNode.Shape.Fill = ResettedHighlightNodeBrushes[link.ToNode.Label.Text].CloneCurrentValue();
             link.Shape.Stroke = link.OriginalShapBrush.CloneCurrentValue();
             link.FromNode.Shape.Fill = link.FromNode.OriginalShapBrush.CloneCurrentValue();
             link.ToNode.Shape.Fill = link.ToNode.OriginalShapBrush.CloneCurrentValue();
             link.ToNode.Label.Style = link.FromNode.Label.Style = diagram.LabelStyle;
-            link.ToNode.Label.Opacity = link.FromNode.Label.Opacity = ResettedLabelOpacity;
+            link.ToNode.Label.Opacity = link.FromNode.Label.Opacity = OriginalLabelOpacity;
 
             if (resetHighlightStatus)
             {
@@ -344,15 +330,7 @@ namespace Kant.Wpf.Controls.Chart
 
         public List<Brush> DefaultNodeLinksPalette { get; set; }
 
-        #region highlight
-
-        public double ResettedLabelOpacity { get; set; }
-
-        //public Dictionary<string, Brush> ResettedHighlightNodeBrushes { get; set; }
-
-        //public List<SankeyLinkStyleFinder> ResettedHighlightLinkBrushes { get; set; }
-
-        #endregion
+        public double OriginalLabelOpacity { get; set; }
 
         private SankeyDiagram diagram;
 

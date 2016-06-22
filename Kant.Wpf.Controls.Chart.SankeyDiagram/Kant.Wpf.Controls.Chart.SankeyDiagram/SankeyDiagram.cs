@@ -17,7 +17,9 @@ using System.Windows.Shapes;
 
 namespace Kant.Wpf.Controls.Chart
 {
-    [TemplatePart(Name = "PartDiagramPanel", Type = typeof(StackPanel))]
+    [TemplatePart(Name = "PartDiagramGrid", Type = typeof(Grid))]
+    [TemplatePart(Name = "PartNodesPanel", Type = typeof(StackPanel))]
+    [TemplatePart(Name = "PartLinksContainer", Type = typeof(Canvas))]
     public class SankeyDiagram : Control
     {
         #region Constructor
@@ -51,15 +53,35 @@ namespace Kant.Wpf.Controls.Chart
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
-            var panel = GetTemplateChild("PartDiagramPanel");
+            var grid = GetTemplateChild("PartDiagramGrid") as Grid;
+            var panel = GetTemplateChild("PartNodesPanel") as StackPanel;
+            var canvas = GetTemplateChild("PartLinksContainer") as Canvas;
 
-            if (panel == null)
+            if (grid == null)
             {
-                throw new MissingMemberException("can not find template child PartDiagramPanel.");
+                throw new MissingMemberException("can not find template child PartDiagramGrid.");
             }
             else
             {
-                DiagramPanel = (StackPanel)panel;
+                DiagramGrid = grid;
+            }
+
+            if (panel == null)
+            {
+                throw new MissingMemberException("can not find template child PartNodesPanel.");
+            }
+            else
+            {
+                NodesPanel = panel;
+            }
+
+            if (canvas == null)
+            {
+                throw new MissingMemberException("can not find template child PartLinksContainer.");
+            }
+            else
+            {
+                LinksContainer = canvas;
             }
         }
 
@@ -127,6 +149,9 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty DatasProperty = DependencyProperty.Register("Datas", typeof(IEnumerable<SankeyDataRow>), typeof(SankeyDiagram), new PropertyMetadata(new List<SankeyDataRow>(), OnDatasSourceChanged));
 
+        /// <summary>
+        /// if the value is null, keeping last brushes
+        /// </summary>
         public Dictionary<string, Brush> NodeBrushes
         {
             get { return (Dictionary<string, Brush>)GetValue(NodeBrushesProperty); }
@@ -261,9 +286,19 @@ namespace Kant.Wpf.Controls.Chart
         #endregion
 
         /// <summary>
-        /// you can custom the style of diagram panel with this property
+        /// you can custom the style of diagram grid with this property
         /// </summary>
-        public StackPanel DiagramPanel { get; set; }
+        public Grid DiagramGrid { get; set; }
+
+        /// <summary>
+        /// you can custom the style of nodes panel with this property
+        /// </summary>
+        public StackPanel NodesPanel { get; set; }
+
+        /// <summary>
+        /// you can custom the style of links container with this property
+        /// </summary>
+        public Canvas LinksContainer { get; set; }
 
         public bool IsDiagramCreated { set; get; }
 

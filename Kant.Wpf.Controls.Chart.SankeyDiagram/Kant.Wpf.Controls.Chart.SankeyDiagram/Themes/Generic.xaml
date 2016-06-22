@@ -1,14 +1,17 @@
-﻿<ResourceDictionary
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:Kant.Wpf.Controls.Chart">
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:Kant.Wpf.Controls.Chart">
     <Style TargetType="{x:Type local:SankeyDiagram}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:SankeyDiagram}">
-                    <StackPanel x:Name="PartDiagramPanel"
-                                Background="{TemplateBinding Background}"
-                                Margin="{TemplateBinding Margin}" />
+                    <Grid x:Name="PartDiagramGrid"
+                          ClipToBounds="True"
+                          Background="{TemplateBinding Background}">
+                        <Canvas x:Name="PartLinksContainer"
+                                ClipToBounds="True" />
+                        <StackPanel x:Name="PartNodesPanel" />
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
