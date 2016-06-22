@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,17 +45,15 @@ namespace Kant.Wpf.Controls.Chart
                 return;
             }
 
-            // create nodes, dictionary key means col/row index
+            CurrentLabels = new List<TextBlock>();
             var nodes = ComputeNodeDepth(datas, new Dictionary<int, List<SankeyNode>>(), 0);
 
             // calculate node length & set node shape brush
             CurrentNodes = ShapeNodes(datas, nodes);
 
-            CurrentLabels = new List<TextBlock>();
-
             // create links, has to be putted after ShapingNodes method
             CurrentLinks = ProduceLinks(datas, nodes);
-
+            
             // drawing...
             if (diagram.IsDiagramCreated)
             {
@@ -265,11 +264,19 @@ namespace Kant.Wpf.Controls.Chart
 
                         foreach (var pNode in previousLevelNodes)
                         {
-                            //var checkNodes = from d in datas where d.To == pNode.To & !nodes.Values.SelectMany(n => n).ToList().Exists(existNode => existNode.Label.Text == d.From) select d;
-
                             if (pNode.To == data.To)
                             {
-                                var fromNodesIsSubsetOfPreviousLevelsNodes = !datas.Where(d => d.To == pNode.To).Select(d => d.From).Distinct().Except(nodes.Where(n => n.Key < levelIndex).ToDictionary(x => x.Key, x => x.Value).Values.SelectMany(n => n).Select(n => n.Label.Text)).Any();
+                                var previousLevelsNodes = new List<string>();
+
+                                foreach (var items in nodes)
+                                {
+                                    if (items.Key < levelIndex)
+                                    {
+                                        previousLevelsNodes.AddRange(items.Value.Select(n => n.Label.Text));
+                                    }
+                                }
+
+                                var fromNodesIsSubsetOfPreviousLevelsNodes = !datas.Where(d => d.To == pNode.To).Select(d => d.From).Distinct().Except(previousLevelsNodes).Any();
 
                                 if (fromNodesIsSubsetOfPreviousLevelsNodes)
                                 {
@@ -699,6 +706,9 @@ namespace Kant.Wpf.Controls.Chart
 
         public List<TextBlock> CurrentLabels { get; private set; }
 
+        /// <summary>
+        /// key means depth
+        /// </summary>
         public Dictionary<int, List<SankeyNode>> CurrentNodes { get; private set; }
 
         public List<SankeyLink> CurrentLinks { get; set; }
