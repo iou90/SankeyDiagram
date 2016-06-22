@@ -45,10 +45,10 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             // create nodes, dictionary key means col/row index
-            var nodes = ProduceNodes(datas, new Dictionary<int, List<SankeyNode>>(), 0);
+            var nodes = ComputeNodeDepth(datas, new Dictionary<int, List<SankeyNode>>(), 0);
 
             // calculate node length & set node shape brush
-            CurrentNodes = ShapingNodes(datas, nodes);
+            CurrentNodes = ShapeNodes(datas, nodes);
 
             CurrentLabels = new List<TextBlock>();
 
@@ -208,9 +208,6 @@ namespace Kant.Wpf.Controls.Chart
                 setNodePostion(link.FromNode);
                 setNodePostion(link.ToNode);
                 diagram.LinksContainer.Children.Add(DrawLink(link, unitLength).Shape);
-
-                // make links show back of nodes 
-                Panel.SetZIndex(link.Shape, -1);
             }
 
             var needAddLabels = CurrentLabels.Count == 0 ? true : false;
@@ -240,7 +237,7 @@ namespace Kant.Wpf.Controls.Chart
             #endregion
         }
 
-        private Dictionary<int, List<SankeyNode>> ProduceNodes(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes, int levelIndex)
+        private Dictionary<int, List<SankeyNode>> ComputeNodeDepth(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes, int levelIndex)
         {
             var isDatasUpdated = false;
             var tempDatas = datas.ToList();
@@ -268,12 +265,17 @@ namespace Kant.Wpf.Controls.Chart
 
                         foreach (var pNode in previousLevelNodes)
                         {
-                            var checkNodes = from d in datas where d.To == pNode.To & !nodes.Values.SelectMany(n => n).ToList().Exists(existNode => existNode.Label.Text == d.From) select d;
+                            //var checkNodes = from d in datas where d.To == pNode.To & !nodes.Values.SelectMany(n => n).ToList().Exists(existNode => existNode.Label.Text == d.From) select d;
 
-                            if (pNode.To == data.To && checkNodes.Count() == 0)
+                            if (pNode.To == data.To)
                             {
-                                isDatasUpdated = true;
-                                nodes = FeedNodes(nodes, levelIndex, data, data.To);
+                                var fromNodesIsSubsetOfPreviousLevelsNodes = !datas.Where(d => d.To == pNode.To).Select(d => d.From).Distinct().Except(nodes.Where(n => n.Key < levelIndex).ToDictionary(x => x.Key, x => x.Value).Values.SelectMany(n => n).Select(n => n.Label.Text)).Any();
+
+                                if (fromNodesIsSubsetOfPreviousLevelsNodes)
+                                {
+                                    nodes = FeedNodes(nodes, levelIndex, data, data.To);
+                                    isDatasUpdated = true;
+                                }
                             }
                         }
                     }
@@ -312,7 +314,7 @@ namespace Kant.Wpf.Controls.Chart
             {
                 levelIndex++;
 
-                return ProduceNodes(datas, nodes, levelIndex);
+                return ComputeNodeDepth(datas, nodes, levelIndex);
             }
             else
             {
@@ -324,9 +326,7 @@ namespace Kant.Wpf.Controls.Chart
         {
             if (nodes.Keys.Contains(index))
             {
-                var n = nodes[index].Find(findNode => label == findNode.Label.Text);
-
-                if (n == null)
+                if (nodes[index].Count(findNode => label == findNode.Label.Text) == 0)
                 {
                     nodes[index].Add(CreateNode(data, label));
                 }
@@ -367,7 +367,7 @@ namespace Kant.Wpf.Controls.Chart
             return new SankeyNode(shape, l);
         }
 
-        private Dictionary<int, List<SankeyNode>> ShapingNodes(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes)
+        private Dictionary<int, List<SankeyNode>> ShapeNodes(IEnumerable<SankeyDataRow> datas, Dictionary<int, List<SankeyNode>> nodes)
         {
             var nodeFromLengthDictionary = new Dictionary<string, double>();
             var nodeToLengthDictionary = new Dictionary<string, double>();
@@ -509,7 +509,7 @@ namespace Kant.Wpf.Controls.Chart
                         shape.MouseLeave += LinkMouseLeave;
                         shape.MouseLeftButtonUp += LinkMouseLeftButtonUp;
                         shape.Tag = new SankeyLinkFinder(data.From, data.To);
-                        shape.Stroke = diagram.UseNodeLinksPalette ? fromNode.Shape.Fill.CloneCurrentValue() : data.LinkStroke == null ? styleManager.DefaultLinkBrush.CloneCurrentValue() : data.LinkStroke.CloneCurrentValue();
+                        shape.Stroke = diagram.UseNodeLinksPalette ? fromNode.Shape.Fill.CloneCurrentValue() : data.LinkBrush == null ? styleManager.DefaultLinkBrush.CloneCurrentValue() : data.LinkBrush.CloneCurrentValue();
                         shape.StrokeThickness = data.Weight;
                         var link = new SankeyLink(fromNode, toNode, shape, shape.Stroke.CloneCurrentValue());
                         links.Add(link);

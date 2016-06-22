@@ -9,7 +9,7 @@ namespace Kant.Wpf.Controls.Chart
 {
     public class SankeyDataRow
     {
-        public SankeyDataRow(string from, string to, double weight, Brush linkFill = null)
+        public SankeyDataRow(string from, string to, double weight, Brush linkBrush = null)
         {
             if(string.IsNullOrEmpty(from))
             {
@@ -25,9 +25,9 @@ namespace Kant.Wpf.Controls.Chart
             To = to;
             Weight = weight;
 
-            if(linkFill != null)
+            if(linkBrush != null)
             {
-                LinkStroke = linkFill;
+                LinkBrush = linkBrush;
             }
         }
 
@@ -37,6 +37,6 @@ namespace Kant.Wpf.Controls.Chart
 
         public double Weight { get; }
 
-        public Brush LinkStroke { get; }
+        public Brush LinkBrush { get; }
     }
 }

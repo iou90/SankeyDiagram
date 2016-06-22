@@ -23,19 +23,20 @@ namespace Kant.Wpf.Controls.Chart.Example
             {
                 new SankeyDataRow("A", "C", 2555),
                 new SankeyDataRow("A", "D", 3555),
-                new SankeyDataRow("A", "H", 1555),
                 new SankeyDataRow("B", "C", 1555),
                 new SankeyDataRow("B", "D", 2555),
                 new SankeyDataRow("B", "E", 1555),
-                new SankeyDataRow("C", "F", 2555),
-                new SankeyDataRow("C", "G", 1555),
                 new SankeyDataRow("C", "H", 1555),
                 new SankeyDataRow("D", "F", 2555),
                 new SankeyDataRow("D", "G", 1555),
                 new SankeyDataRow("D", "H", 1555),
                 new SankeyDataRow("D", "I", 1555),
                 new SankeyDataRow("E", "H", 1555),
-                new SankeyDataRow("E", "I", 1555)
+                new SankeyDataRow("B", "H", 555),
+                new SankeyDataRow("A", "H", 555),
+                new SankeyDataRow("E", "I", 1555),
+                new SankeyDataRow("C", "G", 1555),
+                new SankeyDataRow("C", "F", 2555),
             };
 
             //SankeyNodeBrushes = new Dictionary<string, Brush>()
