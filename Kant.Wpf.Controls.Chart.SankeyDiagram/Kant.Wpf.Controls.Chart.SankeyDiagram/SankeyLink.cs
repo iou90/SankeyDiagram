@@ -14,11 +14,12 @@ namespace Kant.Wpf.Controls.Chart
         {
         }
 
-        public SankeyLink(SankeyNode fromNode, SankeyNode toNode, Path shape, Brush originalShapeBrush)
+        public SankeyLink(SankeyNode fromNode, SankeyNode toNode, Path shape, double weight, Brush originalShapeBrush)
         {
             FromNode = fromNode;
             ToNode = toNode;
             Shape = shape;
+            Weight = weight;
             OriginalShapBrush = originalShapeBrush;
         }
 
@@ -27,6 +28,8 @@ namespace Kant.Wpf.Controls.Chart
         public SankeyNode ToNode { get; set; }
 
         public Path Shape { get; set; }
+
+        public double Weight { get; set; }
 
         public bool IsHighlight { get; set; }
 

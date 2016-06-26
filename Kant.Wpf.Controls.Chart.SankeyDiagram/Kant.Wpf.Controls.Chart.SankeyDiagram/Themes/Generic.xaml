@@ -6,10 +6,8 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:SankeyDiagram}">
                     <Grid x:Name="PartDiagramGrid"
-                          ClipToBounds="True"
                           Background="{TemplateBinding Background}">
-                        <Canvas x:Name="PartLinksContainer"
-                                ClipToBounds="True" />
+                        <Canvas x:Name="PartLinksContainer" />
                         <StackPanel x:Name="PartNodesPanel" />
                     </Grid>
                 </ControlTemplate>

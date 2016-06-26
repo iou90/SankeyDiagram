@@ -221,7 +221,7 @@ namespace Kant.Wpf.Controls.Chart
         /// <summary>
         /// 5 by default
         /// </summary>
-        public double NodeIntervalSpace { get; set; }
+        public double NodeGap { get; set; }
 
         /// <summary>
         /// default value is calculated based on diagram panel size

@@ -51,6 +51,7 @@
     <Compile Include="SankeyDiagramAssist.cs" />
     <Compile Include="SankeyFlowDirection.cs" />
     <Compile Include="SankeyHighlightMode.cs" />
+    <Compile Include="SankeyIterativeRelaxation.cs" />
     <Compile Include="SankeyLink.cs" />
     <Compile Include="SankeyLinkFinder.cs" />
     <Compile Include="SankeyNode.cs" />

@@ -82,7 +82,8 @@
             </StackPanel>
             <Border Margin="20">
                 <kantCharts:SankeyDiagram Height="800"
-                                          NodeIntervalSpace="15"
+                                          NodeThickness="25"
+                                          NodeGap="15"
                                           UseNodeLinksPalette="False"
                                           HighlightOpacity="0.95"
                                           LoweredOpacity="0.45"

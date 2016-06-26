@@ -26,7 +26,7 @@ namespace Kant.Wpf.Controls.Chart
         public void SetDefaultStyles()
         {
             var opacity = 0.55;
-            diagram.NodeIntervalSpace = 5;
+            diagram.NodeGap = 5;
             diagram.NodeThickness = 10;
             diagram.NodeBrush = new SolidColorBrush(Colors.Black);
             diagram.HighlightOpacity = 1.0;

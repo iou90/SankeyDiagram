@@ -20,17 +20,32 @@ namespace Kant.Wpf.Controls.Chart
         {
             Shape = shape;
             Label = label;
+            InLinks = new List<SankeyLink>();
+            OutLinks = new List<SankeyLink>();
         }
+
+        public List<SankeyLink> InLinks { get; set; }
+
+        public List<SankeyLink> OutLinks { get; set; }
 
         public Rectangle Shape { get; set; }
 
         public TextBlock Label { get; set; }
+
+        /// <summary>
+        /// for iterative relaxation 
+        /// </summary>
+        public double CalculatingCoordinate { get; set; }
+
+        #region for caculating link position
 
         public Point Position { get; set; }
 
         public double PreviousOccupiedLength { get; set; }
 
         public double NextOccupiedLength { get; set; }
+
+        #endregion
 
         public bool IsHighlight { get; set; }
 
