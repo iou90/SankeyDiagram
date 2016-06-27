@@ -188,7 +188,7 @@ namespace Kant.Wpf.Controls.Chart
 
                 foreach (var node in CurrentNodes[index])
                 {
-                    Canvas.SetBottom(node.Shape, node.CalculatingCoordinate);
+                    Canvas.SetTop(node.Shape, node.CalculatingCoordinate);
                     nodeContainer.Children.Add(node.Shape);
                 }
 

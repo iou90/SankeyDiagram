@@ -81,10 +81,10 @@
                 </StackPanel>
             </StackPanel>
             <Border Margin="20">
-                <kantCharts:SankeyDiagram Height="800"
+                <kantCharts:SankeyDiagram Height="630.9"
                                           NodeThickness="25"
-                                          NodeGap="15"
-                                          UseNodeLinksPalette="False"
+                                          NodeGap="8"
+                                          UseNodeLinksPalette="True"
                                           HighlightOpacity="0.95"
                                           LoweredOpacity="0.45"
                                           HighlightBrush="{StaticResource SankeyHighlightBrush}"

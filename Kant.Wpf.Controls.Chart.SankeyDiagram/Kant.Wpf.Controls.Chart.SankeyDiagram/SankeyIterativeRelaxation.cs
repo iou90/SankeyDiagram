@@ -13,8 +13,9 @@ namespace Kant.Wpf.Controls.Chart
         {
             nodes = InitializeNodeLength(nodes, unitLength, flowDirection);
             nodes = ResolveCollisions(nodes, panelLength, nodeGap, flowDirection);
+            var relaxationAlpha = 1.0;
 
-            for (var relaxationAlpha = 1.0; iterations > 0; iterations--)
+            for (; iterations > 0; iterations--)
             {
                 relaxationAlpha *= 0.99;
                 nodes = RelaxFromEndToFront(nodes, relaxationAlpha, flowDirection);
@@ -28,23 +29,43 @@ namespace Kant.Wpf.Controls.Chart
 
         private Dictionary<int, List<SankeyNode>> InitializeNodeLength(Dictionary<int, List<SankeyNode>> nodes, double unitLength, SankeyFlowDirection flowDirection)
         {
-            foreach(var levelNodes in nodes.Values)
+            foreach (var levelNodes in nodes.Values)
             {
                 var index = 0;
 
-                foreach(var node in levelNodes)
+                foreach (var node in levelNodes)
                 {
-                    if(flowDirection == SankeyFlowDirection.TopToBottom)
+                    if (flowDirection == SankeyFlowDirection.TopToBottom)
                     {
                     }
                     else
                     {
                         node.Shape.Height *= unitLength;
+                        node.CalculatingCoordinate = index;
                     }
 
-                    node.CalculatingCoordinate = index;
                     index++;
                 }
+
+                //levelNodes.Sort((n1, n2) =>
+                //{
+                //    if (flowDirection == SankeyFlowDirection.TopToBottom)
+                //    {
+                //        return (int)(n1.Shape.Width - n2.Shape.Width);
+                //    }
+                //    else
+                //    {
+                //        return (int)(n1.Shape.Height - n2.Shape.Height);
+                //    }
+                //});
+
+                //var index = 0;
+
+                //foreach (var node in levelNodes)
+                //{
+                //    node.CalculatingCoordinate = index;
+                //    index++;
+                //}
             }
 
             return nodes;
@@ -56,20 +77,15 @@ namespace Kant.Wpf.Controls.Chart
             {
                 var tempValue1 = 0.0;
                 var tempValue2 = 0.0;
+                //var tempNodes = levelNodes.OrderBy(n => n.Shape.Height).ToList();
 
                 levelNodes.Sort((n1, n2) =>
                 {
-                    if (n1.CalculatingCoordinate > n2.CalculatingCoordinate)
-                    {
-                        return 1;
-                    }
-                    else
-                    {
-                        return 0;
-                    }
+                    return (int)(n1.CalculatingCoordinate - n2.CalculatingCoordinate);
                 });
 
                 foreach (var node in levelNodes)
+                //foreach (var node in tempNodes)
                 {
                     tempValue1 = tempValue2 - node.CalculatingCoordinate;
 
@@ -94,10 +110,13 @@ namespace Kant.Wpf.Controls.Chart
                 if (tempValue1 > 0)
                 {
                     tempValue2 = levelNodes.Last().CalculatingCoordinate -= tempValue1;
+                    //tempValue2 = tempNodes.Last().CalculatingCoordinate -= tempValue1;
 
                     for (var index = levelNodes.Count - 2; index >= 0; index--)
+                    //for (var index = tempNodes.Count - 2; index >= 0; index--)
                     {
                         var node = levelNodes[index];
+                        //var node = tempNodes[index];
 
                         if (flowDirection == SankeyFlowDirection.TopToBottom)
                         {
