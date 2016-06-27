@@ -32,23 +32,22 @@ namespace Kant.Wpf.Controls.Chart
 
         public TextBlock Label { get; set; }
 
+        public string Name { get; set; }
+
         /// <summary>
-        /// for iterative relaxation 
+        /// top to bottom: x coordinate
+        /// left to right: y coordinate
         /// </summary>
-        public double CalculatingCoordinate { get; set; }
+        public double Position1 { get; set; }
 
-        #region for caculating link position
-
-        public Point Position { get; set; }
-
-        public double PreviousOccupiedLength { get; set; }
-
-        public double NextOccupiedLength { get; set; }
-
-        #endregion
+        /// <summary>
+        /// top to bottom: y coordinate
+        /// left to right: x coordinate
+        /// </summary>
+        public double Position2 { get; set; }
 
         public bool IsHighlight { get; set; }
 
         public Brush OriginalShapBrush { get; set; }
-    }
+        }
 }

@@ -7,8 +7,7 @@
                 <ControlTemplate TargetType="{x:Type local:SankeyDiagram}">
                     <Grid x:Name="PartDiagramGrid"
                           Background="{TemplateBinding Background}">
-                        <Canvas x:Name="PartLinksContainer" />
-                        <StackPanel x:Name="PartNodesPanel" />
+                        <Canvas x:Name="PartDiagramCanvas" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

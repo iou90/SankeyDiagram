@@ -29,6 +29,10 @@ namespace Kant.Wpf.Controls.Chart
 
         public Path Shape { get; set; }
 
+        public double FromPosition { get; set; }
+
+        public double ToPosition { get; set; }
+
         public double Weight { get; set; }
 
         public bool IsHighlight { get; set; }

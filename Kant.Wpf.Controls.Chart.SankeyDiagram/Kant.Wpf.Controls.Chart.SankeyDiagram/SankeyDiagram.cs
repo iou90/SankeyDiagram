@@ -41,7 +41,7 @@ namespace Kant.Wpf.Controls.Chart
                     return;
                 }
 
-                assist.CreateDiagram();
+                assist.CreateDiagram(Datas);
                 IsDiagramCreated = true;
             };
         }
@@ -55,7 +55,7 @@ namespace Kant.Wpf.Controls.Chart
             base.OnApplyTemplate();
             var grid = GetTemplateChild("PartDiagramGrid") as Grid;
             var panel = GetTemplateChild("PartNodesPanel") as StackPanel;
-            var canvas = GetTemplateChild("PartLinksContainer") as Canvas;
+            var canvas = GetTemplateChild("PartDiagramCanvas") as Canvas;
 
             if (grid == null)
             {
@@ -66,22 +66,13 @@ namespace Kant.Wpf.Controls.Chart
                 DiagramGrid = grid;
             }
 
-            if (panel == null)
-            {
-                throw new MissingMemberException("can not find template child PartNodesPanel.");
-            }
-            else
-            {
-                NodesPanel = panel;
-            }
-
             if (canvas == null)
             {
-                throw new MissingMemberException("can not find template child PartLinksContainer.");
+                throw new MissingMemberException("can not find template child PartDiagramCanvas.");
             }
             else
             {
-                LinksContainer = canvas;
+                DiagramCanvas = canvas;
             }
         }
 
@@ -224,11 +215,6 @@ namespace Kant.Wpf.Controls.Chart
         public double NodeGap { get; set; }
 
         /// <summary>
-        /// default value is calculated based on diagram panel size
-        /// </summary>
-        public double LinkAeraLength { get; set; }
-
-        /// <summary>
         /// bezier curve control point1's position (point.X or point.Y)
         /// 0.4 by default
         /// </summary>
@@ -290,15 +276,7 @@ namespace Kant.Wpf.Controls.Chart
         /// </summary>
         public Grid DiagramGrid { get; set; }
 
-        /// <summary>
-        /// you can custom the style of nodes panel with this property
-        /// </summary>
-        public StackPanel NodesPanel { get; set; }
-
-        /// <summary>
-        /// you can custom the style of links container with this property
-        /// </summary>
-        public Canvas LinksContainer { get; set; }
+        public Canvas DiagramCanvas { get; set; }
 
         public bool IsDiagramCreated { set; get; }
 

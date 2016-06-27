@@ -122,7 +122,7 @@ namespace Kant.Wpf.Controls.Chart.Example
 
             SankeyDatas = datas;
             SankeyShowLabels = true;
-            //SankeyFlowDirection = SankeyFlowDirection.TopToBottom;
+            SankeyFlowDirection = SankeyFlowDirection.TopToBottom;
         }
 
         #endregion
