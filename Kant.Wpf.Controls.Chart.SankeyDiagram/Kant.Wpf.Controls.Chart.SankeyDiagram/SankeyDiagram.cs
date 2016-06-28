@@ -274,11 +274,11 @@ namespace Kant.Wpf.Controls.Chart
         /// <summary>
         /// you can custom the style of diagram grid with this property
         /// </summary>
-        public Grid DiagramGrid { get; set; }
+        public Grid DiagramGrid { get; private set; }
 
-        public Canvas DiagramCanvas { get; set; }
+        public Canvas DiagramCanvas { get; private set; }
 
-        public bool IsDiagramCreated { set; get; }
+        public bool IsDiagramCreated { get; private set; }
 
         private SankeyStyleManager styleManager;
 
