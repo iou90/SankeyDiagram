@@ -47,7 +47,8 @@ var datas = new List<SankeyDataRow>()
 };
 ```
 
-* the beauty of data visualization
+* the beauty of data visualization  
+<br />
 ![sankey diagram](https://raw.githubusercontent.com/iou90/SankeyDiagram/master/demo_screenshot.png)
 
 
@@ -57,7 +58,6 @@ For style or other settings, please see https://github.com/iou90/SankeyDiagram/w
 For upcoming features,  please see https://github.com/iou90/SankeyDiagram/wiki/What-features-are-being-developed-and-roadmap
 
 Demo applications included in the source project.
-
-
-
-Contact: iou90@outlook.com
+<br />
+<br />
+<br />Contact: iou90@outlook.com
