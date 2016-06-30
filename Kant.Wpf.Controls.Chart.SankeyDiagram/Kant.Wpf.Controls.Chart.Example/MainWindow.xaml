@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:Kant.Wpf.Controls.Chart.Example"
         xmlns:kantCharts="clr-namespace:Kant.Wpf.Controls.Chart;assembly=Kant.Wpf.Controls.Chart.SankeyDiagram"
         mc:Ignorable="d"
-        Height="900"
-        Width="1500"
+        Height="500"
+        Width="955"
         Title="Sankey Diagram for WPF">
     <Window.DataContext>
         <local:MainViewModel />
@@ -81,10 +81,10 @@
                 </StackPanel>
             </StackPanel>
             <Border Margin="20">
-                <kantCharts:SankeyDiagram Height="755"
+                <kantCharts:SankeyDiagram Height="355"
                                           NodeThickness="25"
                                           NodeGap="5"
-                                          UseNodeLinksPalette="False"
+                                          UseNodeLinksPalette="True"
                                           HighlightOpacity="0.95"
                                           LoweredOpacity="0.45"
                                           HighlightBrush="{StaticResource SankeyHighlightBrush}"

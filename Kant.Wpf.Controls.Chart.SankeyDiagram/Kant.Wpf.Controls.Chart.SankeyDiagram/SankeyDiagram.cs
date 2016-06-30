@@ -247,6 +247,7 @@ namespace Kant.Wpf.Controls.Chart
         /// <summary>
         /// brush applying on all nodes
         /// it does not work if you set UseNodeLinksPalette to true
+        /// may be not, it will be a dp in the future
         /// </summary>
         public Brush NodeBrush { get; set; }
 
