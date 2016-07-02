@@ -48,14 +48,14 @@ var datas = new List<SankeyDataRow>()
 ```
 
 * the beauty of data visualization  
-<br />
-![sankey diagram](https://raw.githubusercontent.com/iou90/SankeyDiagram/master/demo_screenshot.png)
+  <br />
+  ![sankey diagram](https://raw.githubusercontent.com/iou90/SankeyDiagram/master/demo_screenshot.png)
 
 
 
 For style or other settings, please see https://github.com/iou90/SankeyDiagram/wiki/Supported-features
 
-For upcoming features,  please see https://github.com/iou90/SankeyDiagram/wiki/What-features-are-being-developed-and-roadmap
+For upcoming features,  please see https://github.com/iou90/SankeyDiagram/wiki/What-features-are-being-developed
 
 Demo applications included in the source project.
 <br />
