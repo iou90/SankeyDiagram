@@ -84,7 +84,7 @@
                 <kantCharts:SankeyDiagram Height="355"
                                           NodeThickness="25"
                                           NodeGap="5"
-                                          UseNodeLinksPalette="True"
+                                          UsePallette="LinksOnly"
                                           HighlightOpacity="0.95"
                                           LoweredOpacity="0.45"
                                           HighlightBrush="{StaticResource SankeyHighlightBrush}"

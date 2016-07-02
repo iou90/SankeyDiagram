@@ -56,6 +56,7 @@
     <Compile Include="SankeyLinkFinder.cs" />
     <Compile Include="SankeyNode.cs" />
     <Compile Include="SankeyStyleManager.cs" />
+    <Compile Include="SankeyPalette.cs" />
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -33,7 +33,6 @@ namespace Kant.Wpf.Controls.Chart
             {
                 RemoveElementEventHandlers();
                 diagram.DiagramCanvas.Children.Clear();
-                //diagram.NodesPanel.Children.Clear();
                 CurrentNodes.Clear();
                 CurrentLabels.Clear();
                 CurrentLinks.Clear();
@@ -66,20 +65,6 @@ namespace Kant.Wpf.Controls.Chart
 
             var nodes = CreateNodes(datas);
             var panelLength = diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom ? diagram.DiagramCanvas.ActualWidth : diagram.DiagramCanvas.ActualHeight;
-
-            //if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
-            //{
-            //    diagram.NodesPanel.Orientation = Orientation.Vertical;
-            //    panelLength = diagram.NodesPanel.ActualWidth;
-            //    linkLength = diagram.LinkAeraLength > 0 ? diagram.LinkAeraLength : (diagram.NodesPanel.ActualHeight - CurrentNodes.Count * diagram.NodeThickness) / (CurrentNodes.Count - 1);
-            //}
-            //else
-            //{
-            //    diagram.NodesPanel.Orientation = Orientation.Horizontal;
-            //    panelLength = diagram.NodesPanel.ActualHeight;
-            //    linkLength = diagram.LinkAeraLength > 0 ? diagram.LinkAeraLength : (diagram.NodesPanel.ActualWidth - CurrentNodes.Count * diagram.NodeThickness) / (CurrentNodes.Count - 1);
-            //}
-
             var unitLength = panelLength;
             var maxNodeCountInOneLevel = 0;
 
@@ -106,6 +91,14 @@ namespace Kant.Wpf.Controls.Chart
                  if (length < unitLength)
                 {
                     unitLength = length;
+                }
+
+                if (!(diagram.UsePallette == SankeyPalette.NodesLinks || diagram.NodeBrushes != null))
+                {
+                    foreach (var node in levelNodes)
+                    {
+                        node.Shape.Fill = diagram.NodeBrush.CloneCurrentValue();
+                    }
                 }
             }
 
@@ -264,7 +257,7 @@ namespace Kant.Wpf.Controls.Chart
                         shape.MouseLeave += LinkMouseLeave;
                         shape.MouseLeftButtonUp += LinkMouseLeftButtonUp;
                         shape.Tag = new SankeyLinkFinder(data.From, data.To);
-                        shape.Stroke = diagram.UseNodeLinksPalette ? fromNode.Shape.Fill.CloneCurrentValue() : data.LinkBrush == null ? styleManager.DefaultLinkBrush.CloneCurrentValue() : data.LinkBrush.CloneCurrentValue();
+                        shape.Stroke = diagram.UsePallette != SankeyPalette.None ? fromNode.Shape.Fill.CloneCurrentValue() : data.LinkBrush == null ? styleManager.DefaultLinkBrush.CloneCurrentValue() : data.LinkBrush.CloneCurrentValue();
                         var link = new SankeyLink(fromNode, toNode, shape, data.Weight, shape.Stroke.CloneCurrentValue());
                         fromNode.OutLinks.Add(link);
                         toNode.InLinks.Add(link);
@@ -428,7 +421,7 @@ namespace Kant.Wpf.Controls.Chart
             }
             else
             {
-                if (diagram.UseNodeLinksPalette)
+                if (diagram.UsePallette != SankeyPalette.None)
                 {
                     node.Shape.Fill = styleManager.DefaultNodeLinksPalette[styleManager.DefaultNodeLinksPaletteIndex].CloneCurrentValue();
                     styleManager.DefaultNodeLinksPaletteIndex++;
@@ -437,10 +430,6 @@ namespace Kant.Wpf.Controls.Chart
                     {
                         styleManager.DefaultNodeLinksPaletteIndex = 0;
                     }
-                }
-                else
-                {
-                    node.Shape.Fill = diagram.NodeBrush.CloneCurrentValue();
                 }
             }
 

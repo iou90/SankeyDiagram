@@ -28,7 +28,6 @@ namespace Kant.Wpf.Controls.Chart
             var opacity = 0.55;
             diagram.NodeGap = 5;
             diagram.NodeThickness = 10;
-            diagram.NodeBrush = new SolidColorBrush(Colors.Black);
             diagram.HighlightOpacity = 1.0;
             diagram.LoweredOpacity = 0.25;
             diagram.LinkPoint1Curveless = 0.4;
@@ -36,14 +35,14 @@ namespace Kant.Wpf.Controls.Chart
             var labelStye = new Style(typeof(TextBlock));
             labelStye.Setters.Add(new Setter(TextBlock.MarginProperty, new Thickness(2)));
             diagram.LabelStyle = labelStye;
-            diagram.UseNodeLinksPalette = true;
+            diagram.UsePallette = SankeyPalette.NodesLinks;
             DefaultNodeLinksPalette = GetNodeLinksPalette(opacity);
             DefaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = opacity };
         }
 
         public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
         {
-            if (newBrushes == null || nodes == null || nodes.Count() < 2)
+            if (diagram == null || newBrushes == null || nodes == null || nodes.Count() < 2)
             {
                 return;
             }
@@ -72,7 +71,7 @@ namespace Kant.Wpf.Controls.Chart
                 return;
             }
 
-            if (diagram.UseNodeLinksPalette)
+            if (diagram.UsePallette != SankeyPalette.None)
             {
                 if (links == null || links.Count == 0)
                 {
@@ -87,6 +86,29 @@ namespace Kant.Wpf.Controls.Chart
                         link.Shape.Stroke = brush.CloneCurrentValue();
                         link.OriginalShapBrush = brush.CloneCurrentValue();
                     }
+                }
+            }
+        }
+
+        public void UpdateNodeBrushes(Brush brush, Dictionary<int, List<SankeyNode>> nodes)
+        {
+            if(diagram == null || brush == null || nodes != null || nodes.Count < 2)
+            {
+                return;
+            }
+
+            if(diagram.UsePallette == SankeyPalette.NodesLinks)
+            {
+                return;
+            }
+
+            ResetHighlight();
+
+            foreach(var levelNodes in nodes.Values)
+            {
+                foreach(var node in levelNodes)
+                {
+                    node.Shape.Fill = brush.CloneCurrentValue();
                 }
             }
         }

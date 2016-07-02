@@ -83,6 +83,12 @@ namespace Kant.Wpf.Controls.Chart
             ((SankeyDiagram)o).assist.UpdateDiagram((IEnumerable<SankeyDataRow>)e.NewValue);
         }
 
+        private static void OnNodeSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            var diagram = (SankeyDiagram)o;
+            diagram.styleManager.UpdateNodeBrushes((Brush)e.NewValue, diagram.assist.CurrentNodes);
+        }
+
         private static void OnNodeBrushesSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
             var diagram = (SankeyDiagram)o;
@@ -140,9 +146,14 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty DatasProperty = DependencyProperty.Register("Datas", typeof(IEnumerable<SankeyDataRow>), typeof(SankeyDiagram), new PropertyMetadata(new List<SankeyDataRow>(), OnDatasSourceChanged));
 
-        /// <summary>
-        /// if the value is null, keeping last brushes
-        /// </summary>
+        public Brush NodeBrush
+        {
+            get { return (Brush)GetValue(NodeBrushProperty); }
+            set { SetValue(NodeBrushProperty, value); }
+        }
+
+        public static readonly DependencyProperty NodeBrushProperty = DependencyProperty.Register("NodeBrush", typeof(Brush), typeof(SankeyDiagram), new PropertyMetadata(new SolidColorBrush(Colors.Black), OnNodeSourceChanged));
+
         public Dictionary<string, Brush> NodeBrushes
         {
             get { return (Dictionary<string, Brush>)GetValue(NodeBrushesProperty); }
@@ -227,29 +238,9 @@ namespace Kant.Wpf.Controls.Chart
         public double LinkPoint2Curveless { get; set; }
 
         /// <summary>
-        /// true by default
-        /// using node links palette means coloring your link with fromNode's brush
-        /// if NodeBrushes exist, nodes & links will use it, if not, use default palette
+        /// NodesLinks by default
         /// </summary>
-        public bool UseNodeLinksPalette { get; set; }
-
-        /// <summary>
-        /// get default palette for reference
-        /// </summary>
-        public List<Brush> DefaultNodeLinksPalette
-        {
-            get
-            {
-                return styleManager.DefaultNodeLinksPalette;
-            }
-        }
-
-        /// <summary>
-        /// brush applying on all nodes
-        /// it does not work if you set UseNodeLinksPalette to true
-        /// may be not, it will be a dp in the future
-        /// </summary>
-        public Brush NodeBrush { get; set; }
+        public SankeyPalette UsePallette { get; set; }
 
         public Style LabelStyle { get; set; }
 
