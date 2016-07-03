@@ -35,6 +35,8 @@ namespace Kant.Wpf.Controls.Chart
 
         public double Weight { get; set; }
 
+        public double Width { get; set; }
+
         public bool IsHighlight { get; set; }
 
         public Brush OriginalShapBrush { get; set; }

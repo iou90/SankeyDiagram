@@ -83,7 +83,13 @@ namespace Kant.Wpf.Controls.Chart
             ((SankeyDiagram)o).assist.UpdateDiagram((IEnumerable<SankeyDataRow>)e.NewValue);
         }
 
-        private static void OnNodeSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        private static void OnLinkCurvenessSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            var diagram = (SankeyDiagram)o;
+            diagram.styleManager.UpdateLinkCurvature((double)e.NewValue, diagram.assist.CurrentLinks);
+        }
+
+        private static void OnNodeBrushSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
             var diagram = (SankeyDiagram)o;
             diagram.styleManager.UpdateNodeBrushes((Brush)e.NewValue, diagram.assist.CurrentNodes);
@@ -146,13 +152,28 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty DatasProperty = DependencyProperty.Register("Datas", typeof(IEnumerable<SankeyDataRow>), typeof(SankeyDiagram), new PropertyMetadata(new List<SankeyDataRow>(), OnDatasSourceChanged));
 
+        /// <summary>
+        /// 0.55 by default
+        /// </summary>
+        public double LinkCurvature
+        {
+            get { return (double)GetValue(LinkCurvatureProperty); }
+            set { SetValue(LinkCurvatureProperty, value); }
+        }
+
+        public static readonly DependencyProperty LinkCurvatureProperty = DependencyProperty.Register("LinkCurvature", typeof(double), typeof(SankeyDiagram), new PropertyMetadata(0.55, OnLinkCurvenessSourceChanged));
+
+        /// <summary>
+        /// universal node brush,
+        /// it will not work if UsePallette set to be NodesLinks
+        /// </summary>
         public Brush NodeBrush
         {
             get { return (Brush)GetValue(NodeBrushProperty); }
             set { SetValue(NodeBrushProperty, value); }
         }
 
-        public static readonly DependencyProperty NodeBrushProperty = DependencyProperty.Register("NodeBrush", typeof(Brush), typeof(SankeyDiagram), new PropertyMetadata(new SolidColorBrush(Colors.Black), OnNodeSourceChanged));
+        public static readonly DependencyProperty NodeBrushProperty = DependencyProperty.Register("NodeBrush", typeof(Brush), typeof(SankeyDiagram), new PropertyMetadata(new SolidColorBrush(Colors.Black), OnNodeBrushSourceChanged));
 
         public Dictionary<string, Brush> NodeBrushes
         {
@@ -169,6 +190,17 @@ namespace Kant.Wpf.Controls.Chart
         }
 
         public static readonly DependencyProperty HighlightNodeProperty = DependencyProperty.Register("HighlightNode", typeof(string), typeof(SankeyDiagram), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, null, HighlightNodeValueCallback));
+
+        /// <summary>
+        /// MouseLeftButtonUp by default
+        /// </summary>
+        public SankeyHighlightMode HighlightMode
+        {
+            get { return (SankeyHighlightMode)GetValue(HighlightModeProperty); }
+            set { SetValue(HighlightModeProperty, value); }
+        }
+
+        public static readonly DependencyProperty HighlightModeProperty = DependencyProperty.Register("HighlightMode", typeof(SankeyHighlightMode), typeof(SankeyDiagram), new PropertyMetadata(SankeyHighlightMode.MouseLeftButtonUp, OnHighlightModeSourceChanged));
 
         public SankeyLinkFinder HighlightLink
         {
@@ -200,42 +232,33 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty ShowLabelsProperty = DependencyProperty.Register("ShowLabels", typeof(bool), typeof(SankeyDiagram), new PropertyMetadata(true, OnShowLabelsSourceChanged));
 
-        /// <summary>
-        /// MouseLeftButtonUp by default
-        /// </summary>
-        public SankeyHighlightMode HighlightMode
-        {
-            get { return (SankeyHighlightMode)GetValue(HighlightModeProperty); }
-            set { SetValue(HighlightModeProperty, value); }
-        }
-
-        public static readonly DependencyProperty HighlightModeProperty = DependencyProperty.Register("HighlightMode", typeof(SankeyHighlightMode), typeof(SankeyDiagram), new PropertyMetadata(SankeyHighlightMode.MouseLeftButtonUp, OnHighlightModeSourceChanged));
-
         #endregion
 
         #region diagram initial settings
 
         /// <summary>
         /// 10 by default
+        /// will be changed when panel size changed, in the future
         /// </summary>
         public double NodeThickness { get; set; }
 
         /// <summary>
         /// 5 by default
+        /// will be changed when panel size changed, in the future
         /// </summary>
         public double NodeGap { get; set; }
 
-        /// <summary>
-        /// bezier curve control point1's position (point.X or point.Y)
-        /// 0.4 by default
-        /// </summary>
-        public double LinkPoint1Curveless { get; set; }
+        ///// <summary>
+        ///// bezier curve control point1's position (point.X or point.Y)
+        ///// 0.4 by default
+        ///// </summary>
+        //public double LinkPoint1Curveless { get; set; }
 
-        /// <summary>
-        /// bezier curve control point2's position (point.X or point.Y)
-        /// 0.6 by default
-        /// </summary>
-        public double LinkPoint2Curveless { get; set; }
+        ///// <summary>
+        ///// bezier curve control point2's position (point.X or point.Y)
+        ///// 0.6 by default
+        ///// </summary>
+        //public double LinkPoint2Curveless { get; set; }
 
         /// <summary>
         /// NodesLinks by default

@@ -38,12 +38,12 @@ namespace Kant.Wpf.Controls.Chart
                     if (flowDirection == SankeyFlowDirection.TopToBottom)
                     {
                         node.Shape.Width *= unitLength;
-                        node.Position2 = index;
+                        node.X = index;
                     }
                     else
                     {
                         node.Shape.Height *= unitLength;
-                        node.Position1 = index;
+                        node.Y = index;
                     }
 
                     index++;
@@ -62,36 +62,36 @@ namespace Kant.Wpf.Controls.Chart
 
                 if (flowDirection == SankeyFlowDirection.TopToBottom)
                 {
-                    levelNodes.Sort((n1, n2) => { return (int)(n1.Position2 - n2.Position2); });
+                    levelNodes.Sort((n1, n2) => { return (int)(n1.X - n2.X); });
                 }
                 else
                 {
-                    levelNodes.Sort((n1, n2) => { return (int)(n1.Position1 - n2.Position1); });
+                    levelNodes.Sort((n1, n2) => { return (int)(n1.Y - n2.Y); });
                 }
 
                 foreach (var node in levelNodes)
                 {
                     if (flowDirection == SankeyFlowDirection.TopToBottom)
                     {
-                        tempValue1 = tempValue2 - node.Position2;
+                        tempValue1 = tempValue2 - node.X;
 
                         if (tempValue1 > 0)
                         {
-                            node.Position2 += tempValue1;
+                            node.X += tempValue1;
                         }
 
-                        tempValue2 = node.Position2 + node.Shape.Width + nodeGap;
+                        tempValue2 = node.X + node.Shape.Width + nodeGap;
                     }
                     else
                     {
-                        tempValue1 = tempValue2 - node.Position1;
+                        tempValue1 = tempValue2 - node.Y;
 
                         if (tempValue1 > 0)
                         {
-                            node.Position1 += tempValue1;
+                            node.Y += tempValue1;
                         }
 
-                        tempValue2 = node.Position1 + node.Shape.Height + nodeGap;
+                        tempValue2 = node.Y + node.Shape.Height + nodeGap;
                     }
                 }
 
@@ -102,11 +102,11 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     if (flowDirection == SankeyFlowDirection.TopToBottom)
                     {
-                        tempValue2 = levelNodes.Last().Position2 -= tempValue1;
+                        tempValue2 = levelNodes.Last().X -= tempValue1;
                     }
                     else
                     {
-                        tempValue2 = levelNodes.Last().Position1 -= tempValue1;
+                        tempValue2 = levelNodes.Last().Y -= tempValue1;
                     }
 
                     for (var index = levelNodes.Count - 2; index >= 0; index--)
@@ -115,25 +115,25 @@ namespace Kant.Wpf.Controls.Chart
 
                         if (flowDirection == SankeyFlowDirection.TopToBottom)
                         {
-                            tempValue1 = node.Position2 + node.Shape.Width + nodeGap - tempValue2;
+                            tempValue1 = node.X + node.Shape.Width + nodeGap - tempValue2;
 
                             if (tempValue1 > 0)
                             {
-                                node.Position2 -= tempValue1;
+                                node.X -= tempValue1;
                             }
 
-                            tempValue2 = node.Position2;
+                            tempValue2 = node.X;
                         }
                         else
                         {
-                            tempValue1 = node.Position1 + node.Shape.Height + nodeGap - tempValue2;
+                            tempValue1 = node.Y + node.Shape.Height + nodeGap - tempValue2;
 
                             if(tempValue1 > 0)
                             {
-                                node.Position1 -= tempValue1;
+                                node.Y -= tempValue1;
                             }
 
-                            tempValue2 = node.Position1;
+                            tempValue2 = node.Y;
                         }
                     }
                 }
@@ -154,11 +154,11 @@ namespace Kant.Wpf.Controls.Chart
 
                         if (flowDirection == SankeyFlowDirection.TopToBottom)
                         {
-                            node.Position2 += (tempValue - GetCenterValue(node, flowDirection)) * alpha;
+                            node.X += (tempValue - GetCenterValue(node, flowDirection)) * alpha;
                         }
                         else
                         {
-                            node.Position1 += (tempValue - GetCenterValue(node, flowDirection)) * alpha;
+                            node.Y += (tempValue - GetCenterValue(node, flowDirection)) * alpha;
                         }
                     }
                 }
@@ -179,11 +179,11 @@ namespace Kant.Wpf.Controls.Chart
 
                         if (flowDirection == SankeyFlowDirection.TopToBottom)
                         {
-                            node.Position2 += (tempValue - GetCenterValue(node, flowDirection)) * alpha;
+                            node.X += (tempValue - GetCenterValue(node, flowDirection)) * alpha;
                         }
                         else
                         {
-                            node.Position1 += (tempValue - GetCenterValue(node, flowDirection)) * alpha;
+                            node.Y += (tempValue - GetCenterValue(node, flowDirection)) * alpha;
                         }
                     }
                 }
@@ -194,7 +194,7 @@ namespace Kant.Wpf.Controls.Chart
 
         private double GetCenterValue(SankeyNode node, SankeyFlowDirection flowDirection)
         {
-            return flowDirection == SankeyFlowDirection.TopToBottom ? node.Position2 + node.Shape.Width / 2 : node.Position1 + node.Shape.Height / 2;
+            return flowDirection == SankeyFlowDirection.TopToBottom ? node.X + node.Shape.Width / 2 : node.Y + node.Shape.Height / 2;
         }
     }
 }

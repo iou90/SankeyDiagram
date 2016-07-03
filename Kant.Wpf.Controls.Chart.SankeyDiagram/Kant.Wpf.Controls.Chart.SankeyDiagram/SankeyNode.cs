@@ -34,17 +34,9 @@ namespace Kant.Wpf.Controls.Chart
 
         public string Name { get; set; }
 
-        /// <summary>
-        /// top to bottom: x coordinate
-        /// left to right: y coordinate
-        /// </summary>
-        public double Position1 { get; set; }
+        public double Y { get; set; }
 
-        /// <summary>
-        /// top to bottom: y coordinate
-        /// left to right: x coordinate
-        /// </summary>
-        public double Position2 { get; set; }
+        public double X { get; set; }
 
         public bool IsHighlight { get; set; }
 

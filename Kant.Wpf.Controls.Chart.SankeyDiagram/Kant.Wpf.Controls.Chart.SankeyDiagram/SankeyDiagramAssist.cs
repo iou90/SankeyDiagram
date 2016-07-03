@@ -122,19 +122,19 @@ namespace Kant.Wpf.Controls.Chart
 
             foreach (var node in nodes)
             {
-                Canvas.SetTop(node.Shape, node.Position1);
-                Canvas.SetLeft(node.Shape, node.Position2);
+                Canvas.SetTop(node.Shape, node.Y);
+                Canvas.SetLeft(node.Shape, node.X);
                 diagram.DiagramCanvas.Children.Add(node.Shape);
 
                 if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                 {
-                    node.OutLinks.Sort((l1, l2) => { return (int)(l1.ToNode.Position2 - l2.ToNode.Position2); });
-                    node.InLinks.Sort((l1, l2) => { return (int)(l1.FromNode.Position2 - l2.FromNode.Position2); });
+                    node.OutLinks.Sort((l1, l2) => { return (int)(l1.ToNode.X - l2.ToNode.X); });
+                    node.InLinks.Sort((l1, l2) => { return (int)(l1.FromNode.X - l2.FromNode.X); });
                 }
                 else
                 {
-                    node.OutLinks.Sort((l1, l2) => { return (int)(l1.ToNode.Position1 - l2.ToNode.Position1); });
-                    node.InLinks.Sort((l1, l2) => { return (int)(l1.FromNode.Position1 - l2.FromNode.Position1); });
+                    node.OutLinks.Sort((l1, l2) => { return (int)(l1.ToNode.Y - l2.ToNode.Y); });
+                    node.InLinks.Sort((l1, l2) => { return (int)(l1.FromNode.Y - l2.FromNode.Y); });
                 }
 
                 var fromPosition = 0.0;
@@ -143,15 +143,19 @@ namespace Kant.Wpf.Controls.Chart
                 foreach (var outLink in node.OutLinks)
                 {
                     outLink.FromPosition = fromPosition;
-                    outLink.Shape.StrokeThickness = outLink.Weight * unitLength;
-                    fromPosition += outLink.Shape.StrokeThickness;
+                    outLink.Width = outLink.Weight * unitLength;
+                    //outLink.Shape.StrokeThickness = outLink.Weight * unitLength;
+                    //fromPosition += outLink.Shape.StrokeThickness;
+                    fromPosition += outLink.Width;
                 }
 
                 foreach (var inLink in node.InLinks)
                 {
                     inLink.ToPosition = toPosition;
-                    inLink.Shape.StrokeThickness = inLink.Weight * unitLength;
-                    toPosition += inLink.Shape.StrokeThickness;
+                    inLink.Width = inLink.Weight * unitLength;
+                    //inLink.Shape.StrokeThickness = inLink.Weight * unitLength;
+                    //toPosition += inLink.Shape.StrokeThickness;
+                    toPosition += inLink.Width;
                 }
             }
 
@@ -176,7 +180,7 @@ namespace Kant.Wpf.Controls.Chart
 
                         if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                         {
-                            Canvas.SetLeft(node.Label, node.Position2 + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
+                            Canvas.SetLeft(node.Label, node.X + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
 
                             if (index == nodes.Count - 1)
                             {
@@ -184,12 +188,12 @@ namespace Kant.Wpf.Controls.Chart
                             }
                             else
                             {
-                                Canvas.SetTop(node.Label, node.Position1 + node.Shape.Height);
+                                Canvas.SetTop(node.Label, node.Y + node.Shape.Height);
                             }
                         }
                         else
                         {
-                            Canvas.SetTop(node.Label, node.Position1 + (node.Shape.Height / 2) - (node.Label.DesiredSize.Height / 2));
+                            Canvas.SetTop(node.Label, node.Y + (node.Shape.Height / 2) - (node.Label.DesiredSize.Height / 2));
 
                             if (index == CurrentNodes.Count - 1)
                             {
@@ -197,7 +201,7 @@ namespace Kant.Wpf.Controls.Chart
                             }
                             else
                             {
-                                Canvas.SetLeft(node.Label, node.Position2 + node.Shape.Width);
+                                Canvas.SetLeft(node.Label, node.X + node.Shape.Width);
                             }
                         }
 
@@ -257,8 +261,8 @@ namespace Kant.Wpf.Controls.Chart
                         shape.MouseLeave += LinkMouseLeave;
                         shape.MouseLeftButtonUp += LinkMouseLeftButtonUp;
                         shape.Tag = new SankeyLinkFinder(data.From, data.To);
-                        shape.Stroke = diagram.UsePallette != SankeyPalette.None ? fromNode.Shape.Fill.CloneCurrentValue() : data.LinkBrush == null ? styleManager.DefaultLinkBrush.CloneCurrentValue() : data.LinkBrush.CloneCurrentValue();
-                        var link = new SankeyLink(fromNode, toNode, shape, data.Weight, shape.Stroke.CloneCurrentValue());
+                        shape.Fill = diagram.UsePallette != SankeyPalette.None ? fromNode.Shape.Fill.CloneCurrentValue() : data.LinkBrush == null ? styleManager.DefaultLinkBrush.CloneCurrentValue() : data.LinkBrush.CloneCurrentValue();
+                        var link = new SankeyLink(fromNode, toNode, shape, data.Weight, shape.Fill.CloneCurrentValue());
                         fromNode.OutLinks.Add(link);
                         toNode.InLinks.Add(link);
                         links.Add(link);
@@ -302,11 +306,11 @@ namespace Kant.Wpf.Controls.Chart
 
                     if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
-                        node.Position1 = levelIndex;
+                        node.Y = levelIndex;
                     }
                     else
                     {
-                        node.Position2 = levelIndex;
+                        node.X = levelIndex;
                     }
 
                     var linkIndex = 0;
@@ -329,11 +333,11 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                     {
-                        node.Position1 = levelIndex - 1;
+                        node.Y = levelIndex - 1;
                     }
                     else
                     {
-                        node.Position2 = levelIndex - 1;
+                        node.X = levelIndex - 1;
                     }
                 }
             }
@@ -346,30 +350,30 @@ namespace Kant.Wpf.Controls.Chart
 
                 if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                 {
-                    if (tempNodes.Keys.Contains(node.Position1))
+                    if (tempNodes.Keys.Contains(node.Y))
                     {
-                        tempNodes[node.Position1].Add(node);
+                        tempNodes[node.Y].Add(node);
                     }
                     else
                     {
-                        tempNodes.Add(node.Position1, new List<SankeyNode>() { node });
+                        tempNodes.Add(node.Y, new List<SankeyNode>() { node });
                     }
 
-                    node.Position1 *= linkLength;
+                    node.Y *= linkLength;
                     node.Shape.Width = max;
                 }
                 else
                 {
-                    if (tempNodes.Keys.Contains(node.Position2))
+                    if (tempNodes.Keys.Contains(node.X))
                     {
-                        tempNodes[node.Position2].Add(node);
+                        tempNodes[node.X].Add(node);
                     }
                     else
                     {
-                        tempNodes.Add(node.Position2, new List<SankeyNode>() { node });
+                        tempNodes.Add(node.X, new List<SankeyNode>() { node });
                     }
 
-                    node.Position2 *= linkLength;
+                    node.X *= linkLength;
                     node.Shape.Height = max;
                 }
             }
@@ -489,31 +493,47 @@ namespace Kant.Wpf.Controls.Chart
             var fromPoint = new Point();
             var toPoint = new Point();
             var bezierControlPoint1 = new Point();
-            var bezierCOntrolPoint2 = new Point();
+            var bezierControlPoint2 = new Point();
+            var fromPoint2 = new Point();
+            var toPoint2 = new Point();
+            var bezier2ControlPoint1 = new Point();
+            var bezier2COntrolPoint2 = new Point();
 
             if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
             {
-                fromPoint.X = link.FromNode.Position2 + link.FromPosition + link.Shape.StrokeThickness / 2;
-                fromPoint.Y = link.FromNode.Position1 + link.FromNode.Shape.Height;
-                toPoint.X = link.ToNode.Position2 + link.ToPosition + link.Shape.StrokeThickness / 2;
-                toPoint.Y = link.ToNode.Position1;
+                //fromPoint.X = link.FromNode.X + link.FromPosition + link.Shape.StrokeThickness / 2;
+                //fromPoint.Y = link.FromNode.Y + link.FromNode.Shape.Height;
+                //toPoint.X = link.ToNode.X + link.ToPosition + link.Shape.StrokeThickness / 2;
+                //toPoint.Y = link.ToNode.Y;
+                fromPoint.X = link.FromNode.X + link.FromPosition;
+                fromPoint2.X = fromPoint.X + link.Width;
+                fromPoint2.Y = fromPoint.Y = link.FromNode.Y + link.FromNode.Shape.Height;
+                toPoint.X = link.ToNode.X + link.ToPosition;
+                toPoint2.X = toPoint.X + link.Width;
+                toPoint2.Y = toPoint.Y = link.ToNode.Y;
                 var length = toPoint.Y - fromPoint.Y;
+                //bezierControlPoint1.X = fromPoint.X;
+                //bezierControlPoint1.Y = length * diagram.LinkCurvature + fromPoint.Y;
+                //bezierCOntrolPoint2.X = toPoint.X;
+                //bezierCOntrolPoint2.Y = length * (1 - diagram.LinkCurvature) + fromPoint.Y;
                 bezierControlPoint1.X = fromPoint.X;
-                bezierControlPoint1.Y = length * diagram.LinkPoint1Curveless + fromPoint.Y;
-                bezierCOntrolPoint2.X = toPoint.X;
-                bezierCOntrolPoint2.Y = length * diagram.LinkPoint2Curveless + fromPoint.Y;
+                bezier2ControlPoint1.X = fromPoint2.X;
+                bezier2ControlPoint1.Y = bezierControlPoint1.Y = length * diagram.LinkCurvature + fromPoint.Y;
+                bezierControlPoint2.X = toPoint.X;
+                bezier2COntrolPoint2.X = toPoint2.X;
+                bezier2COntrolPoint2.Y = bezierControlPoint2.Y = length * (1 - diagram.LinkCurvature) + fromPoint.Y;
             }
             else
             {
-                fromPoint.Y = link.FromNode.Position1 + link.FromPosition + link.Shape.StrokeThickness / 2;
-                fromPoint.X = link.FromNode.Position2 + link.FromNode.Shape.Width;
-                toPoint.Y = link.ToNode.Position1 + link.ToPosition + link.Shape.StrokeThickness / 2;
-                toPoint.X = link.ToNode.Position2;
+                fromPoint.Y = link.FromNode.Y + link.FromPosition + link.Shape.StrokeThickness / 2;
+                fromPoint.X = link.FromNode.X + link.FromNode.Shape.Width;
+                toPoint.Y = link.ToNode.Y + link.ToPosition + link.Shape.StrokeThickness / 2;
+                toPoint.X = link.ToNode.X;
                 var length = toPoint.X - fromPoint.X;
                 bezierControlPoint1.Y = fromPoint.Y;
-                bezierControlPoint1.X = length * diagram.LinkPoint1Curveless + fromPoint.X;
-                bezierCOntrolPoint2.Y = toPoint.Y;
-                bezierCOntrolPoint2.X = length * diagram.LinkPoint2Curveless + fromPoint.X;
+                bezierControlPoint1.X = length * diagram.LinkCurvature + fromPoint.X;
+                bezierControlPoint2.Y = toPoint.Y;
+                bezierControlPoint2.X = length * (1 - diagram.LinkCurvature) + fromPoint.X;
             }
 
             var geometry = new PathGeometry()
@@ -526,18 +546,26 @@ namespace Kant.Wpf.Controls.Chart
 
                         Segments = new PathSegmentCollection()
                         {
+                            new LineSegment() { },
+
                             new BezierSegment()
                             {
                                 Point1 = bezierControlPoint1,
-                                Point2 = bezierCOntrolPoint2,
+                                Point2 = bezierControlPoint2,
                                 Point3 = toPoint
+                            },
+
+                            new LineSegment() { },
+
+                            new BezierSegment()
+                            {
+
                             }
                         }
-                    }
+                    },
                 }
             };
 
-            geometry.Freeze();
             link.Shape.Data = geometry;
 
             return link;

@@ -30,14 +30,55 @@ namespace Kant.Wpf.Controls.Chart
             diagram.NodeThickness = 10;
             diagram.HighlightOpacity = 1.0;
             diagram.LoweredOpacity = 0.25;
-            diagram.LinkPoint1Curveless = 0.4;
-            diagram.LinkPoint2Curveless = 0.6;
             var labelStye = new Style(typeof(TextBlock));
             labelStye.Setters.Add(new Setter(TextBlock.MarginProperty, new Thickness(2)));
             diagram.LabelStyle = labelStye;
             diagram.UsePallette = SankeyPalette.NodesLinks;
             DefaultNodeLinksPalette = GetNodeLinksPalette(opacity);
             DefaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = opacity };
+        }
+
+        public void UpdateLinkCurvature(double curvature, List<SankeyLink> links)
+        {
+            if(!(curvature > 0 && curvature <= 1) || links == null || links.Count == 0)
+            {
+                return;
+            }
+
+            foreach(var link in links)
+            {
+                if(link.Shape.Data == null)
+                {
+                    continue;
+                }
+
+                var figure = ((PathGeometry)(link.Shape.Data)).Figures[0];
+                var bezier = (BezierSegment)figure.Segments[0];
+                var fromPoint = figure.StartPoint;
+                var toPoint = bezier.Point3;
+                var bezierControlPoint1 = new Point();
+                var bezierCOntrolPoint2 = new Point();
+
+                if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
+                {
+                    var length = toPoint.Y - fromPoint.Y;
+                    bezierControlPoint1.X = fromPoint.X;
+                    bezierControlPoint1.Y = length * diagram.LinkCurvature + fromPoint.Y;
+                    bezierCOntrolPoint2.X = toPoint.X;
+                    bezierCOntrolPoint2.Y = length * (1 - diagram.LinkCurvature) + fromPoint.Y;
+                }
+                else
+                {
+                    var length = toPoint.X - fromPoint.X;
+                    bezierControlPoint1.Y = fromPoint.Y;
+                    bezierControlPoint1.X = length * diagram.LinkCurvature + fromPoint.X;
+                    bezierCOntrolPoint2.Y = toPoint.Y;
+                    bezierCOntrolPoint2.X = length * (1 - diagram.LinkCurvature) + fromPoint.X;
+                }
+
+                bezier.Point1 = bezierControlPoint1;
+                bezier.Point2 = bezierCOntrolPoint2;
+            }
         }
 
         public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
@@ -92,7 +133,7 @@ namespace Kant.Wpf.Controls.Chart
 
         public void UpdateNodeBrushes(Brush brush, Dictionary<int, List<SankeyNode>> nodes)
         {
-            if(diagram == null || brush == null || nodes != null || nodes.Count < 2)
+            if(diagram == null || brush == null || nodes == null || nodes.Count < 2)
             {
                 return;
             }

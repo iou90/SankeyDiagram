@@ -122,7 +122,8 @@ namespace Kant.Wpf.Controls.Chart.Example
 
             SankeyDatas = datas;
             SankeyShowLabels = true;
-            //SankeyFlowDirection = SankeyFlowDirection.TopToBottom;
+            SankeyLinkCurvature = 0.5;
+            SankeyFlowDirection = SankeyFlowDirection.TopToBottom;
         }
 
         #endregion
@@ -225,6 +226,7 @@ namespace Kant.Wpf.Controls.Chart.Example
                         SankeyNodeBrushes = null;
                     }
 
+                    SankeyLinkCurvature = random.Next(1, 11) * 0.1;
                     SankeyFlowDirection = random.Next(2) == 1 ? SankeyFlowDirection.TopToBottom : SankeyFlowDirection.LeftToRight;
                     SankeyShowLabels = random.Next(2) == 1 ? false : true;
                     SankeyHighlightMode = random.Next(2) == 1 ? SankeyHighlightMode.MouseEnter : SankeyHighlightMode.MouseLeftButtonUp;
@@ -249,6 +251,23 @@ namespace Kant.Wpf.Controls.Chart.Example
                 {
                     sankeyDatas = value;
                     RaisePropertyChanged(() => SankeyDatas);
+                }
+            }
+        }
+
+        private double sankeyLinkCurvature;
+        public double SankeyLinkCurvature
+        {
+            get
+            {
+                return sankeyLinkCurvature;
+            }
+            set
+            {
+                if (value != sankeyLinkCurvature)
+                {
+                    sankeyLinkCurvature = value;
+                    RaisePropertyChanged(() => SankeyLinkCurvature);
                 }
             }
         }
