@@ -144,8 +144,6 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     outLink.FromPosition = fromPosition;
                     outLink.Width = outLink.Weight * unitLength;
-                    //outLink.Shape.StrokeThickness = outLink.Weight * unitLength;
-                    //fromPosition += outLink.Shape.StrokeThickness;
                     fromPosition += outLink.Width;
                 }
 
@@ -153,8 +151,6 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     inLink.ToPosition = toPosition;
                     inLink.Width = inLink.Weight * unitLength;
-                    //inLink.Shape.StrokeThickness = inLink.Weight * unitLength;
-                    //toPosition += inLink.Shape.StrokeThickness;
                     toPosition += inLink.Width;
                 }
             }
@@ -490,50 +486,38 @@ namespace Kant.Wpf.Controls.Chart
 
         private SankeyLink DrawLink(SankeyLink link)
         {
-            var fromPoint = new Point();
-            var toPoint = new Point();
-            var bezierControlPoint1 = new Point();
-            var bezierControlPoint2 = new Point();
-            var fromPoint2 = new Point();
-            var toPoint2 = new Point();
+            var startPoint = new Point();
+            var line1EndPoint = new Point();
+            var bezier1ControlPoint1 = new Point();
+            var bezier1ControlPoint2 = new Point();
+            var bezier1EndPoint = new Point();
+            var line2EndPoint = new Point();
             var bezier2ControlPoint1 = new Point();
-            var bezier2COntrolPoint2 = new Point();
+            var bezier2ControlPoint2 = new Point();
 
-            if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
+            if(diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
             {
-                //fromPoint.X = link.FromNode.X + link.FromPosition + link.Shape.StrokeThickness / 2;
-                //fromPoint.Y = link.FromNode.Y + link.FromNode.Shape.Height;
-                //toPoint.X = link.ToNode.X + link.ToPosition + link.Shape.StrokeThickness / 2;
-                //toPoint.Y = link.ToNode.Y;
-                fromPoint.X = link.FromNode.X + link.FromPosition;
-                fromPoint2.X = fromPoint.X + link.Width;
-                fromPoint2.Y = fromPoint.Y = link.FromNode.Y + link.FromNode.Shape.Height;
-                toPoint.X = link.ToNode.X + link.ToPosition;
-                toPoint2.X = toPoint.X + link.Width;
-                toPoint2.Y = toPoint.Y = link.ToNode.Y;
-                var length = toPoint.Y - fromPoint.Y;
-                //bezierControlPoint1.X = fromPoint.X;
-                //bezierControlPoint1.Y = length * diagram.LinkCurvature + fromPoint.Y;
-                //bezierCOntrolPoint2.X = toPoint.X;
-                //bezierCOntrolPoint2.Y = length * (1 - diagram.LinkCurvature) + fromPoint.Y;
-                bezierControlPoint1.X = fromPoint.X;
-                bezier2ControlPoint1.X = fromPoint2.X;
-                bezier2ControlPoint1.Y = bezierControlPoint1.Y = length * diagram.LinkCurvature + fromPoint.Y;
-                bezierControlPoint2.X = toPoint.X;
-                bezier2COntrolPoint2.X = toPoint2.X;
-                bezier2COntrolPoint2.Y = bezierControlPoint2.Y = length * (1 - diagram.LinkCurvature) + fromPoint.Y;
+                line1EndPoint.Y = startPoint.Y = link.FromNode.Y + link.FromNode.Shape.Height;
+                bezier2ControlPoint2.X = startPoint.X = link.FromNode.X + link.FromPosition;
+                bezier1ControlPoint1.X = line1EndPoint.X = startPoint.X + link.Width;
+                line2EndPoint.Y = bezier1EndPoint.Y = link.ToNode.Y;
+                bezier2ControlPoint1.X = line2EndPoint.X = link.ToNode.X + link.ToPosition;
+                bezier1ControlPoint2.X = bezier1EndPoint.X = line2EndPoint.X + link.Width;
+                var length = line2EndPoint.Y - line1EndPoint.Y;
+                bezier2ControlPoint2.Y = bezier1ControlPoint1.Y = diagram.LinkCurvature * length + startPoint.Y;
+                bezier2ControlPoint1.Y = bezier1ControlPoint2.Y = (1 - diagram.LinkCurvature) * length + startPoint.Y;
             }
             else
             {
-                fromPoint.Y = link.FromNode.Y + link.FromPosition + link.Shape.StrokeThickness / 2;
-                fromPoint.X = link.FromNode.X + link.FromNode.Shape.Width;
-                toPoint.Y = link.ToNode.Y + link.ToPosition + link.Shape.StrokeThickness / 2;
-                toPoint.X = link.ToNode.X;
-                var length = toPoint.X - fromPoint.X;
-                bezierControlPoint1.Y = fromPoint.Y;
-                bezierControlPoint1.X = length * diagram.LinkCurvature + fromPoint.X;
-                bezierControlPoint2.Y = toPoint.Y;
-                bezierControlPoint2.X = length * (1 - diagram.LinkCurvature) + fromPoint.X;
+                line1EndPoint.X = startPoint.X = link.FromNode.X + link.FromNode.Shape.Width;
+                bezier2ControlPoint2.Y = startPoint.Y = link.FromNode.Y + link.FromPosition;
+                bezier1ControlPoint1.Y = line1EndPoint.Y = startPoint.Y + link.Width;
+                line2EndPoint.X = bezier1EndPoint.X = link.ToNode.X;
+                bezier2ControlPoint1.Y = line2EndPoint.Y = link.ToNode.Y + link.ToPosition;
+                bezier1ControlPoint2.Y = bezier1EndPoint.Y = line2EndPoint.Y + link.Width;
+                var length = line2EndPoint.X - line1EndPoint.X;
+                bezier2ControlPoint2.X = bezier1ControlPoint1.X = diagram.LinkCurvature * length + startPoint.X; 
+                bezier2ControlPoint1.X = bezier1ControlPoint2.X = (1 - diagram.LinkCurvature) * length + startPoint.X; 
             }
 
             var geometry = new PathGeometry()
@@ -542,24 +526,26 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     new PathFigure()
                     {
-                        StartPoint = fromPoint,
+                        StartPoint = startPoint,
 
                         Segments = new PathSegmentCollection()
                         {
-                            new LineSegment() { },
+                            new LineSegment() { Point = line1EndPoint },
 
                             new BezierSegment()
                             {
-                                Point1 = bezierControlPoint1,
-                                Point2 = bezierControlPoint2,
-                                Point3 = toPoint
+                                Point1 = bezier1ControlPoint1,
+                                Point2 = bezier1ControlPoint2,
+                                Point3 = bezier1EndPoint
                             },
 
-                            new LineSegment() { },
+                            new LineSegment() { Point = line2EndPoint },
 
                             new BezierSegment()
                             {
-
+                                Point1 = bezier2ControlPoint1,
+                                Point2 = bezier2ControlPoint2,
+                                Point3 = startPoint
                             }
                         }
                     },

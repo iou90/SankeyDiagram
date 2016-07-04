@@ -53,31 +53,41 @@ namespace Kant.Wpf.Controls.Chart
                 }
 
                 var figure = ((PathGeometry)(link.Shape.Data)).Figures[0];
-                var bezier = (BezierSegment)figure.Segments[0];
-                var fromPoint = figure.StartPoint;
-                var toPoint = bezier.Point3;
-                var bezierControlPoint1 = new Point();
-                var bezierCOntrolPoint2 = new Point();
+                var startPoint = figure.StartPoint;
+                var line1EndPoint = ((LineSegment)figure.Segments[0]).Point;
+                var line2EndPoint = ((LineSegment)figure.Segments[2]).Point;
+                var bezier1 = (BezierSegment)figure.Segments[1];
+                var bezier2 = (BezierSegment)figure.Segments[3];
+                var bezier1ControlPoint1 = new Point(); 
+                var bezier1ControlPoint2 = new Point();
+                var bezier2ControlPoint1 = new Point();
+                var bezier2ControlPoint2 = new Point();
 
                 if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
                 {
-                    var length = toPoint.Y - fromPoint.Y;
-                    bezierControlPoint1.X = fromPoint.X;
-                    bezierControlPoint1.Y = length * diagram.LinkCurvature + fromPoint.Y;
-                    bezierCOntrolPoint2.X = toPoint.X;
-                    bezierCOntrolPoint2.Y = length * (1 - diagram.LinkCurvature) + fromPoint.Y;
+                    var length = line2EndPoint.Y - line1EndPoint.Y;
+                    bezier2ControlPoint2.X = startPoint.X;
+                    bezier1ControlPoint1.X = line1EndPoint.X;
+                    bezier2ControlPoint1.X = line2EndPoint.X;
+                    bezier1ControlPoint2.X = line2EndPoint.X + link.Width;
+                    bezier2ControlPoint2.Y = bezier1ControlPoint1.Y = curvature * length + startPoint.Y;
+                    bezier2ControlPoint1.Y = bezier1ControlPoint2.Y = (1 - curvature) * length + startPoint.Y;
                 }
                 else
                 {
-                    var length = toPoint.X - fromPoint.X;
-                    bezierControlPoint1.Y = fromPoint.Y;
-                    bezierControlPoint1.X = length * diagram.LinkCurvature + fromPoint.X;
-                    bezierCOntrolPoint2.Y = toPoint.Y;
-                    bezierCOntrolPoint2.X = length * (1 - diagram.LinkCurvature) + fromPoint.X;
+                    var length = line2EndPoint.X - line1EndPoint.X;
+                    bezier2ControlPoint2.Y = startPoint.Y;
+                    bezier1ControlPoint1.Y = line1EndPoint.Y;
+                    bezier2ControlPoint1.Y = line2EndPoint.Y;
+                    bezier1ControlPoint2.Y = line2EndPoint.Y + link.Width;
+                    bezier2ControlPoint2.X = bezier1ControlPoint1.X = curvature * length + startPoint.X;
+                    bezier2ControlPoint1.X = bezier1ControlPoint2.X = (1 - curvature) * length + startPoint.X;
                 }
 
-                bezier.Point1 = bezierControlPoint1;
-                bezier.Point2 = bezierCOntrolPoint2;
+                bezier1.Point1 = bezier1ControlPoint1;
+                bezier1.Point2 = bezier1ControlPoint2;
+                bezier2.Point1 = bezier2ControlPoint1;
+                bezier2.Point2 = bezier2ControlPoint2;
             }
         }
 
@@ -124,7 +134,7 @@ namespace Kant.Wpf.Controls.Chart
                     if (brushChangedNodes.Contains(link.FromNode.Label.Text))
                     {
                         var brush = link.FromNode.Shape.Fill;
-                        link.Shape.Stroke = brush.CloneCurrentValue();
+                        link.Shape.Fill = brush.CloneCurrentValue();
                         link.OriginalShapBrush = brush.CloneCurrentValue();
                     }
                 }
@@ -273,7 +283,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     if (check(link))
                     {
-                        link.FromNode.Shape.Fill.Opacity = link.ToNode.Shape.Fill.Opacity = link.Shape.Stroke.Opacity = highlightOpacity;
+                        link.FromNode.Shape.Fill.Opacity = link.ToNode.Shape.Fill.Opacity = link.Shape.Fill.Opacity = highlightOpacity;
                         link.IsHighlight = true;
                         link.FromNode.IsHighlight = true;
                         link.ToNode.IsHighlight = true;
@@ -283,7 +293,7 @@ namespace Kant.Wpf.Controls.Chart
 
                         if (diagram.HighlightBrush != null)
                         {
-                            link.Shape.Stroke = diagram.HighlightBrush.CloneCurrentValue();
+                            link.Shape.Fill = diagram.HighlightBrush.CloneCurrentValue();
                             link.FromNode.Shape.Fill = diagram.HighlightBrush.CloneCurrentValue();
                             link.ToNode.Shape.Fill = diagram.HighlightBrush.CloneCurrentValue();
                         }
@@ -295,8 +305,8 @@ namespace Kant.Wpf.Controls.Chart
                     }
                     else
                     {
-                        var minimizeOpacity = link.Shape.Stroke.Opacity - loweredOpacity < 0 ? 0 : link.Shape.Stroke.Opacity - loweredOpacity;
-                        link.Shape.Stroke.Opacity = minimizeOpacity;
+                        var minimizeOpacity = link.Shape.Fill.Opacity - loweredOpacity < 0 ? 0 : link.Shape.Fill.Opacity - loweredOpacity;
+                        link.Shape.Fill.Opacity = minimizeOpacity;
                         link.IsHighlight = false;
 
                         // prevent changing node's brush again
@@ -328,7 +338,7 @@ namespace Kant.Wpf.Controls.Chart
 
         private void RecoverFromHighlights(SankeyLink link, bool resetHighlightStatus = true)
         {
-            link.Shape.Stroke = link.OriginalShapBrush.CloneCurrentValue();
+            link.Shape.Fill = link.OriginalShapBrush.CloneCurrentValue();
             link.FromNode.Shape.Fill = link.FromNode.OriginalShapBrush.CloneCurrentValue();
             link.ToNode.Shape.Fill = link.ToNode.OriginalShapBrush.CloneCurrentValue();
             link.ToNode.Label.Style = link.FromNode.Label.Style = diagram.LabelStyle;

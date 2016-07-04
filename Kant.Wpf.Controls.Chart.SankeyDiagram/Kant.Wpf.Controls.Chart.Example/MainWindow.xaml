@@ -81,9 +81,9 @@
                 </StackPanel>
             </StackPanel>
             <Border Margin="20">
-                <kantCharts:SankeyDiagram Height="255"
+                <kantCharts:SankeyDiagram Height="755"
                                           NodeThickness="25"
-                                          NodeGap="55"
+                                          NodeGap="15"
                                           NodeBrush="DarkGray"
                                           UsePallette="LinksOnly"
                                           HighlightOpacity="0.95"
