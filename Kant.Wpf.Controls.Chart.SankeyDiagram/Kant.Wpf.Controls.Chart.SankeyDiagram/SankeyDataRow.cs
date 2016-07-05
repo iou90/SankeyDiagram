@@ -35,12 +35,12 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        public string From { get; }
+        public string From { get; set; }
 
-        public string To { get;}
+        public string To { get; set; }
 
-        public double Weight { get; }
+        public double Weight { get; set; }
 
-        public Brush LinkBrush { get; }
+        public Brush LinkBrush { get; set; }
     }
 }
