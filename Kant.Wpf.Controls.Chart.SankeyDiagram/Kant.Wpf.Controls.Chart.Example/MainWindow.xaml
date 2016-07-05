@@ -86,8 +86,8 @@
             </StackPanel>
             <Border Grid.Row="1"
                     Margin="20">
-                <kantCharts:SankeyDiagram NodeThickness="5"
-                                          NodeGap="2"
+                <kantCharts:SankeyDiagram NodeThickness="25"
+                                          NodeGap="15"
                                           FirstAndLastLabelPosition="Outward"
                                           NodeBrush="DarkGray"
                                           UsePallette="NodesLinks"

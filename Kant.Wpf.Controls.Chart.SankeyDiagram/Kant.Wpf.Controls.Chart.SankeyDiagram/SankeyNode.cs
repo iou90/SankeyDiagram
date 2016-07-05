@@ -32,6 +32,12 @@ namespace Kant.Wpf.Controls.Chart
 
         public TextBlock Label { get; set; }
 
+        public double LabelHeight { get; set; }
+
+        public double LabelWidth { get; set; }
+
+        public bool IsLabelSizeMeasured { get; set; }
+
         public string Name { get; set; }
 
         public double Y { get; set; }

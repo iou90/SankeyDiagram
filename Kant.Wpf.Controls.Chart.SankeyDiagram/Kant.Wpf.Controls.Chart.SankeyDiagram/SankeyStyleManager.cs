@@ -34,7 +34,7 @@ namespace Kant.Wpf.Controls.Chart
             labelStye.Setters.Add(new Setter(TextBlock.MarginProperty, new Thickness(2)));
             diagram.LabelStyle = labelStye;
             diagram.UsePallette = SankeyPalette.NodesLinks;
-            DefaultNodeLinksPalette = GetNodeLinksPalette(opacity);
+            defaultNodeLinksPalette = GetNodeLinksPalette(opacity);
             DefaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = opacity };
         }
 
@@ -91,6 +91,31 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
+        public void SetNodeBrush(SankeyNode node)
+        {
+            var brushCheck = diagram.NodeBrushes != null && diagram.NodeBrushes.Keys.Contains(node.Label.Text);
+
+            if (brushCheck)
+            {
+                node.Shape.Fill = diagram.NodeBrushes[node.Label.Text].CloneCurrentValue();
+            }
+            else
+            {
+                if (diagram.UsePallette != SankeyPalette.None)
+                {
+                    node.Shape.Fill = defaultNodeLinksPalette[DefaultNodeLinksPaletteIndex].CloneCurrentValue();
+                    DefaultNodeLinksPaletteIndex++;
+
+                    if (DefaultNodeLinksPaletteIndex >= defaultNodeLinksPalette.Count)
+                    {
+                        DefaultNodeLinksPaletteIndex = 0;
+                    }
+                }
+            }
+
+            node.OriginalShapBrush = node.Shape.Fill.CloneCurrentValue();
+        }
+
         public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
         {
             if (diagram == null || newBrushes == null || nodes == null || nodes.Count() < 2)
@@ -98,7 +123,7 @@ namespace Kant.Wpf.Controls.Chart
                 return;
             }
 
-            ResetHighlight();
+            ClearHighlight();
             var brushChangedNodes = new List<string>();
 
             foreach (var levelNodes in nodes.Values)
@@ -153,7 +178,7 @@ namespace Kant.Wpf.Controls.Chart
                 return;
             }
 
-            ResetHighlight();
+            ClearHighlight();
 
             foreach(var levelNodes in nodes.Values)
             {
@@ -166,7 +191,8 @@ namespace Kant.Wpf.Controls.Chart
 
         public void ClearHighlight()
         {
-            ResetHighlight();
+            diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, null);
+            diagram.SetCurrentValue(SankeyDiagram.HighlightLinkProperty, null);
         }
 
         public void ChangeLabelsVisibility(bool showLabels, List<TextBlock> labels)
@@ -360,12 +386,6 @@ namespace Kant.Wpf.Controls.Chart
             node.Label.Opacity = minimizeOpacity;
         }
 
-        private void ResetHighlight()
-        {
-            diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, null);
-            diagram.SetCurrentValue(SankeyDiagram.HighlightLinkProperty, null);
-        }
-
         private List<Brush> GetNodeLinksPalette(double opacity)
         {
             return new List<Brush>()
@@ -401,11 +421,11 @@ namespace Kant.Wpf.Controls.Chart
 
         public Brush DefaultLinkBrush { get; set; }
 
-        public List<Brush> DefaultNodeLinksPalette { get; set; }
-
         public double OriginalLabelOpacity { get; set; }
 
         private SankeyDiagram diagram;
+
+        private List<Brush> defaultNodeLinksPalette;
 
         #endregion
     }

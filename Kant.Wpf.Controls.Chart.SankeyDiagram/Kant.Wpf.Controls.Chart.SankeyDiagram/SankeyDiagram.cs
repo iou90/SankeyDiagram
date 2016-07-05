@@ -20,7 +20,7 @@ namespace Kant.Wpf.Controls.Chart
     [TemplatePart(Name = "PartDiagramGrid", Type = typeof(Grid))]
     [TemplatePart(Name = "PartNodesPanel", Type = typeof(StackPanel))]
     [TemplatePart(Name = "PartLinksContainer", Type = typeof(Canvas))]
-    public class SankeyDiagram : Control
+    public class SankeyDiagram : Control, IDisposable
     {
         #region Constructor
 
@@ -31,6 +31,7 @@ namespace Kant.Wpf.Controls.Chart
 
         public SankeyDiagram()
         {
+            disposedValue = false;
             styleManager = new SankeyStyleManager(this);
             assist = new SankeyDiagramAssist(this, styleManager);
 
@@ -41,7 +42,7 @@ namespace Kant.Wpf.Controls.Chart
                     return;
                 }
 
-                assist.CreateDiagram(Datas);
+                assist.CreateDiagram();
                 IsDiagramCreated = true;
             };
         }
@@ -76,6 +77,37 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
+        #region IDisposable Support
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    if(assist != null)
+                    {
+                        assist.ClearDiagram();
+                    }
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        ~SankeyDiagram()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
+
         #region dependency property methods
 
         private static void OnDatasSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
@@ -104,7 +136,14 @@ namespace Kant.Wpf.Controls.Chart
         private static void OnSankeyFlowDirectionSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
             var diagram = (SankeyDiagram)o;
-            diagram.assist.UpdateDiagram(diagram.Datas);
+
+            if (diagram.IsDiagramCreated)
+            {
+                diagram.DiagramCanvas.Children.Clear();
+                diagram.assist.CurrentLabels.Clear();
+                diagram.styleManager.ClearHighlight();
+                diagram.assist.CreateDiagram();
+            }
         }
 
         private static void OnShowLabelsSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
@@ -288,6 +327,8 @@ namespace Kant.Wpf.Controls.Chart
         private SankeyStyleManager styleManager;
 
         private SankeyDiagramAssist assist;
+
+        private bool disposedValue;
 
         #endregion
     }
