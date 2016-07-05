@@ -35,7 +35,11 @@
     </Window.Resources>
     <Grid x:Name="grid"
           Background="#FFFBFAE9">
-        <StackPanel>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal"
                         Margin="20,0,0,0">
                 <Button Content="clear"
@@ -80,12 +84,12 @@
                                Margin="2,0,0,0" />
                 </StackPanel>
             </StackPanel>
-            <Border Margin="20">
-                <kantCharts:SankeyDiagram Height="755"
-                                          NodeThickness="25"
-                                          NodeGap="15"
+            <Border Grid.Row="1"
+                    Margin="20">
+                <kantCharts:SankeyDiagram NodeThickness="5"
+                                          NodeGap="2"
                                           NodeBrush="DarkGray"
-                                          UsePallette="LinksOnly"
+                                          UsePallette="NodesLinks"
                                           HighlightOpacity="0.95"
                                           LoweredOpacity="0.45"
                                           HighlightBrush="{StaticResource SankeyHighlightBrush}"
@@ -100,6 +104,6 @@
                                           HighlightNode="{Binding HighlightSankeyNode}"
                                           HighlightLink="{Binding HighlightSankeyLink}" />
             </Border>
-        </StackPanel>
+        </Grid>
     </Grid>
 </Window>

@@ -118,7 +118,7 @@ namespace Kant.Wpf.Controls.Chart
 
             #endregion
  
-            #region add nodes & links & labels
+            #region add nodes
 
             foreach (var node in nodes)
             {
@@ -155,7 +155,11 @@ namespace Kant.Wpf.Controls.Chart
                 }
             }
 
-            foreach(var link in CurrentLinks)
+            #endregion
+
+            #region add links & labels
+
+            foreach (var link in CurrentLinks)
             {
                 // make link under the node
                 Panel.SetZIndex(link.Shape, -1);
@@ -178,7 +182,7 @@ namespace Kant.Wpf.Controls.Chart
                         {
                             Canvas.SetLeft(node.Label, node.X + (node.Shape.Width / 2) - (node.Label.DesiredSize.Width / 2));
 
-                            if (index == nodes.Count - 1)
+                            if (index == CurrentNodes.Count - 1)
                             {
                                 Canvas.SetBottom(node.Label, node.Shape.Height);
                             }
