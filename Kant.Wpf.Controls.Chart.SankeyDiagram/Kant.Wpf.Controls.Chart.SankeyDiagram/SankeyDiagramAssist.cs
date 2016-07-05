@@ -56,7 +56,7 @@ namespace Kant.Wpf.Controls.Chart
         
         public void CreateDiagram(IEnumerable<SankeyDataRow> datas)
         {
-            if (diagram.DiagramCanvas.ActualHeight <= 0 || diagram.DiagramCanvas.ActualWidth <= 0)
+            if (datas == null || datas.Count() == 0 || diagram.DiagramCanvas.ActualHeight <= 0 || diagram.DiagramCanvas.ActualWidth <= 0)
             {
                 return;
             }
