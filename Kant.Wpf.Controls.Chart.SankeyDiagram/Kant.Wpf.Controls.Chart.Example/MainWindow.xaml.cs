@@ -26,6 +26,7 @@ namespace Kant.Wpf.Controls.Chart.Example
 
             Loaded += (s, e) =>
             {
+                //diagram.DiagramGrid.Margin = new Thickness(50);
             };
         }
     }

@@ -123,7 +123,7 @@ namespace Kant.Wpf.Controls.Chart.Example
             SankeyDatas = datas;
             SankeyShowLabels = true;
             SankeyLinkCurvature = 0.95;
-            SankeyFlowDirection = FlowDirection.TopToBottom;
+            //SankeyFlowDirection = FlowDirection.TopToBottom;
         }
 
         #endregion

@@ -48,34 +48,27 @@ namespace Kant.Wpf.Controls.Chart
 
         public void ClearDiagram()
         {
-            if (!(diagram.DiagramCanvas == null || diagram.DiagramCanvas.Children == null || diagram.DiagramCanvas.Children.Count == 0))
+            if (!(DiagramCanvas == null || DiagramCanvas.Children == null || DiagramCanvas.Children.Count == 0))
             {
                 RemoveElementEventHandlers();
-                diagram.DiagramCanvas.Children.Clear();
+                DiagramCanvas.Children.Clear();
                 CurrentNodes.Clear();
                 currentSliceNodes.Clear();
                 CurrentLabels.Clear();
                 CurrentLinks.Clear();
                 styleManager.ClearHighlight();
-                measuredLabelHeight = 0;
-                measuredLabelWidth = 0;
+                measuredFirstLevelLabelWidth = measuredLastLevelLabelWidth = measuredLabelHeight = 0;
             }
         }
         
         public void CreateDiagram()
         {
-            if (diagram.DiagramCanvas.ActualHeight <= 0 || diagram.DiagramCanvas.ActualWidth <= 0)
+            if (DiagramCanvas.ActualHeight <= 0 || DiagramCanvas.ActualWidth <= 0)
             {
                 return;
             }
 
             #region preparing...
-
-            if(!(originalCanvasWidth > 0) && !(originalCanvasHeight > 0))
-            {
-                originalCanvasHeight = diagram.DiagramCanvas.ActualHeight;
-                originalCanvasWidth = diagram.DiagramCanvas.ActualWidth;
-            }
 
             var nodes = CalculateNodeLayout(currentSliceNodes, diagram.NodeThickness);
 
@@ -88,7 +81,7 @@ namespace Kant.Wpf.Controls.Chart
                 CurrentNodes = nodes;
             }
 
-            var panelLength = diagram.SankeyFlowDirection == FlowDirection.TopToBottom ? diagram.DiagramCanvas.Width : diagram.DiagramCanvas.Height;
+            var panelLength = diagram.SankeyFlowDirection == FlowDirection.TopToBottom ? DiagramCanvas.ActualWidth : DiagramCanvas.ActualHeight;
             var unitLength = panelLength;
             var maxNodeCountInOneLevel = 0;
 
@@ -131,7 +124,7 @@ namespace Kant.Wpf.Controls.Chart
 
             if (nodesOverallLength <= 0)
             {
-                diagram.DiagramCanvas.Children.Add(new TextBlock() { Text = "diagram area insufficient" });
+                DiagramCanvas.Children.Add(new TextBlock() { Text = "diagram area insufficient" });
 
                 return;
             }
@@ -148,7 +141,7 @@ namespace Kant.Wpf.Controls.Chart
             {
                 Canvas.SetTop(node.Shape, node.Y);
                 Canvas.SetLeft(node.Shape, node.X);
-                diagram.DiagramCanvas.Children.Add(node.Shape);
+                DiagramCanvas.Children.Add(node.Shape);
 
                 if (diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
                 {
@@ -187,7 +180,7 @@ namespace Kant.Wpf.Controls.Chart
             {
                 // make link under the node
                 Panel.SetZIndex(link.Shape, -1);
-                diagram.DiagramCanvas.Children.Add(DrawLink(link).Shape);
+                DiagramCanvas.Children.Add(DrawLink(link).Shape);
             }
 
             var labelsAlreadyExisted = CurrentLabels.Count == 0 ? false : true;
@@ -278,7 +271,7 @@ namespace Kant.Wpf.Controls.Chart
                         }
 
                         CurrentLabels.Add(node.Label);
-                        diagram.DiagramCanvas.Children.Add(node.Label);
+                        DiagramCanvas.Children.Add(node.Label);
                     }
                 }
             }
@@ -402,66 +395,63 @@ namespace Kant.Wpf.Controls.Chart
 
             if (diagram.FirstAndLastLabelPosition == FirstAndLastLabelPosition.Outward)
             {
-                var currentHeight = 0.0;
-                var currentWidth = 0.0;
-                currentHeight = originalCanvasHeight;
-                currentWidth = originalCanvasWidth;
-
                 if (diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
                 {
                     if (!(measuredLabelHeight > 0))
                     {
                         nodes[0].Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                        measuredLabelHeight = nodes[0].Label.DesiredSize.Height * 2;
+                        measuredLabelHeight = nodes[0].Label.DesiredSize.Height;
                     }
 
-                    var newHeight = currentHeight - measuredLabelHeight;
+                    var newHeight = DiagramCanvas.ActualHeight - measuredLabelHeight * 2;
 
                     if (newHeight <= 0)
                     {
-                        diagram.DiagramCanvas.Children.Add(new TextBlock() { Text = "diagram area insufficient" });
+                        DiagramCanvas.Children.Add(new TextBlock() { Text = "diagram area insufficient" });
 
                         return null;
                     }
 
-                    diagram.DiagramCanvas.Height = newHeight;
-                    diagram.DiagramCanvas.Width = currentWidth;
+                    DiagramCanvas.Margin = new Thickness(0, measuredLabelHeight, 0, measuredLabelHeight);
                 }
                 else
                 {
-                    if (!(measuredLabelWidth > 0))
+                    if (!(measuredFirstLevelLabelWidth > 0))
                     {
-                        var firstLevelLabelMaxWidth = GetMaxLabelWidth(nodes.FindAll(n => n.X == 0));
-                        var lastLevelLabelMaxWidth = GetMaxLabelWidth(nodes.FindAll(n => n.X == levelIndex - 1));
-                        measuredLabelWidth = firstLevelLabelMaxWidth + lastLevelLabelMaxWidth;
+                        measuredFirstLevelLabelWidth = GetMaxLabelWidth(nodes.FindAll(n => n.X == 0));
                     }
 
-                    var newWidth = currentWidth - measuredLabelWidth;
+                    if(!(measuredLastLevelLabelWidth > 0))
+                    {
+                        measuredLastLevelLabelWidth = GetMaxLabelWidth(nodes.FindAll(n => n.X == levelIndex - 1));
+                    }
+
+                    var newWidth = diagram.ActualWidth - (measuredLastLevelLabelWidth + measuredFirstLevelLabelWidth);
 
                     if (newWidth <= 0)
                     {
-                        diagram.DiagramCanvas.Children.Add(new TextBlock() { Text = "diagram area insufficient" });
+                        DiagramCanvas.Children.Add(new TextBlock() { Text = "diagram area insufficient" });
 
                         return null;
                     }
 
-                    diagram.DiagramCanvas.Width = newWidth;
-                    diagram.DiagramCanvas.Height = currentHeight;
+                    DiagramCanvas.Margin = new Thickness(measuredFirstLevelLabelWidth, 0, measuredLastLevelLabelWidth, 0);
                 }
+
+                diagram.UpdateLayout();
             }
             else
             {
-                diagram.DiagramCanvas.Height = diagram.DiagramCanvas.ActualHeight;
-                diagram.DiagramCanvas.Width = diagram.DiagramCanvas.ActualWidth;
+                DiagramCanvas.Margin = new Thickness(0);
             }
 
             if (diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
             {
-                length = diagram.DiagramCanvas.Height;
+                length = DiagramCanvas.ActualHeight;
             }
             else
             {
-                length = diagram.DiagramCanvas.Width;
+                length = DiagramCanvas.ActualWidth;
             }
 
             linkLength = (length - nodeThickness) / (levelIndex - 1);
@@ -673,7 +663,7 @@ namespace Kant.Wpf.Controls.Chart
 
         private void RemoveElementEventHandlers()
         {
-            if (CurrentLinks != null && CurrentNodes != null && diagram.DiagramGrid != null)
+            if (CurrentLinks != null && CurrentNodes != null)
             {
                 foreach(var levelNodes in CurrentNodes.Values)
                 {
@@ -707,13 +697,13 @@ namespace Kant.Wpf.Controls.Chart
 
         public List<SankeyLink> CurrentLinks { get; private set; }
 
-        private double originalCanvasHeight;
-
-        private double originalCanvasWidth;
+        public Canvas DiagramCanvas { get; set; }
 
         private double measuredLabelHeight;
 
-        private double measuredLabelWidth;
+        private double measuredFirstLevelLabelWidth;
+
+        private double measuredLastLevelLabelWidth;
 
         private List<SankeyNode> currentSliceNodes;
 

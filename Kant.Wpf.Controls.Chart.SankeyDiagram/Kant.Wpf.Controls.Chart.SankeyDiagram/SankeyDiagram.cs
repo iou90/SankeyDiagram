@@ -73,7 +73,8 @@ namespace Kant.Wpf.Controls.Chart
             }
             else
             {
-                DiagramCanvas = canvas;
+                diagramCanvas = canvas;
+                assist.DiagramCanvas = diagramCanvas;
             }
         }
 
@@ -139,7 +140,7 @@ namespace Kant.Wpf.Controls.Chart
 
             if (diagram.IsDiagramCreated)
             {
-                diagram.DiagramCanvas.Children.Clear();
+                diagram.diagramCanvas.Children.Clear();
                 diagram.assist.CurrentLabels.Clear();
                 diagram.styleManager.ClearHighlight();
                 diagram.assist.CreateDiagram();
@@ -320,9 +321,11 @@ namespace Kant.Wpf.Controls.Chart
         /// </summary>
         public Grid DiagramGrid { get; private set; }
 
-        public Canvas DiagramCanvas { get; private set; }
+        //public Canvas DiagramCanvas { get; private set; }
 
         public bool IsDiagramCreated { get; private set; }
+
+        private Canvas diagramCanvas;
 
         private SankeyStyleManager styleManager;
 
