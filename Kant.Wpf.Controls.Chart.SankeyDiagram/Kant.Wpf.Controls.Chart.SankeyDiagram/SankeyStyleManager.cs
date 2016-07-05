@@ -63,7 +63,7 @@ namespace Kant.Wpf.Controls.Chart
                 var bezier2ControlPoint1 = new Point();
                 var bezier2ControlPoint2 = new Point();
 
-                if (diagram.SankeyFlowDirection == SankeyFlowDirection.TopToBottom)
+                if (diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
                 {
                     var length = line2EndPoint.Y - line1EndPoint.Y;
                     bezier2ControlPoint2.X = startPoint.X;

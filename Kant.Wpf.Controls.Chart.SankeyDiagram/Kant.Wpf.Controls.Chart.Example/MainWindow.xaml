@@ -88,6 +88,7 @@
                     Margin="20">
                 <kantCharts:SankeyDiagram NodeThickness="5"
                                           NodeGap="2"
+                                          FirstAndLastLabelPosition="Outward"
                                           NodeBrush="DarkGray"
                                           UsePallette="NodesLinks"
                                           HighlightOpacity="0.95"

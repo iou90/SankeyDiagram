@@ -48,9 +48,10 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FirstAndLastLabelPosition.cs" />
     <Compile Include="SankeyDiagramAssist.cs" />
-    <Compile Include="SankeyFlowDirection.cs" />
-    <Compile Include="SankeyHighlightMode.cs" />
+    <Compile Include="FlowDirection.cs" />
+    <Compile Include="HighlightMode.cs" />
     <Compile Include="SankeyIterativeRelaxation.cs" />
     <Compile Include="SankeyLink.cs" />
     <Compile Include="SankeyLinkFinder.cs" />

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Kant.Wpf.Controls.Chart
 {
-    public enum SankeyFlowDirection
+    public enum FlowDirection
     {
         LeftToRight,
         TopToBottom

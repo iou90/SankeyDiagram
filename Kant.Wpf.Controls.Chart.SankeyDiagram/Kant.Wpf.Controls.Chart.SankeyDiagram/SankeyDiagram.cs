@@ -194,13 +194,13 @@ namespace Kant.Wpf.Controls.Chart
         /// <summary>
         /// MouseLeftButtonUp by default
         /// </summary>
-        public SankeyHighlightMode HighlightMode
+        public HighlightMode HighlightMode
         {
-            get { return (SankeyHighlightMode)GetValue(HighlightModeProperty); }
+            get { return (HighlightMode)GetValue(HighlightModeProperty); }
             set { SetValue(HighlightModeProperty, value); }
         }
 
-        public static readonly DependencyProperty HighlightModeProperty = DependencyProperty.Register("HighlightMode", typeof(SankeyHighlightMode), typeof(SankeyDiagram), new PropertyMetadata(SankeyHighlightMode.MouseLeftButtonUp, OnHighlightModeSourceChanged));
+        public static readonly DependencyProperty HighlightModeProperty = DependencyProperty.Register("HighlightMode", typeof(HighlightMode), typeof(SankeyDiagram), new PropertyMetadata(HighlightMode.MouseLeftButtonUp, OnHighlightModeSourceChanged));
 
         public SankeyLinkFinder HighlightLink
         {
@@ -213,13 +213,13 @@ namespace Kant.Wpf.Controls.Chart
         /// <summary>
         /// LeftToRight by default
         /// </summary>
-        public SankeyFlowDirection SankeyFlowDirection
+        public FlowDirection SankeyFlowDirection
         {
-            get { return (SankeyFlowDirection)GetValue(SankeyFlowDirectionProperty); }
+            get { return (FlowDirection)GetValue(SankeyFlowDirectionProperty); }
             set { SetValue(SankeyFlowDirectionProperty, value); }
         }
 
-        public static readonly DependencyProperty SankeyFlowDirectionProperty = DependencyProperty.Register("SankeyFlowDirection", typeof(SankeyFlowDirection), typeof(SankeyDiagram), new PropertyMetadata(SankeyFlowDirection.LeftToRight, OnSankeyFlowDirectionSourceChanged));
+        public static readonly DependencyProperty SankeyFlowDirectionProperty = DependencyProperty.Register("SankeyFlowDirection", typeof(FlowDirection), typeof(SankeyDiagram), new PropertyMetadata(Chart.FlowDirection.LeftToRight, OnSankeyFlowDirectionSourceChanged));
 
         /// <summary>
         /// Show labels by default
@@ -248,24 +248,14 @@ namespace Kant.Wpf.Controls.Chart
         /// </summary>
         public double NodeGap { get; set; }
 
-        ///// <summary>
-        ///// bezier curve control point1's position (point.X or point.Y)
-        ///// 0.4 by default
-        ///// </summary>
-        //public double LinkPoint1Curveless { get; set; }
-
-        ///// <summary>
-        ///// bezier curve control point2's position (point.X or point.Y)
-        ///// 0.6 by default
-        ///// </summary>
-        //public double LinkPoint2Curveless { get; set; }
-
         /// <summary>
         /// NodesLinks by default
         /// </summary>
         public SankeyPalette UsePallette { get; set; }
 
         public Style LabelStyle { get; set; }
+
+        public FirstAndLastLabelPosition FirstAndLastLabelPosition { get; set; }
 
         public Style HighlightLabelStyle { get; set; }
 

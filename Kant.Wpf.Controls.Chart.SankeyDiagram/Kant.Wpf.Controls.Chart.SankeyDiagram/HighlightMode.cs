@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Kant.Wpf.Controls.Chart
 {
-    public enum SankeyHighlightMode
+    public enum HighlightMode
     {
         MouseLeftButtonUp,
         MouseEnter
