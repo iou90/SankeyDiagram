@@ -8,6 +8,10 @@ namespace Kant.Wpf.Controls.Chart
 {
     public class SankeyLinkFinder
     {
+        public SankeyLinkFinder()
+        {
+        }
+
         public SankeyLinkFinder(string from, string to)
         {
             if(string.IsNullOrEmpty(from))
