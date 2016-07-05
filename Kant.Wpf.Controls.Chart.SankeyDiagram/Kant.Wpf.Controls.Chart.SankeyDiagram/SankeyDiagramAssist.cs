@@ -26,6 +26,24 @@ namespace Kant.Wpf.Controls.Chart
 
         #region Methods
 
+        public void DiagramCanvasSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if(!diagram.IsDiagramCreated)
+            {
+                return;
+            }
+
+            // avoid reduplicative layout calculating
+            if (isCreatingDiagram)
+            {
+                isCreatingDiagram = false;
+
+                return;
+            }
+
+            CreateDiagram();
+        }
+
         public void UpdateDiagram(IEnumerable<SankeyDataRow> datas)
         {
             // clear diagram first
@@ -51,28 +69,42 @@ namespace Kant.Wpf.Controls.Chart
             if (!(DiagramCanvas == null || DiagramCanvas.Children == null || DiagramCanvas.Children.Count == 0))
             {
                 RemoveElementEventHandlers();
-                DiagramCanvas.Children.Clear();
+                ClearDiagramCanvasChilds();
                 CurrentNodes.Clear();
                 currentSliceNodes.Clear();
-                CurrentLabels.Clear();
                 CurrentLinks.Clear();
                 styleManager.ClearHighlight();
                 measuredFirstLevelLabelWidth = measuredLastLevelLabelWidth = measuredLabelHeight = 0;
             }
         }
-        
+
+        public void ClearDiagramCanvasChilds()
+        {
+            if (DiagramCanvas == null || DiagramCanvas.Children == null || CurrentLabels == null)
+            {
+                return;
+            }
+
+            DiagramCanvas.Children.Clear();
+            CurrentLabels.Clear();
+        }
+
         public void CreateDiagram()
         {
+            ClearDiagramCanvasChilds();
+
             if (DiagramCanvas.ActualHeight <= 0 || DiagramCanvas.ActualWidth <= 0)
             {
                 return;
             }
 
+            isCreatingDiagram = true;
+
             #region preparing...
 
             var nodes = CalculateNodeLayout(currentSliceNodes, diagram.NodeThickness);
 
-            if(nodes == null)
+            if (nodes == null)
             {
                 return;
             }
@@ -87,14 +119,14 @@ namespace Kant.Wpf.Controls.Chart
 
             foreach (var levelNodes in CurrentNodes.Values)
             {
-                if(levelNodes.Count > maxNodeCountInOneLevel)
+                if (levelNodes.Count > maxNodeCountInOneLevel)
                 {
                     maxNodeCountInOneLevel = levelNodes.Count;
                 }
 
                 var sum = 0.0;
 
-                if(diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
+                if (diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
                 {
                     sum = levelNodes.Sum(node => node.Shape.Width);
                 }
@@ -105,7 +137,7 @@ namespace Kant.Wpf.Controls.Chart
 
                 var length = (panelLength - (levelNodes.Count - 1) * diagram.NodeGap) / sum;
 
-                 if (length < unitLength)
+                if (length < unitLength)
                 {
                     unitLength = length;
                 }
@@ -183,96 +215,91 @@ namespace Kant.Wpf.Controls.Chart
                 DiagramCanvas.Children.Add(DrawLink(link).Shape);
             }
 
-            var labelsAlreadyExisted = CurrentLabels.Count == 0 ? false : true;
+            styleManager.OriginalLabelOpacity = this.CurrentNodes[0][0].Label.Opacity;
 
-            if (!labelsAlreadyExisted)
+            for (var index = 0; index < CurrentNodes.Count; index++)
             {
-                styleManager.OriginalLabelOpacity = this.CurrentNodes[0][0].Label.Opacity;
-
-                for(var index = 0; index < CurrentNodes.Count; index++)
+                foreach (var node in CurrentNodes[index])
                 {
-                    foreach(var node in CurrentNodes[index])
+                    if (!node.IsLabelSizeMeasured)
                     {
-                        if (!node.IsLabelSizeMeasured)
+                        node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                        node.LabelHeight = node.Label.DesiredSize.Height;
+                        node.LabelWidth = node.Label.DesiredSize.Width;
+                        node.IsLabelSizeMeasured = true;
+                    }
+
+                    // restore default position
+                    Canvas.SetLeft(node.Label, double.NaN);
+                    Canvas.SetRight(node.Label, double.NaN);
+                    Canvas.SetTop(node.Label, double.NaN);
+                    Canvas.SetBottom(node.Label, double.NaN);
+
+                    if (diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
+                    {
+                        Canvas.SetLeft(node.Label, node.X + (node.Shape.Width / 2) - (node.LabelWidth / 2));
+
+                        if (diagram.FirstAndLastLabelPosition == FirstAndLastLabelPosition.Inward)
                         {
-                            node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                            node.LabelHeight = node.Label.DesiredSize.Height;
-                            node.LabelWidth = node.Label.DesiredSize.Width;
-                            node.IsLabelSizeMeasured = true;
-                        }
-
-                        // restore default position
-                        Canvas.SetLeft(node.Label, double.NaN);
-                        Canvas.SetRight(node.Label, double.NaN);
-                        Canvas.SetTop(node.Label, double.NaN);
-                        Canvas.SetBottom(node.Label, double.NaN);
-
-                        if (diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
-                        {
-                            Canvas.SetLeft(node.Label, node.X + (node.Shape.Width / 2) - (node.LabelWidth / 2));
-
-                            if (diagram.FirstAndLastLabelPosition == FirstAndLastLabelPosition.Inward)
+                            if (index == CurrentNodes.Count - 1)
                             {
-                                if (index == CurrentNodes.Count - 1)
-                                {
-                                    Canvas.SetBottom(node.Label, node.Shape.Height);
-                                }
-                                else
-                                {
-                                    Canvas.SetTop(node.Label, node.Y + node.Shape.Height);
-                                }
+                                Canvas.SetBottom(node.Label, node.Shape.Height);
                             }
                             else
                             {
-                                if(index == 0)
-                                {
-                                    Canvas.SetTop(node.Label, - node.LabelHeight);
-                                }
-                                else if (index == CurrentNodes.Count - 1)
-                                {
-                                    Canvas.SetBottom(node.Label, -node.LabelHeight);
-                                }
-                                else
-                                {
-                                    Canvas.SetTop(node.Label, node.Y + node.Shape.Height);
-                                }
+                                Canvas.SetTop(node.Label, node.Y + node.Shape.Height);
                             }
                         }
                         else
                         {
-                            Canvas.SetTop(node.Label, node.Y + (node.Shape.Height / 2) - (node.LabelHeight / 2));
-
-                            if (diagram.FirstAndLastLabelPosition == FirstAndLastLabelPosition.Inward)
+                            if (index == 0)
                             {
-                                if (index == CurrentNodes.Count - 1)
-                                {
-                                    Canvas.SetRight(node.Label, node.Shape.Width);
-                                }
-                                else
-                                {
-                                    Canvas.SetLeft(node.Label, node.X + node.Shape.Width);
-                                }
+                                Canvas.SetTop(node.Label, -node.LabelHeight);
+                            }
+                            else if (index == CurrentNodes.Count - 1)
+                            {
+                                Canvas.SetBottom(node.Label, -node.LabelHeight);
                             }
                             else
                             {
-                                if (index == 0)
-                                {
-                                    Canvas.SetLeft(node.Label, -node.LabelWidth);
-                                }
-                                else if (index == CurrentNodes.Count - 1)
-                                {
-                                    Canvas.SetRight(node.Label, -node.LabelWidth);
-                                }
-                                else
-                                {
-                                    Canvas.SetLeft(node.Label, node.X + node.Shape.Width);
-                                }
+                                Canvas.SetTop(node.Label, node.Y + node.Shape.Height);
                             }
                         }
-
-                        CurrentLabels.Add(node.Label);
-                        DiagramCanvas.Children.Add(node.Label);
                     }
+                    else
+                    {
+                        Canvas.SetTop(node.Label, node.Y + (node.Shape.Height / 2) - (node.LabelHeight / 2));
+
+                        if (diagram.FirstAndLastLabelPosition == FirstAndLastLabelPosition.Inward)
+                        {
+                            if (index == CurrentNodes.Count - 1)
+                            {
+                                Canvas.SetRight(node.Label, node.Shape.Width);
+                            }
+                            else
+                            {
+                                Canvas.SetLeft(node.Label, node.X + node.Shape.Width);
+                            }
+                        }
+                        else
+                        {
+                            if (index == 0)
+                            {
+                                Canvas.SetLeft(node.Label, -node.LabelWidth);
+                            }
+                            else if (index == CurrentNodes.Count - 1)
+                            {
+                                Canvas.SetRight(node.Label, -node.LabelWidth);
+                            }
+                            else
+                            {
+                                Canvas.SetLeft(node.Label, node.X + node.Shape.Width);
+                            }
+                        }
+                    }
+
+                    CurrentLabels.Add(node.Label);
+                    DiagramCanvas.Children.Add(node.Label);
                 }
             }
 
@@ -663,8 +690,10 @@ namespace Kant.Wpf.Controls.Chart
 
         private void RemoveElementEventHandlers()
         {
-            if (CurrentLinks != null && CurrentNodes != null)
+            if (CurrentLinks != null && CurrentNodes != null && DiagramCanvas != null)
             {
+                DiagramCanvas.SizeChanged -= DiagramCanvasSizeChanged;
+
                 foreach(var levelNodes in CurrentNodes.Values)
                 {
                     foreach(var node in levelNodes)
@@ -698,6 +727,8 @@ namespace Kant.Wpf.Controls.Chart
         public List<SankeyLink> CurrentLinks { get; private set; }
 
         public Canvas DiagramCanvas { get; set; }
+
+        private bool isCreatingDiagram;
 
         private double measuredLabelHeight;
 

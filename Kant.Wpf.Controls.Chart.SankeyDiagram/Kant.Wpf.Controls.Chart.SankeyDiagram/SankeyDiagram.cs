@@ -75,6 +75,7 @@ namespace Kant.Wpf.Controls.Chart
             {
                 diagramCanvas = canvas;
                 assist.DiagramCanvas = diagramCanvas;
+                assist.DiagramCanvas.SizeChanged += assist.DiagramCanvasSizeChanged;
             }
         }
 
@@ -140,8 +141,7 @@ namespace Kant.Wpf.Controls.Chart
 
             if (diagram.IsDiagramCreated)
             {
-                diagram.diagramCanvas.Children.Clear();
-                diagram.assist.CurrentLabels.Clear();
+                diagram.assist.ClearDiagramCanvasChilds();
                 diagram.styleManager.ClearHighlight();
                 diagram.assist.CreateDiagram();
             }
