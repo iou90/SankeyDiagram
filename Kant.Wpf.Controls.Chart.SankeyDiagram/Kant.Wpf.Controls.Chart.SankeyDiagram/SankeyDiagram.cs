@@ -79,6 +79,14 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            // changing
+            assist.ClearDiagramLabelMeasuredValue();
+            styleManager.ClearHighlight();
+            assist.CreateDiagram();
+        }
+
         #region IDisposable Support
 
         protected virtual void Dispose(bool disposing)
@@ -137,11 +145,25 @@ namespace Kant.Wpf.Controls.Chart
 
         private static void OnSankeyFlowDirectionSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
+            ReLoadDiagram((SankeyDiagram)o);
+        }
+
+        private static void OnLabelStyleSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            // changing
             var diagram = (SankeyDiagram)o;
 
+            if (diagram.FirstAndLastLabelPosition == FirstAndLastLabelPosition.Outward)
+            {
+                diagram.assist.ClearDiagramLabelMeasuredValue();
+                ReLoadDiagram(diagram);
+            }
+        }
+
+        private static void ReLoadDiagram(SankeyDiagram diagram)
+        {
             if (diagram.IsDiagramCreated)
             {
-                diagram.assist.ClearDiagramCanvasChilds();
                 diagram.styleManager.ClearHighlight();
                 diagram.assist.CreateDiagram();
             }
@@ -223,6 +245,14 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty NodeBrushesProperty = DependencyProperty.Register("NodeBrushes", typeof(Dictionary<string, Brush>), typeof(SankeyDiagram), new PropertyMetadata(OnNodeBrushesSourceChanged));
 
+        public Style LabelStyle
+        {
+            get { return (Style)GetValue(LabelStyleProperty); }
+            set { SetValue(LabelStyleProperty, value); }
+        }
+
+        public static readonly DependencyProperty LabelStyleProperty = DependencyProperty.Register("LabelStyle", typeof(Style), typeof(SankeyDiagram),new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender, OnLabelStyleSourceChanged));
+
         public string HighlightNode
         {
             get { return (string)GetValue(HighlightNodeProperty); }
@@ -293,7 +323,7 @@ namespace Kant.Wpf.Controls.Chart
         /// </summary>
         public SankeyPalette UsePallette { get; set; }
 
-        public Style LabelStyle { get; set; }
+        //public Style LabelStyle { get; set; }
 
         public FirstAndLastLabelPosition FirstAndLastLabelPosition { get; set; }
 
@@ -320,8 +350,6 @@ namespace Kant.Wpf.Controls.Chart
         /// you can custom the style of diagram grid with this property
         /// </summary>
         public Grid DiagramGrid { get; private set; }
-
-        //public Canvas DiagramCanvas { get; private set; }
 
         public bool IsDiagramCreated { get; private set; }
 

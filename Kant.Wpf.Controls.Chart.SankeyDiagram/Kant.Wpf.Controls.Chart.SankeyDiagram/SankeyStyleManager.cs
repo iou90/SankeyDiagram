@@ -30,9 +30,6 @@ namespace Kant.Wpf.Controls.Chart
             diagram.NodeThickness = 10;
             diagram.HighlightOpacity = 1.0;
             diagram.LoweredOpacity = 0.25;
-            var labelStye = new Style(typeof(TextBlock));
-            labelStye.Setters.Add(new Setter(TextBlock.MarginProperty, new Thickness(2)));
-            diagram.LabelStyle = labelStye;
             diagram.UsePallette = SankeyPalette.NodesLinks;
             defaultNodeLinksPalette = GetNodeLinksPalette(opacity);
             DefaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = opacity };
@@ -93,11 +90,11 @@ namespace Kant.Wpf.Controls.Chart
 
         public void SetNodeBrush(SankeyNode node)
         {
-            var brushCheck = diagram.NodeBrushes != null && diagram.NodeBrushes.Keys.Contains(node.Label.Text);
+            var brushCheck = diagram.NodeBrushes != null && diagram.NodeBrushes.Keys.Contains(node.Name);
 
             if (brushCheck)
             {
-                node.Shape.Fill = diagram.NodeBrushes[node.Label.Text].CloneCurrentValue();
+                node.Shape.Fill = diagram.NodeBrushes[node.Name].CloneCurrentValue();
             }
             else
             {
@@ -130,12 +127,12 @@ namespace Kant.Wpf.Controls.Chart
             {
                 foreach (var node in levelNodes)
                 {
-                    var key = node.Label.Text;
+                    var key = node.Name;
 
                     if (newBrushes.Keys.Contains(key))
                     {
                         brushChangedNodes.Add(key);
-                        var brush = newBrushes[node.Label.Text];
+                        var brush = newBrushes[node.Name];
                         node.Shape.Fill = brush.CloneCurrentValue();
                         node.OriginalShapBrush = brush.CloneCurrentValue();
                     }
@@ -156,7 +153,7 @@ namespace Kant.Wpf.Controls.Chart
 
                 foreach (var link in links)
                 {
-                    if (brushChangedNodes.Contains(link.FromNode.Label.Text))
+                    if (brushChangedNodes.Contains(link.FromNode.Name))
                     {
                         var brush = link.FromNode.Shape.Fill;
                         link.Shape.Fill = brush.CloneCurrentValue();
@@ -225,14 +222,14 @@ namespace Kant.Wpf.Controls.Chart
             // check whether highlight node exists
             if (!string.IsNullOrEmpty(highlightNode))
             {
-                if ((from node in nodes.Values.SelectMany(n => n) where node.Label.Text == highlightNode select node).Count() == 1)
+                if ((from node in nodes.Values.SelectMany(n => n) where node.Name == highlightNode select node).Count() == 1)
                 {
                     resetBrushes = false;
                 };
             }
 
             // reset highlight if highlighting the same node twice
-            if (highlightNode == diagram.HighlightNode && (from node in nodes.Values.SelectMany(n => n) where node.Label.Text == diagram.HighlightNode & node.IsHighlight select node).Count() == 1)
+            if (highlightNode == diagram.HighlightNode && (from node in nodes.Values.SelectMany(n => n) where node.Name == diagram.HighlightNode & node.IsHighlight select node).Count() == 1)
             {
                 RecoverFromHighlights(links);
 
@@ -243,12 +240,12 @@ namespace Kant.Wpf.Controls.Chart
             diagram.HighlightLink = null;
 
             // increasing opacity of the correlated element while lower the others  
-            Highlighting(links, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Label.Text == highlightNode || link.ToNode.Label.Text == highlightNode; }));
+            Highlighting(links, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Name == highlightNode || link.ToNode.Name == highlightNode; }));
         }
 
-        public void HighlightingLink(SankeyLinkFinder linkStyleFinder, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
+        public void HighlightingLink(SankeyLinkFinder linkFinder, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
         {
-            if ((linkStyleFinder == null && diagram.HighlightLink == null || nodes == null || nodes.Count < 2 || links == null || links.Count == 0))
+            if ((linkFinder == null && diagram.HighlightLink == null || nodes == null || nodes.Count < 2 || links == null || links.Count == 0))
             {
                 return;
             }
@@ -261,14 +258,14 @@ namespace Kant.Wpf.Controls.Chart
             var minimizeNodes = new List<string>();
 
             // check whether highlight node exist
-            if (linkStyleFinder != null)
+            if (linkFinder != null)
             {
-                var fromNode = (from node in nodes.Values.SelectMany(n => n) where node.Label.Text == linkStyleFinder.From select node).FirstOrDefault();
-                var toNode = (from node in nodes.Values.SelectMany(n => n) where node.Label.Text == linkStyleFinder.To select node).FirstOrDefault();
+                var fromNode = (from node in nodes.Values.SelectMany(n => n) where node.Name == linkFinder.From select node).FirstOrDefault();
+                var toNode = (from node in nodes.Values.SelectMany(n => n) where node.Name == linkFinder.To select node).FirstOrDefault();
 
                 if (fromNode != null && toNode != null)
                 {
-                    if ((from link in links where link.FromNode.Label.Text == linkStyleFinder.From & link.ToNode.Label.Text == linkStyleFinder.To select link).Count() > 0)
+                    if ((from link in links where link.FromNode.Name == linkFinder.From & link.ToNode.Name == linkFinder.To select link).Count() > 0)
                     {
                         resetBrushes = false;
                     }
@@ -276,9 +273,9 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             // reset highlight if highlighting the same link twice
-            if (diagram.HighlightLink != null && linkStyleFinder != null)
+            if (diagram.HighlightLink != null && linkFinder != null)
             {
-                if ((diagram.HighlightLink.From == linkStyleFinder.From && diagram.HighlightLink.To == linkStyleFinder.To) && (from link in links where (link.FromNode.Label.Text == diagram.HighlightLink.From && link.ToNode.Label.Text == diagram.HighlightLink.To) & link.IsHighlight select link).Count() == 1)
+                if ((diagram.HighlightLink.From == linkFinder.From && diagram.HighlightLink.To == linkFinder.To) && (from link in links where (link.FromNode.Name == diagram.HighlightLink.From && link.ToNode.Name == diagram.HighlightLink.To) & link.IsHighlight select link).Count() == 1)
                 {
                     RecoverFromHighlights(links);
 
@@ -290,10 +287,20 @@ namespace Kant.Wpf.Controls.Chart
             diagram.HighlightNode = null;
 
             // increasing opacity of the correlated element while lower the others  
-            Highlighting(links, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Label.Text == linkStyleFinder.From && link.ToNode.Label.Text == linkStyleFinder.To; }));
+            Highlighting(links, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Name == linkFinder.From && link.ToNode.Name == linkFinder.To; }));
+
+            //// tooltip
+            //var highlightLink = links.Find(l => l.FromNode.Name == linkFinder.From && l.ToNode.Name == linkFinder.To);
+
+            //if(highlightLink != null)
+            //{
+            //    var toolTip = new ToolTip();
+            //    //toolTip.te
+            //    //highlightLink.Shape.ToolTip = ;
+            //}
         }
 
-        private void Highlighting(List<SankeyLink> links, bool resetBrushes, double highlightOpacity, double loweredOpacity, List<string> highlightNodes, List<string> minimizeNodes, Func<SankeyLink, bool> check)
+        private void Highlighting(List<SankeyLink> links, bool resetBrushes, double highlightOpacity, double loweredOpacity, List<string> highlightNodes, List<string> minimizeNodes, Func<SankeyLink, bool> isHighlightedElement)
         {
             var setStyle = new Action<FrameworkElement, Style>((e, style) =>
             {
@@ -307,14 +314,14 @@ namespace Kant.Wpf.Controls.Chart
             {
                 if (!resetBrushes)
                 {
-                    if (check(link))
+                    if (isHighlightedElement(link))
                     {
                         link.FromNode.Shape.Fill.Opacity = link.ToNode.Shape.Fill.Opacity = link.Shape.Fill.Opacity = highlightOpacity;
                         link.IsHighlight = true;
                         link.FromNode.IsHighlight = true;
                         link.ToNode.IsHighlight = true;
-                        highlightNodes.Add(link.FromNode.Label.Text);
-                        highlightNodes.Add(link.ToNode.Label.Text);
+                        highlightNodes.Add(link.FromNode.Name);
+                        highlightNodes.Add(link.ToNode.Name);
                         link.ToNode.Label.Opacity = link.FromNode.Label.Opacity = highlightOpacity;
 
                         if (diagram.HighlightBrush != null)
@@ -336,12 +343,12 @@ namespace Kant.Wpf.Controls.Chart
                         link.IsHighlight = false;
 
                         // prevent changing node's brush again
-                        if (!highlightNodes.Exists(n => n == link.FromNode.Label.Text) && !minimizeNodes.Exists(n => n == link.FromNode.Label.Text))
+                        if (!highlightNodes.Exists(n => n == link.FromNode.Name) && !minimizeNodes.Exists(n => n == link.FromNode.Name))
                         {
                             MinimizeNode(link.FromNode, minimizeOpacity, minimizeNodes);
                         }
 
-                        if (!highlightNodes.Exists(n => n == link.ToNode.Label.Text) && !minimizeNodes.Exists(n => n == link.ToNode.Label.Text))
+                        if (!highlightNodes.Exists(n => n == link.ToNode.Name) && !minimizeNodes.Exists(n => n == link.ToNode.Name))
                         {
                             MinimizeNode(link.ToNode, minimizeOpacity, minimizeNodes);
                         }
@@ -382,7 +389,7 @@ namespace Kant.Wpf.Controls.Chart
         {
             node.Shape.Fill.Opacity = minimizeOpacity;
             node.IsHighlight = false;
-            minimizeNodes.Add(node.Label.Text);
+            minimizeNodes.Add(node.Name);
             node.Label.Opacity = minimizeOpacity;
         }
 

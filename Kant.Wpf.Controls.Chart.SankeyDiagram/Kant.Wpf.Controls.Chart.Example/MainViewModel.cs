@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -18,6 +19,8 @@ namespace Kant.Wpf.Controls.Chart.Example
         public MainViewModel()
         {
             random = new Random();
+            sankeyLabelStyle1 = (Style)Application.Current.FindResource("SankeyLabelStyle1");
+            sankeyLabelStyle2 = (Style)Application.Current.FindResource("SankeyLabelStyle2");
 
             var datas = new List<SankeyDataRow>()
             {
@@ -227,8 +230,10 @@ namespace Kant.Wpf.Controls.Chart.Example
                     }
 
                     SankeyLinkCurvature = random.Next(1, 11) * 0.1;
-                    SankeyFlowDirection = random.Next(2) == 1 ? FlowDirection.TopToBottom : FlowDirection.LeftToRight;
-                    SankeyShowLabels = random.Next(2) == 1 ? false : true;
+                    //SankeyFlowDirection = random.Next(2) == 1 ? FlowDirection.TopToBottom : FlowDirection.LeftToRight;
+                    //SankeyShowLabels = random.Next(2) == 1 ? false : true;
+                    //SankeyLabelStyle = random.Next(2) == 1 ? sankeyLabelStyle1 : sankeyLabelStyle2;
+                    SankeyLabelStyle = sankeyLabelStyle1;
                     SankeyHighlightMode = random.Next(2) == 1 ? HighlightMode.MouseEnter : HighlightMode.MouseLeftButtonUp;
                 }));
             }
@@ -370,6 +375,27 @@ namespace Kant.Wpf.Controls.Chart.Example
                 }
             }
         }
+
+        private Style sankeyLabelStyle;
+        public Style SankeyLabelStyle
+        {
+            get
+            {
+                return sankeyLabelStyle;
+            }
+            set
+            {
+                if (value != sankeyLabelStyle)
+                {
+                    sankeyLabelStyle = value;
+                    RaisePropertyChanged(() => SankeyLabelStyle);
+                }
+            }
+        }
+
+        private Style sankeyLabelStyle1;
+
+        private Style sankeyLabelStyle2;
 
         private Random random;
 

@@ -4,6 +4,23 @@
              xmlns:local="clr-namespace:Kant.Wpf.Controls.Chart.Example"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <Style x:Key="SankeyLabelStyle1"
+               TargetType="TextBlock">
+            <Setter Property="FontSize"
+                    Value="15" />
+            <Setter Property="Margin"
+                    Value="5" />
+            <Setter Property="Foreground"
+                    Value="Violet" />
+        </Style>
+        <Style x:Key="SankeyLabelStyle2"
+               TargetType="TextBlock">
+            <Setter Property="FontSize"
+                    Value="13" />
+            <Setter Property="Margin"
+                    Value="5" />
+            <Setter Property="Foreground"
+                    Value="DarkRed" />
+        </Style>
     </Application.Resources>
 </Application>
