@@ -306,6 +306,8 @@ namespace Kant.Wpf.Controls.Chart
             styleManager.ChangeLabelsVisibility(diagram.ShowLabels, CurrentLabels);
 
             #endregion
+
+            isCreatingDiagram = false;
         }
 
         private void CreateNodesAndLinks(IEnumerable<SankeyDataRow> datas)
