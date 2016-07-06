@@ -230,10 +230,9 @@ namespace Kant.Wpf.Controls.Chart.Example
                     }
 
                     SankeyLinkCurvature = random.Next(1, 11) * 0.1;
-                    //SankeyFlowDirection = random.Next(2) == 1 ? FlowDirection.TopToBottom : FlowDirection.LeftToRight;
-                    //SankeyShowLabels = random.Next(2) == 1 ? false : true;
-                    //SankeyLabelStyle = random.Next(2) == 1 ? sankeyLabelStyle1 : sankeyLabelStyle2;
-                    SankeyLabelStyle = sankeyLabelStyle1;
+                    SankeyFlowDirection = random.Next(2) == 1 ? FlowDirection.TopToBottom : FlowDirection.LeftToRight;
+                    SankeyShowLabels = random.Next(2) == 1 ? false : true;
+                    SankeyLabelStyle = random.Next(2) == 1 ? sankeyLabelStyle1 : sankeyLabelStyle2;
                     SankeyHighlightMode = random.Next(2) == 1 ? HighlightMode.MouseEnter : HighlightMode.MouseLeftButtonUp;
                 }));
             }

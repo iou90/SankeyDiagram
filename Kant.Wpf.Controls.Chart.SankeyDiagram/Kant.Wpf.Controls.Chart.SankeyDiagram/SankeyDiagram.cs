@@ -81,10 +81,10 @@ namespace Kant.Wpf.Controls.Chart
 
         protected override void OnRender(DrawingContext drawingContext)
         {
-            // changing
-            assist.ClearDiagramLabelMeasuredValue();
-            styleManager.ClearHighlight();
-            assist.CreateDiagram();
+            if (isLabelStyleChangedNeedReRender)
+            {
+                assist.CreateDiagram();
+            }
         }
 
         #region IDisposable Support
@@ -150,13 +150,14 @@ namespace Kant.Wpf.Controls.Chart
 
         private static void OnLabelStyleSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            // changing
             var diagram = (SankeyDiagram)o;
+            diagram.styleManager.ClearHighlight();
+            diagram.assist.UpdateLabelStyle();
 
             if (diagram.FirstAndLastLabelPosition == FirstAndLastLabelPosition.Outward)
             {
-                diagram.assist.ClearDiagramLabelMeasuredValue();
-                ReLoadDiagram(diagram);
+                diagram.assist.RemeatureLabel();
+                diagram.isLabelStyleChangedNeedReRender = true;
             }
         }
 
@@ -358,6 +359,8 @@ namespace Kant.Wpf.Controls.Chart
         private SankeyStyleManager styleManager;
 
         private SankeyDiagramAssist assist;
+
+        private bool isLabelStyleChangedNeedReRender;
 
         private bool disposedValue;
 

@@ -56,6 +56,7 @@ namespace Kant.Wpf.Controls.Chart
 
             CurrentLabels = new List<TextBlock>();
             CreateNodesAndLinks(datas);
+            UpdateLabelStyle();
 
             // drawing...
             if (diagram.IsDiagramCreated)
@@ -146,6 +147,8 @@ namespace Kant.Wpf.Controls.Chart
             return node;
         }
 
+        #region clear something
+
         public void ClearDiagram()
         {
             if (!(DiagramCanvas == null || DiagramCanvas.Children == null || DiagramCanvas.Children.Count == 0))
@@ -184,6 +187,75 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
+        private void RemoveElementEventHandlers()
+        {
+            if (CurrentLinks != null && CurrentNodes != null && DiagramCanvas != null)
+            {
+                DiagramCanvas.SizeChanged -= DiagramCanvasSizeChanged;
+
+                foreach (var levelNodes in CurrentNodes.Values)
+                {
+                    foreach (var node in levelNodes)
+                    {
+                        node.Shape.MouseEnter -= NodeMouseEnter;
+                        node.Shape.MouseLeave -= NodeMouseLeave;
+                        node.Shape.MouseLeftButtonUp -= NodeMouseLeftButtonUp;
+                    }
+                }
+
+                foreach (var link in CurrentLinks)
+                {
+                    link.Shape.MouseEnter -= LinkMouseEnter;
+                    link.Shape.MouseLeave -= LinkMouseLeave;
+                    link.Shape.MouseLeftButtonUp -= LinkMouseLeftButtonUp;
+                }
+            }
+        }
+
+        #endregion
+
+        public void UpdateLabelStyle()
+        {
+            if(currentSliceNodes == null)
+            {
+                return;
+            }
+
+            foreach(var node in currentSliceNodes)
+            {
+                node.Label.Style = diagram.LabelStyle;
+            }
+        }
+
+        public void RemeatureLabel()
+        {
+            if(CurrentNodes == null || CurrentNodes.Count < 2)
+            {
+                return;
+            }
+
+            if (diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
+            {
+                CurrentNodes[0][0].Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                measuredLabelHeight = CurrentNodes[0][0].Label.DesiredSize.Height;
+            }
+            else
+            {
+                measuredFirstLevelLabelWidth = GetMaxLabelWidth(CurrentNodes[0]);
+                measuredLastLevelLabelWidth = GetMaxLabelWidth(CurrentNodes[CurrentNodes.Count - 1]);
+            }
+
+            foreach (var levelNodes in CurrentNodes.Values)
+            {
+                foreach (var node in levelNodes)
+                {
+                    node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                    node.LabelHeight = node.Label.DesiredSize.Height;
+                    node.LabelWidth = node.Label.DesiredSize.Width;
+                }
+            }
+        }
+
         public void CreateDiagram()
         {
             ClearDiagramCanvasChilds();
@@ -197,7 +269,7 @@ namespace Kant.Wpf.Controls.Chart
 
             #region preparing...
 
-            var nodes = CalculateNodeLayout(currentSliceNodes, diagram.NodeThickness);
+            var nodes = UpdateNodeLayout(currentSliceNodes, diagram.NodeThickness);
 
             if (nodes == null)
             {
@@ -405,7 +477,7 @@ namespace Kant.Wpf.Controls.Chart
             isCreatingDiagram = false;
         }
 
-        private Dictionary<int, List<SankeyNode>> CalculateNodeLayout(List<SankeyNode> nodes, double nodeThickness)
+        private Dictionary<int, List<SankeyNode>> UpdateNodeLayout(List<SankeyNode> nodes, double nodeThickness)
         {
             var tempNodes = new Dictionary<double, List<SankeyNode>>();
             var remainNodes = nodes;
@@ -449,7 +521,7 @@ namespace Kant.Wpf.Controls.Chart
             // move all the node without outLinks to end
             foreach(var node in nodes)
             {
-                if(node.OutLinks.Count == 0)
+                if (node.OutLinks.Count == 0)
                 {
                     if (diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
                     {
@@ -570,13 +642,87 @@ namespace Kant.Wpf.Controls.Chart
 
             foreach(var node in nodes)
             {
-                node.Label.Style = diagram.LabelStyle;
                 node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
                 max = node.Label.DesiredSize.Width > max ? node.Label.DesiredSize.Width : max;
             }
 
             return max;
         }
+
+        private SankeyLink DrawLink(SankeyLink link)
+        {
+            var startPoint = new Point();
+            var line1EndPoint = new Point();
+            var bezier1ControlPoint1 = new Point();
+            var bezier1ControlPoint2 = new Point();
+            var bezier1EndPoint = new Point();
+            var line2EndPoint = new Point();
+            var bezier2ControlPoint1 = new Point();
+            var bezier2ControlPoint2 = new Point();
+
+            if (diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
+            {
+                line1EndPoint.Y = startPoint.Y = link.FromNode.Y + link.FromNode.Shape.Height;
+                bezier2ControlPoint2.X = startPoint.X = link.FromNode.X + link.FromPosition;
+                bezier1ControlPoint1.X = line1EndPoint.X = startPoint.X + link.Width;
+                line2EndPoint.Y = bezier1EndPoint.Y = link.ToNode.Y;
+                bezier2ControlPoint1.X = line2EndPoint.X = link.ToNode.X + link.ToPosition;
+                bezier1ControlPoint2.X = bezier1EndPoint.X = line2EndPoint.X + link.Width;
+                var length = line2EndPoint.Y - line1EndPoint.Y;
+                bezier2ControlPoint2.Y = bezier1ControlPoint1.Y = diagram.LinkCurvature * length + startPoint.Y;
+                bezier2ControlPoint1.Y = bezier1ControlPoint2.Y = (1 - diagram.LinkCurvature) * length + startPoint.Y;
+            }
+            else
+            {
+                line1EndPoint.X = startPoint.X = link.FromNode.X + link.FromNode.Shape.Width;
+                bezier2ControlPoint2.Y = startPoint.Y = link.FromNode.Y + link.FromPosition;
+                bezier1ControlPoint1.Y = line1EndPoint.Y = startPoint.Y + link.Width;
+                line2EndPoint.X = bezier1EndPoint.X = link.ToNode.X;
+                bezier2ControlPoint1.Y = line2EndPoint.Y = link.ToNode.Y + link.ToPosition;
+                bezier1ControlPoint2.Y = bezier1EndPoint.Y = line2EndPoint.Y + link.Width;
+                var length = line2EndPoint.X - line1EndPoint.X;
+                bezier2ControlPoint2.X = bezier1ControlPoint1.X = diagram.LinkCurvature * length + startPoint.X;
+                bezier2ControlPoint1.X = bezier1ControlPoint2.X = (1 - diagram.LinkCurvature) * length + startPoint.X;
+            }
+
+            var geometry = new PathGeometry()
+            {
+                Figures = new PathFigureCollection()
+                {
+                    new PathFigure()
+                    {
+                        StartPoint = startPoint,
+
+                        Segments = new PathSegmentCollection()
+                        {
+                            new LineSegment() { Point = line1EndPoint },
+
+                            new BezierSegment()
+                            {
+                                Point1 = bezier1ControlPoint1,
+                                Point2 = bezier1ControlPoint2,
+                                Point3 = bezier1EndPoint
+                            },
+
+                            new LineSegment() { Point = line2EndPoint },
+
+                            new BezierSegment()
+                            {
+                                Point1 = bezier2ControlPoint1,
+                                Point2 = bezier2ControlPoint2,
+                                Point3 = startPoint
+                            }
+                        }
+                    },
+                }
+            };
+
+            link.Shape.Data = geometry;
+
+            return link;
+        }
+
+        #region highlight
 
         private void LinkMouseEnter(object sender, MouseEventArgs e)
         {
@@ -626,103 +772,7 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        private SankeyLink DrawLink(SankeyLink link)
-        {
-            var startPoint = new Point();
-            var line1EndPoint = new Point();
-            var bezier1ControlPoint1 = new Point();
-            var bezier1ControlPoint2 = new Point();
-            var bezier1EndPoint = new Point();
-            var line2EndPoint = new Point();
-            var bezier2ControlPoint1 = new Point();
-            var bezier2ControlPoint2 = new Point();
-
-            if(diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
-            {
-                line1EndPoint.Y = startPoint.Y = link.FromNode.Y + link.FromNode.Shape.Height;
-                bezier2ControlPoint2.X = startPoint.X = link.FromNode.X + link.FromPosition;
-                bezier1ControlPoint1.X = line1EndPoint.X = startPoint.X + link.Width;
-                line2EndPoint.Y = bezier1EndPoint.Y = link.ToNode.Y;
-                bezier2ControlPoint1.X = line2EndPoint.X = link.ToNode.X + link.ToPosition;
-                bezier1ControlPoint2.X = bezier1EndPoint.X = line2EndPoint.X + link.Width;
-                var length = line2EndPoint.Y - line1EndPoint.Y;
-                bezier2ControlPoint2.Y = bezier1ControlPoint1.Y = diagram.LinkCurvature * length + startPoint.Y;
-                bezier2ControlPoint1.Y = bezier1ControlPoint2.Y = (1 - diagram.LinkCurvature) * length + startPoint.Y;
-            }
-            else
-            {
-                line1EndPoint.X = startPoint.X = link.FromNode.X + link.FromNode.Shape.Width;
-                bezier2ControlPoint2.Y = startPoint.Y = link.FromNode.Y + link.FromPosition;
-                bezier1ControlPoint1.Y = line1EndPoint.Y = startPoint.Y + link.Width;
-                line2EndPoint.X = bezier1EndPoint.X = link.ToNode.X;
-                bezier2ControlPoint1.Y = line2EndPoint.Y = link.ToNode.Y + link.ToPosition;
-                bezier1ControlPoint2.Y = bezier1EndPoint.Y = line2EndPoint.Y + link.Width;
-                var length = line2EndPoint.X - line1EndPoint.X;
-                bezier2ControlPoint2.X = bezier1ControlPoint1.X = diagram.LinkCurvature * length + startPoint.X; 
-                bezier2ControlPoint1.X = bezier1ControlPoint2.X = (1 - diagram.LinkCurvature) * length + startPoint.X; 
-            }
-
-            var geometry = new PathGeometry()
-            {
-                Figures = new PathFigureCollection()
-                {
-                    new PathFigure()
-                    {
-                        StartPoint = startPoint,
-
-                        Segments = new PathSegmentCollection()
-                        {
-                            new LineSegment() { Point = line1EndPoint },
-
-                            new BezierSegment()
-                            {
-                                Point1 = bezier1ControlPoint1,
-                                Point2 = bezier1ControlPoint2,
-                                Point3 = bezier1EndPoint
-                            },
-
-                            new LineSegment() { Point = line2EndPoint },
-
-                            new BezierSegment()
-                            {
-                                Point1 = bezier2ControlPoint1,
-                                Point2 = bezier2ControlPoint2,
-                                Point3 = startPoint
-                            }
-                        }
-                    },
-                }
-            };
-
-            link.Shape.Data = geometry;
-
-            return link;
-        }
-
-        private void RemoveElementEventHandlers()
-        {
-            if (CurrentLinks != null && CurrentNodes != null && DiagramCanvas != null)
-            {
-                DiagramCanvas.SizeChanged -= DiagramCanvasSizeChanged;
-
-                foreach(var levelNodes in CurrentNodes.Values)
-                {
-                    foreach(var node in levelNodes)
-                    {
-                        node.Shape.MouseEnter -= NodeMouseEnter;
-                        node.Shape.MouseLeave -= NodeMouseLeave;
-                        node.Shape.MouseLeftButtonUp -= NodeMouseLeftButtonUp;
-                    }
-                }
-
-                foreach (var link in CurrentLinks)
-                {
-                    link.Shape.MouseEnter -= LinkMouseEnter;
-                    link.Shape.MouseLeave -= LinkMouseLeave;
-                    link.Shape.MouseLeftButtonUp -= LinkMouseLeftButtonUp;
-                }
-            }
-        }
+        #endregion
 
         #endregion
 

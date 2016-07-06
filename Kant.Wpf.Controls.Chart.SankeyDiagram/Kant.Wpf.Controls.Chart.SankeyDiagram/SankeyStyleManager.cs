@@ -201,7 +201,7 @@ namespace Kant.Wpf.Controls.Chart
 
             foreach (var label in labels)
             {
-                label.Visibility = showLabels ? Visibility.Visible : Visibility.Collapsed;
+                label.Visibility = showLabels ? Visibility.Visible : Visibility.Hidden;
             }
         }
 
