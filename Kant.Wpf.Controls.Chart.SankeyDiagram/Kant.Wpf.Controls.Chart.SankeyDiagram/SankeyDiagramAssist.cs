@@ -260,7 +260,7 @@ namespace Kant.Wpf.Controls.Chart
         {
             ClearDiagramCanvasChilds();
 
-            if (DiagramCanvas.ActualHeight <= 0 || DiagramCanvas.ActualWidth <= 0)
+            if (currentSliceNodes == null || currentSliceNodes.Count < 2 || DiagramCanvas.ActualHeight <= 0 || DiagramCanvas.ActualWidth <= 0)
             {
                 return;
             }
@@ -651,6 +651,12 @@ namespace Kant.Wpf.Controls.Chart
 
         private SankeyLink DrawLink(SankeyLink link)
         {
+            // create tooltip
+            var toolTip = new ToolTip();
+            toolTip.Template = diagram.ToolTipTemplate;
+            link.Shape.ToolTip = toolTip;
+            toolTip.DataContext = link;
+
             var startPoint = new Point();
             var line1EndPoint = new Point();
             var bezier1ControlPoint1 = new Point();

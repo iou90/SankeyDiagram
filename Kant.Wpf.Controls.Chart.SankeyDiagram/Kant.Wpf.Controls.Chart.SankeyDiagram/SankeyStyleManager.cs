@@ -186,6 +186,24 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
+        public void ChangeToolTipTemplate(ControlTemplate newTemplate, List<SankeyLink> links)
+        {
+            if(links == null || newTemplate == null)
+            {
+                return;
+            }
+
+            foreach(var link in links)
+            {
+                var toolTip = link.Shape.ToolTip as ToolTip;
+
+                if(toolTip != null)
+                {
+                    toolTip.Template = newTemplate;
+                }
+            }
+        }
+
         public void ClearHighlight()
         {
             diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, null);
@@ -232,7 +250,13 @@ namespace Kant.Wpf.Controls.Chart
             if (highlightNode == diagram.HighlightNode && (from node in nodes.Values.SelectMany(n => n) where node.Name == diagram.HighlightNode & node.IsHighlight select node).Count() == 1)
             {
                 RecoverFromHighlights(links);
+                ClearHighlight();
 
+                return;
+            }
+
+            if(string.IsNullOrEmpty(highlightNode))
+            {
                 return;
             }
 
@@ -278,9 +302,15 @@ namespace Kant.Wpf.Controls.Chart
                 if ((diagram.HighlightLink.From == linkFinder.From && diagram.HighlightLink.To == linkFinder.To) && (from link in links where (link.FromNode.Name == diagram.HighlightLink.From && link.ToNode.Name == diagram.HighlightLink.To) & link.IsHighlight select link).Count() == 1)
                 {
                     RecoverFromHighlights(links);
+                    ClearHighlight();
 
                     return;
                 }
+            }
+
+            if(linkFinder == null)
+            {
+                return;
             }
 
             // for node, link highlighting switching
@@ -288,16 +318,6 @@ namespace Kant.Wpf.Controls.Chart
 
             // increasing opacity of the correlated element while lower the others  
             Highlighting(links, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Name == linkFinder.From && link.ToNode.Name == linkFinder.To; }));
-
-            //// tooltip
-            //var highlightLink = links.Find(l => l.FromNode.Name == linkFinder.From && l.ToNode.Name == linkFinder.To);
-
-            //if(highlightLink != null)
-            //{
-            //    var toolTip = new ToolTip();
-            //    //toolTip.te
-            //    //highlightLink.Shape.ToolTip = ;
-            //}
         }
 
         private void Highlighting(List<SankeyLink> links, bool resetBrushes, double highlightOpacity, double loweredOpacity, List<string> highlightNodes, List<string> minimizeNodes, Func<SankeyLink, bool> isHighlightedElement)

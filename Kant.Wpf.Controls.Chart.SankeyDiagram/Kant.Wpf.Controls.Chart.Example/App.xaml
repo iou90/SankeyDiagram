@@ -4,6 +4,39 @@
              xmlns:local="clr-namespace:Kant.Wpf.Controls.Chart.Example"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <ControlTemplate x:Key="SankeyToolTipTemplate1"
+                         TargetType="ToolTip">
+            <Border Padding="5"
+                    BorderThickness="1"
+                    BorderBrush="Black"
+                    Background="White">
+                <TextBlock HorizontalAlignment="Center"
+                           FontSize="12">
+                    <Run Text="{Binding FromNode.Name}" />
+                    <Run Text=" -> " />
+                    <Run Text="{Binding ToNode.Name}" />
+                    <Run Text=": " />
+                    <Run Text="{Binding Weight}" /></TextBlock>
+            </Border>
+        </ControlTemplate>
+        <ControlTemplate x:Key="SankeyToolTipTemplate2"
+                         TargetType="ToolTip">
+            <Border Padding="5">
+                <Border.Background>
+                    <SolidColorBrush Color="DarkRed"
+                                     Opacity="0.25" />
+                </Border.Background>
+                <TextBlock HorizontalAlignment="Center"
+                           FontFamily="Microsoft YaHei"
+                           FontSize="15"
+                           Foreground="AliceBlue">
+                    <Run Text="{Binding FromNode.Name}" />
+                    <Run Text=" -> " />
+                    <Run Text="{Binding ToNode.Name}" />
+                    <Run Text=": " />
+                    <Run Text="{Binding Weight}" /></TextBlock>
+            </Border>
+        </ControlTemplate>
         <Style x:Key="SankeyLabelStyle1"
                TargetType="TextBlock">
             <Setter Property="FontSize"

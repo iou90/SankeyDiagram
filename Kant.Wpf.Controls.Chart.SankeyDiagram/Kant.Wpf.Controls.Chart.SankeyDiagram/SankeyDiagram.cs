@@ -176,6 +176,12 @@ namespace Kant.Wpf.Controls.Chart
             diagram.styleManager.ChangeLabelsVisibility((bool)e.NewValue, diagram.assist.CurrentLabels);
         }
 
+        private static void OnToolTipTemplateSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            var diagram = (SankeyDiagram)o;
+            diagram.styleManager.ChangeToolTipTemplate((ControlTemplate)e.NewValue, diagram.assist.CurrentLinks);
+        }
+
         private static void OnHighlightModeSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
             var diagram = (SankeyDiagram)o;
@@ -191,7 +197,7 @@ namespace Kant.Wpf.Controls.Chart
             return value;
         }
 
-        private static object HighlightLinkSourceValueCallback(DependencyObject o, object value)
+        private static object HighlightLinkValueCallback(DependencyObject o, object value)
         {
             var diagram = (SankeyDiagram)o;
             diagram.styleManager.HighlightingLink((SankeyLinkFinder)value, diagram.assist.CurrentNodes, diagram.assist.CurrentLinks);
@@ -279,7 +285,7 @@ namespace Kant.Wpf.Controls.Chart
             set { SetValue(HighlightLinkProperty, value); }
         }
 
-        public static readonly DependencyProperty HighlightLinkProperty = DependencyProperty.Register("HighlightLink", typeof(SankeyLinkFinder), typeof(SankeyDiagram), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, null, HighlightLinkSourceValueCallback));
+        public static readonly DependencyProperty HighlightLinkProperty = DependencyProperty.Register("HighlightLink", typeof(SankeyLinkFinder), typeof(SankeyDiagram), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, null, HighlightLinkValueCallback));
 
         /// <summary>
         /// LeftToRight by default
@@ -302,6 +308,14 @@ namespace Kant.Wpf.Controls.Chart
         }
 
         public static readonly DependencyProperty ShowLabelsProperty = DependencyProperty.Register("ShowLabels", typeof(bool), typeof(SankeyDiagram), new PropertyMetadata(true, OnShowLabelsSourceChanged));
+
+        public ControlTemplate ToolTipTemplate
+        {
+            get { return (ControlTemplate)GetValue(ToolTipTemplateProperty); }
+            set { SetValue(ToolTipTemplateProperty, value); }
+        }
+
+        public static readonly DependencyProperty ToolTipTemplateProperty = DependencyProperty.Register("ToolTipTemplate", typeof(ControlTemplate), typeof(SankeyDiagram), new PropertyMetadata(OnToolTipTemplateSourceChanged));
 
         #endregion
 
