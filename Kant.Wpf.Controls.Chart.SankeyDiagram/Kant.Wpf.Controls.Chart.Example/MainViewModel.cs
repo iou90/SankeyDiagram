@@ -162,6 +162,19 @@ namespace Kant.Wpf.Controls.Chart.Example
             }
         }
 
+        private ICommand clearHighlight;
+        public ICommand ClearHighlight
+        {
+            get
+            {
+                return GetCommand(clearHighlight, new CommandBase(() =>
+                {
+                    HighlightSankeyLink = null;
+                    HighlightSankeyNode = null;
+                }));
+            }
+        }
+
         private ICommand highlightingNode;
         public ICommand HighlightingNode
         {
