@@ -261,7 +261,7 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             // for node, link highlighting switching
-            diagram.HighlightLink = null;
+            diagram.SetCurrentValue(SankeyDiagram.HighlightLinkProperty, null);
 
             // increasing opacity of the correlated element while lower the others  
             Highlighting(links, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Name == highlightNode || link.ToNode.Name == highlightNode; }));
@@ -314,7 +314,7 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             // for node, link highlighting switching
-            diagram.HighlightNode = null;
+            diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, null);
 
             // increasing opacity of the correlated element while lower the others  
             Highlighting(links, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Name == linkFinder.From && link.ToNode.Name == linkFinder.To; }));
