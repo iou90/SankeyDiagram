@@ -141,8 +141,8 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             var node = new SankeyNode(shape, text);
-            styleManager.SetNodeBrush(node);
             node.Name = name;
+            styleManager.SetNodeBrush(node);
 
             return node;
         }
