@@ -18,8 +18,7 @@ using System.Windows.Shapes;
 namespace Kant.Wpf.Controls.Chart
 {
     [TemplatePart(Name = "PartDiagramGrid", Type = typeof(Grid))]
-    [TemplatePart(Name = "PartNodesPanel", Type = typeof(StackPanel))]
-    [TemplatePart(Name = "PartLinksContainer", Type = typeof(Canvas))]
+    [TemplatePart(Name = "PartDiagramCanvas", Type = typeof(Canvas))]
     public class SankeyDiagram : Control, IDisposable
     {
         #region Constructor
@@ -55,7 +54,6 @@ namespace Kant.Wpf.Controls.Chart
         {
             base.OnApplyTemplate();
             var grid = GetTemplateChild("PartDiagramGrid") as Grid;
-            var panel = GetTemplateChild("PartNodesPanel") as StackPanel;
             var canvas = GetTemplateChild("PartDiagramCanvas") as Canvas;
 
             if (grid == null)
