@@ -336,8 +336,6 @@ namespace Kant.Wpf.Controls.Chart
         /// </summary>
         public SankeyPalette UsePallette { get; set; }
 
-        //public Style LabelStyle { get; set; }
-
         public FirstAndLastLabelPosition FirstAndLastLabelPosition { get; set; }
 
         public Style HighlightLabelStyle { get; set; }
