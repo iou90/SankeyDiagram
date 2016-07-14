@@ -13,7 +13,7 @@ using System.Windows.Media;
 
 namespace Kant.Wpf.Controls.Chart.Example
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : ViewModelBase
     {
         #region Constructor
 
@@ -425,43 +425,6 @@ namespace Kant.Wpf.Controls.Chart.Example
         private ControlTemplate sankeyToolTipTemplate2;
 
         private Random random;
-
-        #endregion
-
-        #region INotifyPropertyChanged & ICommand
-
-        private ICommand GetCommand(ICommand c, CommandBase command)
-        {
-            if (c == null)
-            {
-                c = command;
-            }
-
-            return c;
-        }
-
-        private void RaisePropertyChanged<T>(Expression<Func<T>> action)
-        {
-            var propertyName = GetPropertyName(action);
-            RaisePropertyChanged(propertyName);
-        }
-
-        private static string GetPropertyName<T>(Expression<Func<T>> action)
-        {
-            var expression = (MemberExpression)action.Body;
-            var propertyName = expression.Member.Name;
-            return propertyName;
-        }
-
-        private void RaisePropertyChanged(string propertyName)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         #endregion
     }
