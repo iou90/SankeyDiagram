@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kant.Wpf.MvvmFoundation;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -129,12 +130,12 @@ namespace Kant.Wpf.Controls.Chart.Example
 
         #region Commands
 
-        private ICommand testBigData;
-        public ICommand TestBigData
+        private ICommand changeDatas;
+        public ICommand ChangeDatas
         {
             get
             {
-                return GetCommand(testBigData, new CommandBase(() =>
+                return GetCommand(changeDatas, new RelayCommand(() =>
                 {
                     var datas = new List<SankeyDataRow>();
                     var count = 0;
@@ -155,7 +156,7 @@ namespace Kant.Wpf.Controls.Chart.Example
         {
             get
             {
-                return GetCommand(clearDiagram, new CommandBase(() =>
+                return GetCommand(clearDiagram, new RelayCommand(() =>
                 {
                     SankeyDatas = null;
                 }));
@@ -167,7 +168,7 @@ namespace Kant.Wpf.Controls.Chart.Example
         {
             get
             {
-                return GetCommand(clearHighlight, new CommandBase(() =>
+                return GetCommand(clearHighlight, new RelayCommand(() =>
                 {
                     HighlightSankeyLink = null;
                     HighlightSankeyNode = null;
@@ -180,7 +181,7 @@ namespace Kant.Wpf.Controls.Chart.Example
         {
             get
             {
-                return GetCommand(highlightingNode, new CommandBase(() =>
+                return GetCommand(highlightingNode, new RelayCommand(() =>
                 {
                     //var fromNodes = new List<string>();
 
@@ -207,7 +208,7 @@ namespace Kant.Wpf.Controls.Chart.Example
         {
             get
             {
-                return GetCommand(highlightingLink, new CommandBase(() =>
+                return GetCommand(highlightingLink, new RelayCommand(() =>
                 {
                     HighlightSankeyLink = new SankeyLinkFinder("C", "F");
                     //HighlightSankeyLink = new SankeyLinkFinder("5", random.Next(9, 20).ToString());
@@ -220,7 +221,7 @@ namespace Kant.Wpf.Controls.Chart.Example
         {
             get
             {
-                return GetCommand(changeStyles, new CommandBase(() =>
+                return GetCommand(changeStyles, new RelayCommand(() =>
                 {
                     if (random.Next(2) == 1)
                     {
