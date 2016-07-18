@@ -381,7 +381,7 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        public void RecoverFromHighlights(List<SankeyLink> links, bool resetHighlightStatus = true)
+        private void RecoverFromHighlights(List<SankeyLink> links, bool resetHighlightStatus = true)
         {
             foreach (var link in links)
             {
