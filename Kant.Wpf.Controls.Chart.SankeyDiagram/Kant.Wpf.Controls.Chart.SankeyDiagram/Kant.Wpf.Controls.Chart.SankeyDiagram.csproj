@@ -48,6 +48,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Element.cs" />
     <Compile Include="FirstAndLastLabelPosition.cs" />
     <Compile Include="SankeyDiagramAssist.cs" />
     <Compile Include="FlowDirection.cs" />

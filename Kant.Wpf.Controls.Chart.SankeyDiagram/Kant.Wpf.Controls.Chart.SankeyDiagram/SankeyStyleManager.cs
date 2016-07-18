@@ -110,7 +110,7 @@ namespace Kant.Wpf.Controls.Chart
                 }
             }
 
-            node.OriginalShapBrush = node.Shape.Fill.CloneCurrentValue();
+            node.OriginalBrush = node.Shape.Fill.CloneCurrentValue();
         }
 
         public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
@@ -134,7 +134,7 @@ namespace Kant.Wpf.Controls.Chart
                         brushChangedNodes.Add(key);
                         var brush = newBrushes[node.Name];
                         node.Shape.Fill = brush.CloneCurrentValue();
-                        node.OriginalShapBrush = brush.CloneCurrentValue();
+                        node.OriginalBrush = brush.CloneCurrentValue();
                     }
                 }
             }
@@ -157,7 +157,7 @@ namespace Kant.Wpf.Controls.Chart
                     {
                         var brush = link.FromNode.Shape.Fill;
                         link.Shape.Fill = brush.CloneCurrentValue();
-                        link.OriginalShapBrush = brush.CloneCurrentValue();
+                        link.OriginalBrush = brush.CloneCurrentValue();
                     }
                 }
             }
@@ -391,9 +391,9 @@ namespace Kant.Wpf.Controls.Chart
 
         private void RecoverFromHighlights(SankeyLink link, bool resetHighlightStatus = true)
         {
-            link.Shape.Fill = link.OriginalShapBrush.CloneCurrentValue();
-            link.FromNode.Shape.Fill = link.FromNode.OriginalShapBrush.CloneCurrentValue();
-            link.ToNode.Shape.Fill = link.ToNode.OriginalShapBrush.CloneCurrentValue();
+            link.Shape.Fill = link.OriginalBrush.CloneCurrentValue();
+            link.FromNode.Shape.Fill = link.FromNode.OriginalBrush.CloneCurrentValue();
+            link.ToNode.Shape.Fill = link.ToNode.OriginalBrush.CloneCurrentValue();
             link.ToNode.Label.Style = link.FromNode.Label.Style = diagram.LabelStyle;
             link.ToNode.Label.Opacity = link.FromNode.Label.Opacity = OriginalLabelOpacity;
 

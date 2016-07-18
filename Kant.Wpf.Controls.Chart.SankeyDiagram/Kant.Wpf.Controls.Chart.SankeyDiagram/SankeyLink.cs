@@ -8,7 +8,7 @@ using System.Windows.Shapes;
 
 namespace Kant.Wpf.Controls.Chart
 {
-    public class SankeyLink
+    public class SankeyLink : Element
     {
         public SankeyLink()
         {
@@ -20,7 +20,7 @@ namespace Kant.Wpf.Controls.Chart
             ToNode = toNode;
             Shape = shape;
             Weight = weight;
-            OriginalShapBrush = originalShapeBrush;
+            OriginalBrush = originalShapeBrush;
         }
 
         public SankeyNode FromNode { get; set; }
@@ -37,8 +37,5 @@ namespace Kant.Wpf.Controls.Chart
 
         public double Width { get; set; }
 
-        public bool IsHighlight { get; set; }
-
-        public Brush OriginalShapBrush { get; set; }
     }
 }

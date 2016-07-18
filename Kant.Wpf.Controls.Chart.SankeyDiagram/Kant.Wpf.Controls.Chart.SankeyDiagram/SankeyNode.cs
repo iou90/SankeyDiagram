@@ -10,7 +10,7 @@ using System.Windows.Shapes;
 
 namespace Kant.Wpf.Controls.Chart
 {
-    public class SankeyNode
+    public class SankeyNode : Element
     {
         public SankeyNode()
         {
@@ -43,9 +43,5 @@ namespace Kant.Wpf.Controls.Chart
         public double Y { get; set; }
 
         public double X { get; set; }
-
-        public bool IsHighlight { get; set; }
-
-        public Brush OriginalShapBrush { get; set; }
-        }
+    }
 }
