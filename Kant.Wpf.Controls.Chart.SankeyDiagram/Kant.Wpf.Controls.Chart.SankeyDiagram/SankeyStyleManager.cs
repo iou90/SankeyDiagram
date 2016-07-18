@@ -230,8 +230,8 @@ namespace Kant.Wpf.Controls.Chart
                 return;
             }
 
-            // reset each element's style first
-            RecoverFromHighlights(links, false);
+            // reset each element's brush first
+            RecoverHighlights(links, false);
 
             var resetBrushes = true;
             var highlightNodes = new List<string>();
@@ -249,7 +249,7 @@ namespace Kant.Wpf.Controls.Chart
             // reset highlight if highlighting the same node twice
             if (highlightNode == diagram.HighlightNode && (from node in nodes.Values.SelectMany(n => n) where node.Name == diagram.HighlightNode & node.IsHighlight select node).Count() == 1)
             {
-                RecoverFromHighlights(links);
+                RecoverHighlights(links);
                 ClearHighlight();
 
                 return;
@@ -274,8 +274,8 @@ namespace Kant.Wpf.Controls.Chart
                 return;
             }
 
-            // reset each element's style first
-            RecoverFromHighlights(links, false);
+            // reset each element's brush first
+            RecoverHighlights(links, false);
 
             var resetBrushes = true;
             var highlightNodes = new List<string>();
@@ -301,7 +301,7 @@ namespace Kant.Wpf.Controls.Chart
             {
                 if ((diagram.HighlightLink.From == linkFinder.From && diagram.HighlightLink.To == linkFinder.To) && (from link in links where (link.FromNode.Name == diagram.HighlightLink.From && link.ToNode.Name == diagram.HighlightLink.To) & link.IsHighlight select link).Count() == 1)
                 {
-                    RecoverFromHighlights(links);
+                    RecoverHighlights(links);
                     ClearHighlight();
 
                     return;
@@ -376,20 +376,20 @@ namespace Kant.Wpf.Controls.Chart
                 }
                 else
                 {
-                    RecoverFromHighlights(link);
+                    RecoverHighlights(link);
                 }
             }
         }
 
-        private void RecoverFromHighlights(List<SankeyLink> links, bool resetHighlightStatus = true)
+        private void RecoverHighlights(List<SankeyLink> links, bool resetHighlightStatus = true)
         {
             foreach (var link in links)
             {
-                RecoverFromHighlights(link, resetHighlightStatus);
+                RecoverHighlights(link, resetHighlightStatus);
             }
         }
 
-        private void RecoverFromHighlights(SankeyLink link, bool resetHighlightStatus = true)
+        private void RecoverHighlights(SankeyLink link, bool resetHighlightStatus = true)
         {
             link.Shape.Fill = link.OriginalBrush.CloneCurrentValue();
             link.FromNode.Shape.Fill = link.FromNode.OriginalBrush.CloneCurrentValue();

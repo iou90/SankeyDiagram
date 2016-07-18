@@ -182,9 +182,7 @@ namespace Kant.Wpf.Controls.Chart
 
         private static void OnHighlightModeSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            var diagram = (SankeyDiagram)o;
-            diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, null);
-            diagram.SetCurrentValue(SankeyDiagram.HighlightLinkProperty, null);
+            ((SankeyDiagram)o).styleManager.ClearHighlight();
         }
 
         private static object HighlightNodeValueCallback(DependencyObject o, object value)
@@ -268,6 +266,7 @@ namespace Kant.Wpf.Controls.Chart
 
         /// <summary>
         /// MouseLeftButtonUp by default
+        /// you can only highlight by label in MouseLeftButtonUp
         /// </summary>
         public HighlightMode HighlightMode
         {

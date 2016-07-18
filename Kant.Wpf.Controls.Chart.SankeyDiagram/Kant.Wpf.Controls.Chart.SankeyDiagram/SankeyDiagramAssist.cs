@@ -122,14 +122,15 @@ namespace Kant.Wpf.Controls.Chart
 
         private SankeyNode CreateNode(SankeyDataRow data, string name)
         {
-            var text = new TextBlock() { Text = name };
+            var label = new TextBlock() { Text = name };
             var shape = new Rectangle();
-            shape.Tag = name;
+            label.Tag = shape.Tag = name;
 
             // for highlighting or other actions
             shape.MouseEnter += NodeMouseEnter;
             shape.MouseLeave += NodeMouseLeave;
             shape.MouseLeftButtonUp += NodeMouseLeftButtonUp;
+            label.MouseLeftButtonUp += NodeMouseLeftButtonUp;
 
             if (diagram.SankeyFlowDirection == FlowDirection.TopToBottom)
             {
@@ -140,7 +141,7 @@ namespace Kant.Wpf.Controls.Chart
                 shape.Width = diagram.NodeThickness;
             }
 
-            var node = new SankeyNode(shape, text);
+            var node = new SankeyNode(shape, label);
             node.Name = name;
             styleManager.SetNodeBrush(node);
 
@@ -213,6 +214,7 @@ namespace Kant.Wpf.Controls.Chart
                         node.Shape.MouseEnter -= NodeMouseEnter;
                         node.Shape.MouseLeave -= NodeMouseLeave;
                         node.Shape.MouseLeftButtonUp -= NodeMouseLeftButtonUp;
+                        node.Label.MouseLeftButtonUp -= NodeMouseLeftButtonUp;
                     }
                 }
 
@@ -741,7 +743,7 @@ namespace Kant.Wpf.Controls.Chart
             return link;
         }
 
-        #region highlight
+        #region node & link events
 
         private void LinkMouseEnter(object sender, MouseEventArgs e)
         {
@@ -771,7 +773,7 @@ namespace Kant.Wpf.Controls.Chart
         {
             if (diagram.HighlightMode == HighlightMode.MouseEnter)
             {
-                diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, ((Rectangle)e.OriginalSource).Tag as string);
+                diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, ((FrameworkElement)e.OriginalSource).Tag as string);
             }
         }
 
@@ -779,7 +781,7 @@ namespace Kant.Wpf.Controls.Chart
         {
             if (diagram.HighlightMode == HighlightMode.MouseEnter)
             {
-                diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, ((Rectangle)e.OriginalSource).Tag as string);
+                diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, ((FrameworkElement)e.OriginalSource).Tag as string);
             }
         }
 
@@ -787,7 +789,7 @@ namespace Kant.Wpf.Controls.Chart
         {
             if (diagram.HighlightMode == HighlightMode.MouseLeftButtonUp)
             {
-                diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, ((Rectangle)e.OriginalSource).Tag as string);
+                diagram.SetCurrentValue(SankeyDiagram.HighlightNodeProperty, ((FrameworkElement)e.OriginalSource).Tag as string);
             }
         }
 
