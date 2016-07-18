@@ -151,15 +151,24 @@ namespace Kant.Wpf.Controls.Chart
 
         public void ClearDiagram()
         {
-            if (!(DiagramCanvas == null || DiagramCanvas.Children == null || DiagramCanvas.Children.Count == 0))
+            RemoveElementEventHandlers();
+            ClearDiagramLabelMeasuredValue();
+            ClearDiagramCanvasChilds();
+            styleManager.ClearHighlight();
+
+            if(currentSliceNodes != null)
             {
-                RemoveElementEventHandlers();
-                ClearDiagramLabelMeasuredValue();
-                ClearDiagramCanvasChilds();
-                CurrentNodes.Clear();
                 currentSliceNodes.Clear();
+            }
+
+            if(CurrentNodes != null)
+            {
+                CurrentNodes.Clear();
+            }
+
+            if(CurrentLinks != null)
+            {
                 CurrentLinks.Clear();
-                styleManager.ClearHighlight();
             }
         }
 
@@ -189,9 +198,13 @@ namespace Kant.Wpf.Controls.Chart
 
         private void RemoveElementEventHandlers()
         {
-            if (CurrentLinks != null && CurrentNodes != null && DiagramCanvas != null)
+            if(DiagramCanvas != null)
             {
                 DiagramCanvas.SizeChanged -= DiagramCanvasSizeChanged;
+            }
+
+            if (CurrentLinks != null && CurrentNodes != null)
+            {
 
                 foreach (var levelNodes in CurrentNodes.Values)
                 {
