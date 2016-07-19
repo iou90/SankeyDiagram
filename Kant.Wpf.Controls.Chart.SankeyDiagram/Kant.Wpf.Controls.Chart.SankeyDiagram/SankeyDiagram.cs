@@ -36,14 +36,10 @@ namespace Kant.Wpf.Controls.Chart
 
             Loaded += (s, e) =>
             {
-                if (IsDiagramCreated)
-                {
-                    return;
-                }
-
                 assist.CreateDiagram();
-                IsDiagramCreated = true;
             };
+
+            SizeChanged += assist.DiagramSizeChanged;
         }
 
         #endregion
@@ -73,15 +69,6 @@ namespace Kant.Wpf.Controls.Chart
             {
                 diagramCanvas = canvas;
                 assist.DiagramCanvas = diagramCanvas;
-                assist.DiagramCanvas.SizeChanged += assist.DiagramCanvasSizeChanged;
-            }
-        }
-
-        protected override void OnRender(DrawingContext drawingContext)
-        {
-            if (isLabelStyleChangedNeedReRender)
-            {
-                assist.CreateDiagram();
             }
         }
 
@@ -155,13 +142,13 @@ namespace Kant.Wpf.Controls.Chart
             if (diagram.FirstAndLastLabelPosition == FirstAndLastLabelPosition.Outward)
             {
                 diagram.assist.RemeatureLabel();
-                diagram.isLabelStyleChangedNeedReRender = true;
+                diagram.assist.CreateDiagram();
             }
         }
 
         private static void ReLoadDiagram(SankeyDiagram diagram)
         {
-            if (diagram.IsDiagramCreated)
+            if (diagram.IsLoaded)
             {
                 diagram.styleManager.ClearHighlight();
                 diagram.assist.CreateDiagram();
@@ -254,7 +241,7 @@ namespace Kant.Wpf.Controls.Chart
             set { SetValue(LabelStyleProperty, value); }
         }
 
-        public static readonly DependencyProperty LabelStyleProperty = DependencyProperty.Register("LabelStyle", typeof(Style), typeof(SankeyDiagram),new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender, OnLabelStyleSourceChanged));
+        public static readonly DependencyProperty LabelStyleProperty = DependencyProperty.Register("LabelStyle", typeof(Style), typeof(SankeyDiagram),new PropertyMetadata(null, OnLabelStyleSourceChanged));
 
         public string HighlightNode
         {
@@ -361,15 +348,11 @@ namespace Kant.Wpf.Controls.Chart
         /// </summary>
         public Grid DiagramGrid { get; private set; }
 
-        public bool IsDiagramCreated { get; private set; }
-
         private Canvas diagramCanvas;
 
         private SankeyStyleManager styleManager;
 
         private SankeyDiagramAssist assist;
-
-        private bool isLabelStyleChangedNeedReRender;
 
         private bool disposedValue;
 

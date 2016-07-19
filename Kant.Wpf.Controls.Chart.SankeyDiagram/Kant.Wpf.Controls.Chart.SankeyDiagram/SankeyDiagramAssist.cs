@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Kant.Wpf.Toolkit;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,18 +28,10 @@ namespace Kant.Wpf.Controls.Chart
 
         #region Methods
 
-        public void DiagramCanvasSizeChanged(object sender, SizeChangedEventArgs e)
+        public void DiagramSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if(!diagram.IsDiagramCreated)
+            if(!diagram.IsLoaded)
             {
-                return;
-            }
-
-            // avoid reduplicative layout calculating
-            if (isCreatingDiagram)
-            {
-                isCreatingDiagram = false;
-
                 return;
             }
 
@@ -59,7 +53,7 @@ namespace Kant.Wpf.Controls.Chart
             UpdateLabelStyle();
 
             // drawing...
-            if (diagram.IsDiagramCreated)
+            if (diagram.IsLoaded)
             {
                 CreateDiagram();
             }
@@ -199,11 +193,6 @@ namespace Kant.Wpf.Controls.Chart
 
         private void RemoveElementEventHandlers()
         {
-            if(DiagramCanvas != null)
-            {
-                DiagramCanvas.SizeChanged -= DiagramCanvasSizeChanged;
-            }
-
             if (CurrentLinks != null && CurrentNodes != null)
             {
 
@@ -244,7 +233,7 @@ namespace Kant.Wpf.Controls.Chart
 
         public void RemeatureLabel()
         {
-            if(CurrentNodes == null || CurrentNodes.Count < 2)
+            if (CurrentNodes == null || CurrentNodes.Count < 2)
             {
                 return;
             }
@@ -256,17 +245,15 @@ namespace Kant.Wpf.Controls.Chart
             }
             else
             {
-                measuredFirstLevelLabelWidth = GetMaxLabelWidth(CurrentNodes[0]);
-                measuredLastLevelLabelWidth = GetMaxLabelWidth(CurrentNodes[CurrentNodes.Count - 1]);
+                measuredFirstLevelLabelWidth = CurrentNodes[0].Max(n => MeasureHepler.MeasureString(n.Name, diagram.LabelStyle, CultureInfo.CurrentCulture).Width);
+                measuredLastLevelLabelWidth = CurrentNodes.Last().Value.Max(n => MeasureHepler.MeasureString(n.Name, diagram.LabelStyle, CultureInfo.CurrentCulture).Width);
             }
 
             foreach (var levelNodes in CurrentNodes.Values)
             {
                 foreach (var node in levelNodes)
                 {
-                    node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                    node.LabelHeight = node.Label.DesiredSize.Height;
-                    node.LabelWidth = node.Label.DesiredSize.Width;
+                    MeatureNodeLabel(node);
                 }
             }
         }
@@ -279,8 +266,6 @@ namespace Kant.Wpf.Controls.Chart
             {
                 return;
             }
-
-            isCreatingDiagram = true;
 
             #region preparing...
 
@@ -405,9 +390,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     if (!node.IsLabelSizeMeasured)
                     {
-                        node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                        node.LabelHeight = node.Label.DesiredSize.Height;
-                        node.LabelWidth = node.Label.DesiredSize.Width;
+                        MeatureNodeLabel(node);
                         node.IsLabelSizeMeasured = true;
                     }
 
@@ -488,8 +471,6 @@ namespace Kant.Wpf.Controls.Chart
             styleManager.ChangeLabelsVisibility(diagram.ShowLabels, CurrentLabels);
 
             #endregion
-
-            isCreatingDiagram = false;
         }
 
         private Dictionary<int, List<SankeyNode>> UpdateNodeLayout(List<SankeyNode> nodes, double nodeThickness)
@@ -555,8 +536,7 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     if (!(measuredLabelHeight > 0))
                     {
-                        nodes[0].Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                        measuredLabelHeight = nodes[0].Label.DesiredSize.Height;
+                        measuredLabelHeight = MeasureHepler.MeasureString(nodes[0].Name, diagram.LabelStyle, CultureInfo.CurrentCulture).Height;
                     }
 
                     var newHeight = DiagramCanvas.ActualHeight - measuredLabelHeight * 2;
@@ -574,12 +554,12 @@ namespace Kant.Wpf.Controls.Chart
                 {
                     if (!(measuredFirstLevelLabelWidth > 0))
                     {
-                        measuredFirstLevelLabelWidth = GetMaxLabelWidth(nodes.FindAll(n => n.X == 0));
+                        measuredFirstLevelLabelWidth = nodes.FindAll(n => n.X == 0).Max(n => MeasureHepler.MeasureString(n.Name, diagram.LabelStyle, CultureInfo.CurrentCulture).Width);
                     }
 
                     if(!(measuredLastLevelLabelWidth > 0))
                     {
-                        measuredLastLevelLabelWidth = GetMaxLabelWidth(nodes.FindAll(n => n.X == levelIndex - 1));
+                        measuredLastLevelLabelWidth = nodes.FindAll(n => n.X == levelIndex - 1).Max(n => MeasureHepler.MeasureString(n.Name, diagram.LabelStyle, CultureInfo.CurrentCulture).Width);
                     }
 
                     var newWidth = diagram.ActualWidth - (measuredLastLevelLabelWidth + measuredFirstLevelLabelWidth);
@@ -651,17 +631,11 @@ namespace Kant.Wpf.Controls.Chart
             return tempNodes.OrderBy(n => n.Key).ToDictionary(item => (int)item.Key, item => item.Value);
         }
 
-        private double GetMaxLabelWidth(List<SankeyNode> nodes)
+        private void MeatureNodeLabel(SankeyNode node)
         {
-            var max = 0.0;
-
-            foreach(var node in nodes)
-            {
-                node.Label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                max = node.Label.DesiredSize.Width > max ? node.Label.DesiredSize.Width : max;
-            }
-
-            return max;
+            var size = MeasureHepler.MeasureString(node.Name, diagram.LabelStyle, CultureInfo.CurrentCulture);
+            node.LabelHeight = size.Height;
+            node.LabelWidth = size.Width;
         }
 
         private SankeyLink DrawLink(SankeyLink link)
@@ -804,13 +778,11 @@ namespace Kant.Wpf.Controls.Chart
         /// <summary>
         /// key means depth
         /// </summary>
-        public Dictionary<int, List<SankeyNode>> CurrentNodes { get; private set; }
+        public Dictionary<int, List<SankeyNode>> CurrentNodes { get; set; }
 
-        public List<SankeyLink> CurrentLinks { get; private set; }
+        public List<SankeyLink> CurrentLinks { get; set; }
 
         public Canvas DiagramCanvas { get; set; }
-
-        private bool isCreatingDiagram;
 
         private double measuredLabelHeight;
 

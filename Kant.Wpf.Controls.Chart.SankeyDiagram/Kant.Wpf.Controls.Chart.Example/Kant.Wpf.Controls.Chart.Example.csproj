@@ -34,9 +34,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Kant.Wpf.MvvmFoundation, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>References\Kant.Wpf.MvvmFoundation.dll</HintPath>
+    <Reference Include="Kant.Wpf.Toolkit">
+      <HintPath>..\References\Kant.Wpf.Toolkit.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -104,10 +103,6 @@
       <Project>{509abf39-f278-4932-bd42-75c51c41c035}</Project>
       <Name>Kant.Wpf.Controls.Chart.SankeyDiagram</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="References\Kant.Wpf.MvvmFoundation.dll" />
-    <Content Include="References\Kant.Wpf.MvvmFoundation.pdb" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
