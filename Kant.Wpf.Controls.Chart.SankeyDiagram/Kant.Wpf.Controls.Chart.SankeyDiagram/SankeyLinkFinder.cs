@@ -28,8 +28,8 @@ namespace Kant.Wpf.Controls.Chart
             To = to;
         }
 
-        public string From { get; }
+        public string From { get; private set; }
 
-        public string To { get; }
+        public string To { get; private set; }
     }
 }
