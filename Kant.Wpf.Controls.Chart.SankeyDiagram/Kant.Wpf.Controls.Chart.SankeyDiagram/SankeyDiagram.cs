@@ -34,10 +34,7 @@ namespace Kant.Wpf.Controls.Chart
             styleManager = new SankeyStyleManager(this);
             assist = new SankeyDiagramAssist(this, styleManager);
 
-            Loaded += (s, e) =>
-            {
-                assist.CreateDiagram();
-            };
+            Loaded += SankeyDiagramLoaded;
 
             SizeChanged += assist.DiagramSizeChanged;
         }
@@ -189,6 +186,12 @@ namespace Kant.Wpf.Controls.Chart
         }
 
         #endregion
+
+        private void SankeyDiagramLoaded(object sender, RoutedEventArgs e)
+        {
+            assist.CreateDiagram();
+            Loaded -= SankeyDiagramLoaded;
+        }
 
         #endregion
 
