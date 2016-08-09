@@ -542,7 +542,7 @@ namespace Kant.Wpf.Controls.Chart
                         measuredLabelHeight = MeasureHepler.MeasureString(nodes[0].Name, diagram.LabelStyle, CultureInfo.CurrentCulture).Height;
                     }
 
-                    if(CheckInsufficientArea(DiagramCanvas.ActualHeight, measuredLabelHeight * 2))
+                    if(!CheckInsufficientArea(measuredLabelHeight * 2, DiagramCanvas.ActualHeight))
                     {
                         return null;
                     }
@@ -561,7 +561,7 @@ namespace Kant.Wpf.Controls.Chart
                         measuredLastLevelLabelWidth = nodes.FindAll(n => n.X == levelIndex - 1).Max(n => MeasureHepler.MeasureString(n.Name, diagram.LabelStyle, CultureInfo.CurrentCulture).Width);
                     }
 
-                    if (CheckInsufficientArea(DiagramCanvas.ActualWidth, measuredLastLevelLabelWidth + measuredFirstLevelLabelWidth))
+                    if (!CheckInsufficientArea(measuredLastLevelLabelWidth + measuredFirstLevelLabelWidth, DiagramCanvas.ActualWidth))
                     {
                         return null;
                     }
