@@ -304,6 +304,14 @@ namespace Kant.Wpf.Controls.Chart
 
         public static readonly DependencyProperty ToolTipTemplateProperty = DependencyProperty.Register("ToolTipTemplate", typeof(ControlTemplate), typeof(SankeyDiagram), new PropertyMetadata(OnToolTipTemplateSourceChanged));
 
+        public int MaxNodeCountInOneLevel
+        {
+            get { return (int)GetValue(MaxNodeCountInOneLevelProperty); }
+            private set { SetValue(MaxNodeCountInOneLevelProperty, value); }
+        }
+
+        public static readonly DependencyProperty MaxNodeCountInOneLevelProperty = DependencyProperty.Register("MaxNodeCountInOneLevel", typeof(int), typeof(SankeyDiagram));
+
         #endregion
 
         #region diagram initial settings

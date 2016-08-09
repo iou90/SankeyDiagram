@@ -318,13 +318,16 @@ namespace Kant.Wpf.Controls.Chart
                 }
             }
 
+            var nodesOverallLength = maxNodeCountInOneLevel * diagram.NodeGap;
+
             // 15 means you have to remain some margin to calculate node's position, or a wrong position of the top node
-            var nodesOverallLength = panelLength - (maxNodeCountInOneLevel * diagram.NodeGap) - 15;
+            var requireLength = nodesOverallLength + 15;
 
-            if (nodesOverallLength <= 0)
+            // set max node count in one level
+            diagram.SetCurrentValue(SankeyDiagram.MaxNodeCountInOneLevelProperty, (int)((panelLength - 15) / diagram.NodeGap));
+
+            if (!CheckInsufficientArea(requireLength, panelLength))
             {
-                DiagramCanvas.Children.Add(new TextBlock() { Text = "diagram area insufficient" });
-
                 return;
             }
 
@@ -539,12 +542,8 @@ namespace Kant.Wpf.Controls.Chart
                         measuredLabelHeight = MeasureHepler.MeasureString(nodes[0].Name, diagram.LabelStyle, CultureInfo.CurrentCulture).Height;
                     }
 
-                    var newHeight = DiagramCanvas.ActualHeight - measuredLabelHeight * 2;
-
-                    if (newHeight <= 0)
+                    if(CheckInsufficientArea(DiagramCanvas.ActualHeight, measuredLabelHeight * 2))
                     {
-                        DiagramCanvas.Children.Add(new TextBlock() { Text = "diagram area insufficient" });
-
                         return null;
                     }
 
@@ -562,12 +561,8 @@ namespace Kant.Wpf.Controls.Chart
                         measuredLastLevelLabelWidth = nodes.FindAll(n => n.X == levelIndex - 1).Max(n => MeasureHepler.MeasureString(n.Name, diagram.LabelStyle, CultureInfo.CurrentCulture).Width);
                     }
 
-                    var newWidth = diagram.ActualWidth - (measuredLastLevelLabelWidth + measuredFirstLevelLabelWidth);
-
-                    if (newWidth <= 0)
+                    if (CheckInsufficientArea(DiagramCanvas.ActualWidth, measuredLastLevelLabelWidth + measuredFirstLevelLabelWidth))
                     {
-                        DiagramCanvas.Children.Add(new TextBlock() { Text = "diagram area insufficient" });
-
                         return null;
                     }
 
@@ -629,6 +624,24 @@ namespace Kant.Wpf.Controls.Chart
             }
 
             return tempNodes.OrderBy(n => n.Key).ToDictionary(item => (int)item.Key, item => item.Value);
+        }
+
+        /// <summary>
+        /// caculate require area length and check how to display
+        /// </summary>
+        /// <returns>if insufficient and not use scaling, return false</returns>
+        private bool CheckInsufficientArea(double requireLength, double currentLength)
+        {
+            if (currentLength - requireLength <= 0)
+            {
+                DiagramCanvas.Children.Add(new TextBlock() { Text = "diagram area insufficient" });
+
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         private void MeatureNodeLabel(SankeyNode node)
