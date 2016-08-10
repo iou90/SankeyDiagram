@@ -38,7 +38,7 @@ namespace Kant.Wpf.Controls.Chart
             CreateDiagram();
         }
 
-        public void UpdateDiagram(IEnumerable<SankeyDataRow> datas)
+        public void UpdateDiagram(IEnumerable<SankeyData> datas)
         {
             // clear diagram first
             ClearDiagram();
@@ -59,7 +59,7 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        private void CreateNodesAndLinks(IEnumerable<SankeyDataRow> datas)
+        private void CreateNodesAndLinks(IEnumerable<SankeyData> datas)
         {
             currentSliceNodes = new List<SankeyNode>();
             CurrentLinks = new List<SankeyLink>();
@@ -114,7 +114,7 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        private SankeyNode CreateNode(SankeyDataRow data, string name)
+        private SankeyNode CreateNode(SankeyData data, string name)
         {
             var label = new TextBlock() { Text = name };
             var shape = new Rectangle();

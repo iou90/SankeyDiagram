@@ -102,7 +102,7 @@ namespace Kant.Wpf.Controls.Chart
 
         private static void OnDatasSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            ((SankeyDiagram)o).assist.UpdateDiagram((IEnumerable<SankeyDataRow>)e.NewValue);
+            ((SankeyDiagram)o).assist.UpdateDiagram((IEnumerable<SankeyData>)e.NewValue);
         }
 
         private static void OnLinkCurvenessSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
@@ -197,13 +197,13 @@ namespace Kant.Wpf.Controls.Chart
 
         #region dependency properties
 
-        public IEnumerable<SankeyDataRow> Datas
+        public IEnumerable<SankeyData> Datas
         {
-            get { return (IEnumerable<SankeyDataRow>)GetValue(DatasProperty); }
+            get { return (IEnumerable<SankeyData>)GetValue(DatasProperty); }
             set { SetValue(DatasProperty, value); }
         }
 
-        public static readonly DependencyProperty DatasProperty = DependencyProperty.Register("Datas", typeof(IEnumerable<SankeyDataRow>), typeof(SankeyDiagram), new PropertyMetadata(new List<SankeyDataRow>(), OnDatasSourceChanged));
+        public static readonly DependencyProperty DatasProperty = DependencyProperty.Register("Datas", typeof(IEnumerable<SankeyData>), typeof(SankeyDiagram), new PropertyMetadata(new List<SankeyData>(), OnDatasSourceChanged));
 
         /// <summary>
         /// 0.55 by default

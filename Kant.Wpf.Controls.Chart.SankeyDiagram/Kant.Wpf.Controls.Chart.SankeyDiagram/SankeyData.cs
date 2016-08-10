@@ -7,13 +7,13 @@ using System.Windows.Media;
 
 namespace Kant.Wpf.Controls.Chart
 {
-    public class SankeyDataRow
+    public class SankeyData
     {
-        public SankeyDataRow()
+        public SankeyData()
         {
         }
 
-        public SankeyDataRow(string from, string to, double weight, Brush linkBrush = null)
+        public SankeyData(string from, string to, double weight, Brush linkBrush = null)
         {
             if(string.IsNullOrEmpty(from))
             {
