@@ -33,9 +33,7 @@ namespace Kant.Wpf.Controls.Chart
             disposedValue = false;
             styleManager = new SankeyStyleManager(this);
             assist = new SankeyDiagramAssist(this, styleManager);
-
             Loaded += SankeyDiagramLoaded;
-
             SizeChanged += assist.DiagramSizeChanged;
         }
 
