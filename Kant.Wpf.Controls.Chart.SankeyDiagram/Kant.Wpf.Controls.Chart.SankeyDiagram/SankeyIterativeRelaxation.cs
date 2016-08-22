@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Kant.Wpf.Controls.Chart
 {
-    public class SankeyIterativeRelaxation
+    public static class SankeyIterativeRelaxation
     {
-        public Dictionary<int, List<SankeyNode>> Calculate(FlowDirection flowDirection, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links, double panelLength, double nodeGap, double unitLength, int iterations)
+        public static Dictionary<int, List<SankeyNode>> Calculate(FlowDirection flowDirection, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links, double panelLength, double nodeGap, double unitLength, int iterations)
         {
             nodes = InitializeNodeLength(nodes, unitLength, flowDirection);
             nodes = ResolveCollisions(nodes, panelLength, nodeGap, flowDirection);
@@ -27,7 +27,7 @@ namespace Kant.Wpf.Controls.Chart
             return nodes;
         }
 
-        private Dictionary<int, List<SankeyNode>> InitializeNodeLength(Dictionary<int, List<SankeyNode>> nodes, double unitLength, FlowDirection flowDirection)
+        private static Dictionary<int, List<SankeyNode>> InitializeNodeLength(Dictionary<int, List<SankeyNode>> nodes, double unitLength, FlowDirection flowDirection)
         {
             foreach (var levelNodes in nodes.Values)
             {
@@ -53,7 +53,7 @@ namespace Kant.Wpf.Controls.Chart
             return nodes;
         }
 
-        private Dictionary<int, List<SankeyNode>> ResolveCollisions(Dictionary<int, List<SankeyNode>> nodes, double panelLength, double nodeGap, FlowDirection flowDirection)
+        private static Dictionary<int, List<SankeyNode>> ResolveCollisions(Dictionary<int, List<SankeyNode>> nodes, double panelLength, double nodeGap, FlowDirection flowDirection)
         {
             foreach (var levelNodes in nodes.Values)
             {
@@ -142,7 +142,7 @@ namespace Kant.Wpf.Controls.Chart
             return nodes;
         }
 
-        private Dictionary<int, List<SankeyNode>> RelaxFromFrontToEnd(Dictionary<int, List<SankeyNode>> nodes, double alpha, FlowDirection flowDirection)
+        private static Dictionary<int, List<SankeyNode>> RelaxFromFrontToEnd(Dictionary<int, List<SankeyNode>> nodes, double alpha, FlowDirection flowDirection)
         {
             foreach (var levelNodes in nodes.Values)
             {
@@ -167,7 +167,7 @@ namespace Kant.Wpf.Controls.Chart
             return nodes;
         }
 
-        private Dictionary<int, List<SankeyNode>> RelaxFromEndToFront(Dictionary<int, List<SankeyNode>> nodes, double alpha, FlowDirection flowDirection)
+        private static Dictionary<int, List<SankeyNode>> RelaxFromEndToFront(Dictionary<int, List<SankeyNode>> nodes, double alpha, FlowDirection flowDirection)
         {
             for (var index = nodes.Count - 1; index >= 0; index--)
             {
@@ -192,7 +192,7 @@ namespace Kant.Wpf.Controls.Chart
             return nodes;
         }
 
-        private double GetCenterValue(SankeyNode node, FlowDirection flowDirection)
+        private static double GetCenterValue(SankeyNode node, FlowDirection flowDirection)
         {
             return flowDirection == FlowDirection.TopToBottom ? node.X + node.Shape.Width / 2 : node.Y + node.Shape.Height / 2;
         }

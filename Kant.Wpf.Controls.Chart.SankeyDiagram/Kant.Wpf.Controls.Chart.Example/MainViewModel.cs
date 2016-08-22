@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Kant.Wpf.Controls.Chart.Example
 {
@@ -254,17 +255,17 @@ namespace Kant.Wpf.Controls.Chart.Example
         #region Fields & Properties
 
         private List<SankeyData> sankeyDatas;
-        public List<SankeyData> SankeyDatas
+        public IReadOnlyList<SankeyData> SankeyDatas
         {
             get
             {
                 return sankeyDatas;
             }
-            set
+            private set
             {
                 if (value != sankeyDatas)
                 {
-                    sankeyDatas = value;
+                    sankeyDatas = value == null ? null : value.ToList();
                     RaisePropertyChanged(() => SankeyDatas);
                 }
             }

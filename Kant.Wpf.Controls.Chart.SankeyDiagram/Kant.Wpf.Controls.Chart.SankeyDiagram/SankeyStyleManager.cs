@@ -35,7 +35,7 @@ namespace Kant.Wpf.Controls.Chart
             DefaultLinkBrush = new SolidColorBrush(Colors.Gray) { Opacity = opacity };
         }
 
-        public void UpdateLinkCurvature(double curvature, List<SankeyLink> links)
+        public void UpdateLinkCurvature(double curvature, IReadOnlyList<SankeyLink> links)
         {
             if(!(curvature > 0 && curvature <= 1) || links == null || links.Count == 0)
             {
@@ -113,7 +113,7 @@ namespace Kant.Wpf.Controls.Chart
             node.OriginalBrush = node.Shape.Fill.CloneCurrentValue();
         }
 
-        public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
+        public void UpdateNodeBrushes(Dictionary<string, Brush> newBrushes, IReadOnlyDictionary<int, IReadOnlyList<SankeyNode>> nodes, IReadOnlyList<SankeyLink> links)
         {
             if (diagram == null || newBrushes == null || nodes == null || nodes.Count() < 2)
             {
@@ -163,7 +163,7 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        public void UpdateNodeBrushes(Brush brush, Dictionary<int, List<SankeyNode>> nodes)
+        public void UpdateNodeBrushes(Brush brush, IReadOnlyDictionary<int, IReadOnlyList<SankeyNode>> nodes)
         {
             if(diagram == null || brush == null || nodes == null || nodes.Count < 2)
             {
@@ -186,7 +186,7 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        public void ChangeToolTipTemplate(ControlTemplate newTemplate, List<SankeyLink> links)
+        public void ChangeToolTipTemplate(ControlTemplate newTemplate, IReadOnlyList<SankeyLink> links)
         {
             if(links == null || newTemplate == null)
             {
@@ -210,7 +210,7 @@ namespace Kant.Wpf.Controls.Chart
             diagram.SetCurrentValue(SankeyDiagram.HighlightLinkProperty, null);
         }
 
-        public void ChangeLabelsVisibility(bool showLabels, List<TextBlock> labels)
+        public void ChangeLabelsVisibility(bool showLabels, IReadOnlyList<TextBlock> labels)
         {
             if(labels == null)
             {
@@ -223,7 +223,7 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        public void HighlightingNode(string highlightNode, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
+        public void HighlightingNode(string highlightNode, IReadOnlyDictionary<int, IReadOnlyList<SankeyNode>> nodes, IReadOnlyList<SankeyLink> links)
         {
             if ((string.IsNullOrEmpty(highlightNode) && string.IsNullOrEmpty(diagram.HighlightNode) || nodes == null || nodes.Count < 2 || links == null || links.Count == 0))
             {
@@ -267,7 +267,7 @@ namespace Kant.Wpf.Controls.Chart
             Highlighting(links, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Name == highlightNode || link.ToNode.Name == highlightNode; }));
         }
 
-        public void HighlightingLink(SankeyLinkFinder linkFinder, Dictionary<int, List<SankeyNode>> nodes, List<SankeyLink> links)
+        public void HighlightingLink(SankeyLinkFinder linkFinder, IReadOnlyDictionary<int, IReadOnlyList<SankeyNode>> nodes, IReadOnlyList<SankeyLink> links)
         {
             if ((linkFinder == null && diagram.HighlightLink == null || nodes == null || nodes.Count < 2 || links == null || links.Count == 0))
             {
@@ -320,7 +320,7 @@ namespace Kant.Wpf.Controls.Chart
             Highlighting(links, resetBrushes, diagram.HighlightOpacity, diagram.LoweredOpacity, highlightNodes, minimizeNodes, new Func<SankeyLink, bool>(link => { return link.FromNode.Name == linkFinder.From && link.ToNode.Name == linkFinder.To; }));
         }
 
-        private void Highlighting(List<SankeyLink> links, bool resetBrushes, double highlightOpacity, double loweredOpacity, List<string> highlightNodes, List<string> minimizeNodes, Func<SankeyLink, bool> isHighlightedElement)
+        private void Highlighting(IReadOnlyList<SankeyLink> links, bool resetBrushes, double highlightOpacity, double loweredOpacity, List<string> highlightNodes, List<string> minimizeNodes, Func<SankeyLink, bool> isHighlightedElement)
         {
             var setStyle = new Action<FrameworkElement, Style>((e, style) =>
             {
@@ -381,7 +381,7 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        private void RecoverHighlights(List<SankeyLink> links, bool resetHighlightStatus = true)
+        private void RecoverHighlights(IReadOnlyList<SankeyLink> links, bool resetHighlightStatus = true)
         {
             foreach (var link in links)
             {
