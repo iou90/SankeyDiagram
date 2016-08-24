@@ -36,6 +36,5 @@ namespace Kant.Wpf.Controls.Chart
         public double Weight { get; set; }
 
         public double Width { get; set; }
-
     }
 }
