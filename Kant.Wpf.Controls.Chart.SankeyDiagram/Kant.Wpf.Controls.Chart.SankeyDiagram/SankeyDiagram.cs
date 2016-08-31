@@ -312,7 +312,7 @@ namespace Kant.Wpf.Controls.Chart
 
         #endregion
 
-        #region diagram initial settings
+        #region initial settings
 
         /// <summary>
         /// 10 by default

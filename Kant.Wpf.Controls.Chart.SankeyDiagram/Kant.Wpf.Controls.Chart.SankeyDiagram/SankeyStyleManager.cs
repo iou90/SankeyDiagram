@@ -225,7 +225,7 @@ namespace Kant.Wpf.Controls.Chart
 
         public void HighlightingNode(string highlightNode, IReadOnlyDictionary<int, IReadOnlyList<SankeyNode>> nodes, IReadOnlyList<SankeyLink> links)
         {
-            if ((string.IsNullOrEmpty(highlightNode) && string.IsNullOrEmpty(diagram.HighlightNode) || nodes == null || nodes.Count < 2 || links == null || links.Count == 0))
+            if (string.IsNullOrEmpty(highlightNode) && string.IsNullOrEmpty(diagram.HighlightNode) || nodes == null || nodes.Count < 2 || links == null || links.Count == 0)
             {
                 return;
             }
@@ -269,7 +269,7 @@ namespace Kant.Wpf.Controls.Chart
 
         public void HighlightingLink(SankeyLinkFinder linkFinder, IReadOnlyDictionary<int, IReadOnlyList<SankeyNode>> nodes, IReadOnlyList<SankeyLink> links)
         {
-            if ((linkFinder == null && diagram.HighlightLink == null || nodes == null || nodes.Count < 2 || links == null || links.Count == 0))
+            if (linkFinder == null && diagram.HighlightLink == null || nodes == null || nodes.Count < 2 || links == null || links.Count == 0)
             {
                 return;
             }

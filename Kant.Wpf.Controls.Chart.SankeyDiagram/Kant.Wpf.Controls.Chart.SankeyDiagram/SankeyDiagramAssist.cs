@@ -146,7 +146,7 @@ namespace Kant.Wpf.Controls.Chart
 
         public void ClearDiagram()
         {
-            RemoveElementEventHandlers();
+            RemoveEventHandlers();
             ClearDiagramLabelMeasuredValue();
             ClearDiagramCanvasChilds();
             styleManager.ClearHighlight();
@@ -191,7 +191,7 @@ namespace Kant.Wpf.Controls.Chart
             }
         }
 
-        private void RemoveElementEventHandlers()
+        private void RemoveEventHandlers()
         {
             if (currentLinks != null && currentNodes != null)
             {
